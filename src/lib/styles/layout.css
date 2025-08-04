@@ -1,0 +1,47 @@
+/* Layout utilities */
+.full-screen {
+  @apply relative w-full h-screen;
+}
+
+.centered-absolute {
+  @apply absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
+}
+
+.overlay-container {
+  @apply absolute z-40;
+}
+
+/* Flexbox utilities */
+.flex-center {
+  @apply flex items-center justify-center;
+}
+
+.flex-between {
+  @apply flex items-center justify-between;
+}
+
+.flex-items-center {
+  @apply flex items-center;
+}
+
+.flex-space-x-2 {
+  @apply flex space-x-2;
+}
+
+/* Spacing utilities */
+.section-padding {
+  @apply px-4 py-6;
+}
+
+.container-padding {
+  @apply p-4;
+}
+
+/* Position utilities */
+.absolute-top-right {
+  @apply absolute top-4 right-4;
+}
+
+.absolute-bottom-right {
+  @apply absolute bottom-4 right-4;
+} 

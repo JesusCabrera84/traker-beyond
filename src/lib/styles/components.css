@@ -1,0 +1,100 @@
+/* Header Component Styles */
+.header-container {
+  @apply fixed top-0 left-1/2 transform -translate-x-1/2 z-50;
+}
+
+.header-nav {
+  @apply flex bg-white/10 backdrop-blur-xl rounded-4xl shadow-lg border-2 border-white/10;
+}
+
+.header-button {
+  @apply px-6 py-2 rounded-4xl text-sm font-medium transition-all duration-200 text-blue-100;
+}
+
+.header-button-active {
+  @apply bg-white text-slate-600 shadow-lg ;
+}
+
+.header-button-inactive {
+  @apply  hover:bg-white/20 hover:text-blue-100 hover:shadow-lg;
+}
+
+/* Login Component Styles */
+.login-container {
+  @apply min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-900 via-blue-800 to-indigo-900;
+}
+
+.login-form-container {
+  @apply max-w-md w-full space-y-8 p-8;
+}
+
+.login-logo {
+  @apply mx-auto h-16 w-16 bg-white/10 rounded-full flex items-center justify-center mb-4;
+}
+
+.login-title {
+  @apply text-3xl font-bold text-white mb-2;
+}
+
+.login-subtitle {
+  @apply text-blue-200;
+}
+
+.login-input {
+  @apply w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200;
+}
+
+.login-button {
+  @apply w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200;
+}
+
+.login-error {
+  @apply bg-red-500/20 border border-red-500/30 rounded-lg p-3;
+}
+
+.login-error-text {
+  @apply text-red-200 text-sm;
+}
+
+.login-demo-credentials {
+  @apply bg-white/5 rounded-lg p-4 border border-white/10;
+}
+
+.logout-button {
+  @apply bg-red-500/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg text-white text-sm font-medium hover:bg-red-600/90 transition-all duration-200;
+}
+
+/* Map Component Styles */
+.map-container {
+  @apply w-full h-full;
+}
+
+.map-placeholder {
+  @apply w-full h-full bg-gray-900 flex items-center justify-center;
+}
+
+.map-placeholder-content {
+  @apply text-center text-white;
+}
+
+/* Loading and Error States */
+.loading-overlay {
+  @apply absolute top-20 left-1/2 transform -translate-x-1/2 z-40;
+}
+
+.loading-container {
+  @apply bg-white/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg;
+}
+
+.error-container {
+  @apply bg-red-500/90 backdrop-blur-sm rounded-lg px-4 py-2 shadow-lg;
+}
+
+/* Device Counter */
+.device-counter {
+  @apply absolute bottom-4 right-4 z-40;
+}
+
+.device-counter-container {
+  @apply bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg;
+} 

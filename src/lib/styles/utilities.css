@@ -1,0 +1,75 @@
+/* Custom utility classes */
+.text-shadow {
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.glass-effect {
+  @apply bg-white/10 backdrop-blur-md border border-white/20;
+}
+
+.glass-effect-strong {
+  @apply bg-white/20 backdrop-blur-xl border-2 border-white/30;
+}
+
+/* Animation utilities */
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Loading spinner */
+.spinner {
+  @apply animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600;
+}
+
+/* Text utilities */
+.text-sm-medium {
+  @apply text-sm font-medium;
+}
+
+.text-lg-bold {
+  @apply text-lg font-bold;
+}
+
+/* Color utilities */
+.text-gray-700 {
+  @apply text-gray-700;
+}
+
+.text-gray-600 {
+  @apply text-gray-600;
+}
+
+.text-gray-300 {
+  @apply text-gray-300;
+}
+
+.text-white {
+  @apply text-white;
+}
+
+.text-green-400 {
+  @apply text-green-400;
+}
+
+/* Responsive utilities */
+.mobile-only {
+  @apply block md:hidden;
+}
+
+.desktop-only {
+  @apply hidden md:block;
+} 

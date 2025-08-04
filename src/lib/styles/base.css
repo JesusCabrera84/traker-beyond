@@ -1,0 +1,26 @@
+/* Base Tailwind CSS imports */
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+/* Custom CSS variables */
+:root {
+  --header-height: 4rem;
+  --map-overlay-z-index: 40;
+  --header-z-index: 50;
+  --primary-color: #3b82f6;
+  --error-color: #ef4444;
+  --success-color: #10b981;
+}
+
+/* Global base styles */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+#svelte {
+  height: 100%;
+} 
