@@ -17,8 +17,9 @@ La página principal (`/`) ahora es una página de login con:
 
 - **Video de fondo**: `static/vid/map-back.mp4` ocupando toda la pantalla
 - **Markers sobrepuestos**: Imágenes de GPS aleatorias sobre el video
+- **Círculos animados**: Grupos de círculos que aparecen, se animan y desaparecen
 - **Overlay de login**: Formulario centrado con efecto de cristal
-- **Diseño dinámico**: Markers cambian de posición en cada carga
+- **Diseño dinámico**: Elementos cambian de posición en cada carga
 
 ### Clases Disponibles
 
@@ -35,6 +36,15 @@ La página principal (`/`) ahora es una página de login con:
   - `user-select: none` (no seleccionables)
   - `z-index: 1`
   - Efecto de sombra y hover
+
+#### Círculos Animados
+- `.animated-circle` - Círculos que aparecen y desaparecen
+  - `position: fixed`
+  - `pointer-events: none` (no seleccionables)
+  - `user-select: none` (no seleccionables)
+  - `z-index: 2`
+  - Animación de 8 segundos
+  - Efecto de brillo mejorado
 
 #### Overlay de Login
 - `.login-overlay` - Contenedor del formulario de login
@@ -55,6 +65,9 @@ La página principal (`/`) ahora es una página de login con:
 <img src="/img/marker-blue.png" class="overlay-marker" />
 <img src="/img/marker-red.png" class="overlay-marker" />
 
+<!-- Círculos animados -->
+<div class="animated-circle"></div>
+
 <!-- Overlay de login -->
 <div class="login-overlay">
   <h1>Bienvenido</h1>
@@ -65,21 +78,56 @@ La página principal (`/`) ahora es una página de login con:
 ### Características de los Markers
 
 #### Posicionamiento Aleatorio
-- **Cantidad**: 3-6 markers por carga
+- **Cantidad**: 6-10 markers por carga
 - **Posición**: 10% a 90% del ancho y alto de la pantalla
-- **Rotación**: 0° a 360° aleatoria
-- **Escala**: 0.8x a 1.2x aleatoria
-- **Opacidad**: 0.7 a 1.0 aleatoria
+- **Opacidad**: 0.5 a 0.8 aleatoria
 
 #### Imágenes Disponibles
 - `static/img/marker-blue.png` - Marker azul
-- `static/img/marker-red.png` - Marker rojo
+- `static/img/marker-red-1.png` - Marker rojo
+- `static/img/marker-green.png` - Marker verde
+- `static/img/marker-orange.png` - Marker naranja
 
 #### Interactividad
 - **No seleccionables**: `pointer-events: none`
 - **No arrastrables**: `draggable="false"`
 - **Sin menú contextual**: `on:contextmenu|preventDefault`
 - **Efecto hover**: Escala y sombra mejorada
+
+### Características de los Círculos Animados
+
+#### Generación en Grupos
+- **Frecuencia**: Cada 3-6 segundos
+- **Cantidad por grupo**: 3-8 círculos
+- **Delay entre círculos**: 200ms (efecto escalonado)
+- **Posición**: 5% a 95% del ancho y alto de la pantalla
+- **Tamaño**: 10px a 100px aleatorio
+- **Colores**: Rojo, verde, azul, amarillo, magenta, cian
+
+#### Animación Mejorada
+- **Duración**: 8 segundos
+- **Secuencia**: 
+  - 0%: Aparece (escala 0, opacidad 0)
+  - 15%: Escala completa (escala 1, opacidad 1)
+  - 70%: Escala expandida (escala 1.3, opacidad 0.9)
+  - 100%: Desaparece (escala 0, opacidad 0)
+- **Efecto**: Brillo mejorado con `box-shadow`
+- **Desaparición**: Automática después de la animación
+
+#### Colores Disponibles
+- `rgba(255, 107, 107, 0.8)` - Rojo
+- `rgba(107, 255, 107, 0.8)` - Verde
+- `rgba(107, 107, 255, 0.8)` - Azul
+- `rgba(255, 255, 107, 0.8)` - Amarillo
+- `rgba(255, 107, 255, 0.8)` - Magenta
+- `rgba(107, 255, 255, 0.8)` - Cian
+
+#### Efecto de Degradado
+- **Tipo**: Degradado radial (`radial-gradient`)
+- **Centro**: Transparente (0% a 30%)
+- **Borde**: Color sólido (100%)
+- **Efecto**: Apariencia de "halo" o "aura"
+- **Blend Mode**: `screen` para mejor integración visual
 
 ### Efectos Visuales
 
@@ -88,6 +136,9 @@ La página principal (`/`) ahora es una página de login con:
 - **Sombras**: `box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2)`
 - **Bordes**: `border: 1px solid rgba(255, 255, 255, 0.2)`
 - **Sombra en markers**: `drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))`
+- **Brillo en círculos**: `box-shadow: 0 0 40px rgba(255, 255, 255, 0.5)`
+- **Degradado radial**: `radial-gradient(circle, transparent 0%, transparent 30%, color 100%)`
+- **Blend mode**: `mix-blend-mode: screen`
 
 ## Componentes
 
@@ -112,6 +163,7 @@ La página principal (`/`) ahora es una página de login con:
 ### Animaciones
 - `fade-in` - Animación de aparición
 - `slide-up` - Animación de deslizamiento hacia arriba
+- `circleAnimation` - Animación de círculos mejorada
 
 ### Texto
 - `text-gradient` - Texto con gradiente
