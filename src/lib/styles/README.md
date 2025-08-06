@@ -16,7 +16,7 @@
 La página principal (`/`) ahora es una página de login con:
 
 - **Video de fondo**: `static/vid/map-back.mp4` ocupando toda la pantalla
-- **Markers sobrepuestos**: Imágenes de GPS aleatorias sobre el video
+- **Overlay con degradado**: Capa de colores morado, rojo y azul con opacidad 0.2
 - **Círculos animados**: Grupos de círculos que aparecen, se animan y desaparecen
 - **Overlay de login**: Formulario centrado con efecto de cristal
 - **Diseño dinámico**: Elementos cambian de posición en cada carga
@@ -29,13 +29,14 @@ La página principal (`/`) ahora es una página de login con:
   - `object-fit: cover`
   - `z-index: -1`
 
-#### Markers Sobrepostos
-- `.overlay-marker` - Imágenes de GPS sobre el video
+#### Overlay con Degradado
+- `.gradient-overlay` - Capa de colores sobre el video
   - `position: fixed`
-  - `pointer-events: none` (no seleccionables)
-  - `user-select: none` (no seleccionables)
-  - `z-index: 1`
-  - Efecto de sombra y hover
+  - `width: 100%` y `height: 100%`
+  - `z-index: 0`
+  - `pointer-events: none` (no interactivo)
+  - Degradado lineal de 45° con morado, rojo y azul
+  - Opacidad de 0.2 para cada color
 
 #### Círculos Animados
 - `.animated-circle` - Círculos que aparecen y desaparecen
@@ -53,46 +54,155 @@ La página principal (`/`) ahora es una página de login con:
   - Sombra elegante
   - Borde sutil
 
-### Estructura HTML
+### Características del Overlay de Login
+
+#### Formulario Principal
+- **Campos de entrada**: Email y contraseña con validación
+- **Botón de login**: Con gradiente y efectos hover
+- **Validación**: Campos requeridos y formato de email
+- **Accesibilidad**: Labels asociados y navegación por teclado
+
+#### Campos de Entrada
+- `.form-input` - Estilo para inputs de email y contraseña
+  - `border: 2px solid #e1e5e9` - Borde sutil
+  - `border-radius: 8px` - Esquinas redondeadas
+  - `transition: all 0.3s ease` - Animaciones suaves
+  - `background: rgba(255, 255, 255, 0.9)` - Fondo semi-transparente
+  - Focus: Borde azul con sombra y fondo sólido
+
+#### Botón de Login
+- `.login-button` - Botón principal de inicio de sesión
+  - `background: linear-gradient(135deg, #667eea 0%, #764ba2 100%)` - Gradiente azul-morado
+  - `transform: translateY(-2px)` - Efecto de elevación en hover
+  - `box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3)` - Sombra con color
+
+#### Separador Visual
+- `.separator` - Línea divisoria con texto
+  - Línea horizontal con texto centrado
+  - Fondo blanco para el texto
+  - `color: #666` - Texto gris
+
+#### Botones de Redes Sociales
+- `.social-buttons` - Contenedor de botones sociales
+  - `display: flex` - Layout horizontal
+  - `gap: 1rem` - Espaciado entre botones
+  - `justify-content: center` - Centrado
+
+- `.social-button` - Estilo base para botones sociales
+  - `border: 2px solid #e1e5e9` - Borde sutil
+  - `display: flex` - Layout para icono y texto
+  - `gap: 0.5rem` - Espacio entre icono y texto
+  - `min-width: 100px` - Ancho mínimo
+  - Hover: Elevación y cambio de color
+
+#### Iconos de Redes Sociales
+- `.social-icon` - SVG icons de 20x20px
+- **Google**: Colores oficiales (azul, verde, amarillo, rojo)
+- **Facebook**: Color oficial #1877F2
+- **X (Twitter)**: Color negro
+
+#### Colores de Hover por Red Social
+- `.google-button:hover` - Borde y texto azul (#4285F4)
+- `.facebook-button:hover` - Borde y texto azul (#1877F2)
+- `.twitter-button:hover` - Borde y texto negro (#000000)
+
+#### Enlaces Adicionales
+- `.login-links` - Contenedor de enlaces
+  - `display: flex` - Layout horizontal
+  - `justify-content: space-between` - Distribución
+  - `gap: 1rem` - Espaciado
+
+- `.link` - Estilo para enlaces
+  - `color: #667eea` - Color azul
+  - `text-decoration: none` - Sin subrayado
+  - Hover: Subrayado y color más oscuro
+
+#### Responsive Design
+- **Mobile (< 480px)**:
+  - `.login-overlay`: `min-width: 320px`, `padding: 2rem`
+  - `.social-buttons`: `flex-direction: column`
+  - `.login-links`: `flex-direction: column`, `text-align: center`
+
+### Estructura HTML del Formulario
 
 ```html
-<!-- Video de fondo -->
-<video class="background-video" autoplay muted loop playsinline>
-  <source src="/vid/map-back.mp4" type="video/mp4" />
-</video>
-
-<!-- Markers sobrepuestos -->
-<img src="/img/marker-blue.png" class="overlay-marker" />
-<img src="/img/marker-red.png" class="overlay-marker" />
-
-<!-- Círculos animados -->
-<div class="animated-circle"></div>
-
-<!-- Overlay de login -->
 <div class="login-overlay">
   <h1>Bienvenido</h1>
-  <!-- Formulario de login aquí -->
+  
+  <!-- Formulario de login -->
+  <form class="login-form">
+    <div class="form-group">
+      <label for="email">Correo electrónico</label>
+      <input type="email" id="email" class="form-input" required />
+    </div>
+    
+    <div class="form-group">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" class="form-input" required />
+    </div>
+    
+    <button type="submit" class="login-button">
+      Iniciar Sesión
+    </button>
+  </form>
+  
+  <!-- Separador -->
+  <div class="separator">
+    <span>o continúa con</span>
+  </div>
+  
+  <!-- Botones de redes sociales -->
+  <div class="social-buttons">
+    <button class="social-button google-button">
+      <svg class="social-icon">...</svg>
+      Google
+    </button>
+    
+    <button class="social-button facebook-button">
+      <svg class="social-icon">...</svg>
+      Facebook
+    </button>
+    
+    <button class="social-button twitter-button">
+      <svg class="social-icon">...</svg>
+      X
+    </button>
+  </div>
+  
+  <!-- Enlaces adicionales -->
+  <div class="login-links">
+    <a href="#" class="link">¿Olvidaste tu contraseña?</a>
+    <a href="#" class="link">Crear cuenta</a>
+  </div>
 </div>
 ```
 
-### Características de los Markers
+### Funcionalidad JavaScript
 
-#### Posicionamiento Aleatorio
-- **Cantidad**: 6-10 markers por carga
-- **Posición**: 10% a 90% del ancho y alto de la pantalla
-- **Opacidad**: 0.5 a 0.8 aleatoria
+#### Variables Reactivas
+- `email` - Campo de correo electrónico
+- `password` - Campo de contraseña
+- `circles` - Array de círculos animados
 
-#### Imágenes Disponibles
-- `static/img/marker-blue.png` - Marker azul
-- `static/img/marker-red-1.png` - Marker rojo
-- `static/img/marker-green.png` - Marker verde
-- `static/img/marker-orange.png` - Marker naranja
+#### Funciones Principales
+- `handleLogin()` - Maneja el envío del formulario
+- `handleSocialLogin(provider)` - Maneja login con redes sociales
+- `handleKeyPress(event)` - Maneja tecla Enter
+- `startCircleGeneration()` - Inicia generación de círculos
+- `createRandomCircle()` - Crea círculo aleatorio
 
-#### Interactividad
-- **No seleccionables**: `pointer-events: none`
-- **No arrastrables**: `draggable="false"`
-- **Sin menú contextual**: `on:contextmenu|preventDefault`
-- **Efecto hover**: Escala y sombra mejorada
+#### Flujo de Autenticación
+1. **Verificación inicial**: `onMount` verifica si ya está logueado
+2. **Login manual**: `handleLogin()` simula autenticación
+3. **Login social**: `handleSocialLogin()` maneja redes sociales
+4. **Redirección**: `goto('/tracking')` después del login exitoso
+5. **Almacenamiento**: `localStorage` guarda estado de autenticación
+
+#### Simulación de Autenticación
+- **Login manual**: Cualquier email/contraseña válidos
+- **Login social**: Simula OAuth con proveedores
+- **Persistencia**: `localStorage.setItem('isLoggedIn', 'true')`
+- **Proveedor**: `localStorage.setItem('loginProvider', provider)`
 
 ### Características de los Círculos Animados
 
@@ -132,10 +242,10 @@ La página principal (`/`) ahora es una página de login con:
 ### Efectos Visuales
 
 - **Overlay oscuro**: `body::before` con `rgba(0, 0, 0, 0.3)`
+- **Overlay de colores**: Degradado morado-rojo-azul con opacidad 0.2
 - **Blur en overlay**: `backdrop-filter: blur(15px)`
 - **Sombras**: `box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2)`
 - **Bordes**: `border: 1px solid rgba(255, 255, 255, 0.2)`
-- **Sombra en markers**: `drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3))`
 - **Brillo en círculos**: `box-shadow: 0 0 40px rgba(255, 255, 255, 0.5)`
 - **Degradado radial**: `radial-gradient(circle, transparent 0%, transparent 30%, color 100%)`
 - **Blend mode**: `mix-blend-mode: screen`
@@ -180,4 +290,5 @@ La página principal (`/`) ahora es una página de login con:
 
 - `map-markers.css` - Ya no se usa (eliminado)
 - `MapStyleSelector.svelte` - Componente eliminado
-- Dependencias de MapLibre GL - Removidas de la página principal 
+- Dependencias de MapLibre GL - Removidas de la página principal
+- Markers sobrepuestos - Eliminados completamente 

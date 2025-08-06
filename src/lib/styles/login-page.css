@@ -11,21 +11,21 @@
   z-index: -1;
 }
 
-/* Markers sobrepuestos */
-.overlay-marker {
+/* Overlay con degradado */
+.gradient-overlay {
   position: fixed;
-  width: 43px;
-  height: 64px;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    45deg,
+    rgba(128, 0, 128, 0.2),  /* Morado */
+    rgba(255, 0, 0, 0.2),    /* Rojo */
+    rgba(0, 0, 255, 0.2)     /* Azul */
+  );
+  z-index: 0;
   pointer-events: none;
-  user-select: none;
-  z-index: 1;
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
-  transition: all 0.3s ease;
-}
-
-.overlay-marker:hover {
-  transform: scale(1.1) !important;
-  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
 }
 
 /* Círculos animados */
@@ -65,15 +65,15 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(4, 85, 133, 0.2);
   padding: 3rem;
   border-radius: 15px;
   z-index: 1001;
   text-align: center;
-  backdrop-filter: blur(15px);
+  backdrop-filter: blur(10px);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
   min-width: 400px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.5);
 }
 
 .login-overlay h1 {
@@ -82,6 +82,190 @@
   font-size: 2.5rem;
   font-weight: 600;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Formulario de login */
+.login-form {
+  margin-bottom: 2rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #555;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-bottom: 2px solid #e1e5e9;
+  border-radius: 30px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  background: rgba(164, 143, 223, 0.1);
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  outline: none;
+  border-bottom-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  color: #fff;
+}
+
+.form-input::placeholder {
+  color: #999;
+}
+
+.login-button {
+  width: 100%;
+  padding: 0.875rem 1.5rem;
+  background: linear-gradient(135deg, #2343d1 0%, #4b71a2 100%);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.5);
+}
+
+.login-button:active {
+  transform: translateY(0);
+}
+
+/* Separador */
+.separator {
+  position: relative;
+  text-align: center;
+  margin: 2rem;
+  padding-bottom: 2rem;
+}
+
+.separator::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: #e1e5e9;
+}
+
+
+/* Botones de redes sociales */
+.social-buttons {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  justify-content: center;
+}
+
+.social-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #e1e5e9;
+  border-radius: 80px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #333;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 100px;
+}
+
+.social-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.social-button:active {
+  transform: translateY(0);
+}
+
+.social-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Colores específicos para cada red social */
+.google-button:hover {
+  border-color: #df4040;
+  color: #4285F4;
+}
+
+.facebook-button:hover {
+  border-color: #1877F2;
+  color: #1877F2;
+}
+
+.twitter-button:hover {
+  border-color: #000000;
+  color: #000000;
+}
+
+/* Enlaces adicionales */
+.login-links {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.link {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.3s ease;
+}
+
+.link:hover {
+  color: #5a67d8;
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .login-overlay {
+    min-width: 320px;
+    padding: 2rem;
+    margin: 1rem;
+  }
+  
+  .social-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  
+  .social-button {
+    min-width: auto;
+  }
+  
+  .login-links {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
 }
 
 /* Estilos globales para el body */
