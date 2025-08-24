@@ -35,7 +35,7 @@
   pointer-events: none;
   user-select: none;
   z-index: 2;
-  animation: circleAnimation 8s ease-out forwards;
+  animation: circleAnimation 10s ease-out forwards;
   box-shadow: 0 0 40px rgba(255, 255, 255, 0.5);
   mix-blend-mode: screen;
 }
