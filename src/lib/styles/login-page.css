@@ -1355,6 +1355,20 @@ section::before {
 	background: rgba(40, 59, 72, 0.7);
 }
 
+/* Estilos para el autofill de los navegadores en el formulario de contacto */
+.form-group input:-webkit-autofill,
+.form-group input:-webkit-autofill:hover,
+.form-group input:-webkit-autofill:focus,
+.form-group input:-webkit-autofill:active,
+.form-group textarea:-webkit-autofill,
+.form-group textarea:-webkit-autofill:hover,
+.form-group textarea:-webkit-autofill:focus,
+.form-group textarea:-webkit-autofill:active {
+	-webkit-box-shadow: 0 0 0 30px #283b48 inset !important;
+	-webkit-text-fill-color: #d8d7cc !important;
+	transition: background-color 5000s ease-in-out 0s;
+}
+
 .form-group input::placeholder,
 .form-group textarea::placeholder {
 	color: rgba(216, 215, 204, 0.6);
