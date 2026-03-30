@@ -1067,6 +1067,17 @@
 		box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
 	}
 
+	/* Estilos para el autofill de los navegadores (Chrome, Safari, etc.) */
+	.form-input:-webkit-autofill,
+	.form-input:-webkit-autofill:hover,
+	.form-input:-webkit-autofill:focus,
+	.form-input:-webkit-autofill:active {
+		-webkit-box-shadow: 0 0 0 30px #283b48 inset !important;
+		-webkit-text-fill-color: #d8d7cc !important;
+		transition: background-color 5000s ease-in-out 0s;
+		caret-color: #d8d7cc;
+	}
+
 	.error-message {
 		color: #fca5a5;
 		font-size: 0.75rem;
