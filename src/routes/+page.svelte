@@ -51,7 +51,6 @@
 		'/img/products/nexus/flayer-4.png'
 	];
 	let currentNexusSlide = 0;
-	let nexusVideo;
 	let nexusCarouselInterval;
 
 	// Rotating Features Data
@@ -199,12 +198,6 @@
 		}, 65);
 
 		// Cleanup
-		if (nexusVideo) {
-			nexusVideo.loop = true;
-			nexusVideo.play().catch(() => {});
-		}
-
-		// Cleanup
 		return () => {
 			window.removeEventListener('resize', checkMobile);
 
@@ -213,6 +206,32 @@
 			if (orionInterval) clearInterval(orionInterval);
 		};
 	});
+
+	// Función para lazy loading de videos que no están en el viewport inicial
+	function lazyVideo(node, src) {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting) {
+					node.src = src;
+					node.load();
+					const playPromise = node.play();
+					if (playPromise !== undefined) {
+						playPromise.catch(() => {});
+					}
+					observer.unobserve(node);
+				}
+			},
+			{ rootMargin: '400px' } // Cargamos el video 400px antes de que entre en pantalla
+		);
+
+		observer.observe(node);
+
+		return {
+			destroy() {
+				observer.disconnect();
+			}
+		};
+	}
 
 	function startCircleGeneration() {
 		const generateGroup = () => {
@@ -647,8 +666,14 @@
 				</a>
 				<!-- Nexus -->
 				<div class="product-item nexus-item fade-in cursor-default">
-					<video bind:this={nexusVideo} class="product-bg-video" muted playsinline autoplay loop>
-						<source src="/img/products/nexus/mapa.webm" type="video/webm" />
+					<video
+						class="product-bg-video"
+						muted
+						playsinline
+						loop
+						use:lazyVideo={'/img/products/nexus/mapa.webm'}
+					>
+						<!-- El src se carga vía lazyVideo en background -->
 					</video>
 					<div class="product-bg-overlay"></div>
 
@@ -739,8 +764,14 @@
 
 					<!-- Right Side: Visual (Logo + Name) -->
 					<div class="product-visual orion-visual-branding">
-						<video class="orion-bg-video" autoplay muted loop playsinline>
-							<source src="/img/products/orion/planeta-tierra.webm" type="video/webm" />
+						<video
+							class="orion-bg-video"
+							muted
+							loop
+							playsinline
+							use:lazyVideo={'/img/products/orion/planeta-tierra.webm'}
+						>
+							<!-- El src se carga vía lazyVideo en background -->
 						</video>
 						<div class="orion-logo-content">
 							<img
@@ -1442,11 +1473,11 @@
 	}
 
 	.orion-item {
-		min-height: 100vh;
+		min-height: auto; /* Allow natural height rather than forcing 100vh which might clip on smaller screens */
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 4rem 0; /* Espacio para que no quede pegado */
+		padding: 2rem 0; /* Reduced padding to help fit on screen better */
 	}
 
 	.product-bg-video {
@@ -1870,7 +1901,7 @@
 
 	.orion-feature-row {
 		display: flex;
-		padding: 1rem 0;
+		padding: 0.75rem 0; /* Reduced padding from 1rem to 0.75rem to fit all 7 features */
 		opacity: 0.5;
 		transition: all 0.5s ease;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.02);
@@ -1882,31 +1913,32 @@
 
 	.orion-feature-row.feature-active {
 		opacity: 1;
-		transform: scale(1.02);
+		transform: scale(1.01); /* Reduced scale on active state to prevent layout jumps */
 		background: rgba(255, 255, 255, 0.03); /* Sutil highlight fondo */
 	}
 
 	.orion-feature-title {
 		width: 35%; /* Debe coincidir */
-		padding-right: 2rem;
+		padding-right: 1.5rem; /* Reduced padding to fit smaller screens */
 		text-align: right;
 		font-weight: 500;
 		color: #d1d5db;
 		transition:
 			color 0.3s,
 			font-weight 0.3s;
+		font-size: 0.95rem; /* Slightly smaller font to fit screen */
 	}
 
 	.orion-feature-desc {
 		flex: 1; /* Resto del espacio */
-		padding-left: 2rem;
+		padding-left: 1.5rem; /* Reduced padding to fit smaller screens */
 		color: #9ca3af;
 		font-weight: 300;
 		transition:
 			color 0.3s,
 			font-weight 0.3s;
-		font-size: 0.95rem;
-		line-height: 1.5;
+		font-size: 0.85rem; /* Smaller font to ensure all text fits on laptop screens */
+		line-height: 1.4;
 	}
 
 	.feature-active .orion-feature-title {
@@ -1926,15 +1958,16 @@
 			0 0 0.5px currentColor; /* Bold simulation */
 	}
 
-	@media (max-width: 900px) {
+	@media (max-width: 1024px) {
 		.orion-divider-container {
-			display: none; /* Ocultar linea en movil si no cabe */
+			display: none; /* Ocultar linea en movil y tablets si no cabe */
 		}
 
 		.orion-feature-row {
 			flex-direction: column;
 			text-align: center;
-			gap: 0.5rem;
+			gap: 0.25rem;
+			padding: 0.8rem 0;
 		}
 
 		.orion-feature-title,
@@ -1945,7 +1978,18 @@
 		}
 
 		.orion-visual-branding {
-			margin-top: 2rem;
+			margin-top: 1rem;
+		}
+
+		/* Fix horizontal overflow caused by min-height + aspect-ratio on product-visual */
+		.product-visual {
+			min-height: 300px;
+			width: 100%;
+			aspect-ratio: auto;
+		}
+
+		.nexus-visual {
+			aspect-ratio: 1/1; /* Keep some square aspect for nexus */
 		}
 	}
 </style>
