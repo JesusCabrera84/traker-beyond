@@ -811,7 +811,7 @@
 				</div>
 				<div class="stats-grid">
 					<div class="stat-item">
-						<h3>10,000+</h3>
+						<h3>10,000&#43;</h3>
 						<p>Vehículos Monitoreados</p>
 					</div>
 					<div class="stat-item">
@@ -1129,13 +1129,15 @@
 					<span class="char-count">{formData.mensaje.length}/5000</span>
 				</div>
 
-				<button type="submit" class="btn-primary" disabled={isSubmitting}>
-					{#if isSubmitting}
-						Enviando...
-					{:else}
-						Enviar Mensaje
-					{/if}
-				</button>
+				<div class="submit-wrapper">
+					<button type="submit" class="btn-primary" disabled={isSubmitting}>
+						{#if isSubmitting}
+							Enviando...
+						{:else}
+							Enviar Mensaje
+						{/if}
+					</button>
+				</div>
 
 				<p class="form-note">
 					* Campos requeridos. Debes proporcionar al menos un correo o teléfono.
@@ -1186,7 +1188,7 @@
 			</div>
 		</div>
 		<div class="footer-bottom">
-			<p>&copy; 2025 Geminis Labs. Todos los derechos reservados.</p>
+			<p>&copy; {new Date().getFullYear()} Geminis Labs. Todos los derechos reservados.</p>
 		</div>
 	</div>
 </footer>

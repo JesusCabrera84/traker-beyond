@@ -1,0 +1,48 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": ["config:recommended"],
+	"schedule": ["before 1am on monday"],
+	"timezone": "America/Mexico_City",
+	"labels": ["dependencies"],
+	"assignees": [],
+	"reviewers": [],
+	"packageRules": [
+		{
+			"matchDepTypes": ["devDependencies"],
+			"matchUpdateTypes": ["minor", "patch"],
+			"automerge": true,
+			"automergeType": "pr",
+			"platformAutomerge": true
+		},
+		{
+			"matchDepTypes": ["dependencies"],
+			"matchUpdateTypes": ["patch"],
+			"automerge": true
+		},
+		{
+			"groupName": "Svelte ecosystem",
+			"matchPackageNames": ["svelte", "@sveltejs/**"]
+		},
+		{
+			"groupName": "Vite & Vitest ecosystem",
+			"matchPackageNames": ["vite", "vitest", "@vitest/**"]
+		},
+		{
+			"groupName": "Tailwind ecosystem",
+			"matchPackageNames": ["tailwindcss", "@tailwindcss/**"]
+		},
+		{
+			"groupName": "ESLint & Prettier",
+			"matchPackageNames": ["eslint", "prettier", "eslint-**", "prettier-**", "@eslint/**"]
+		}
+	],
+	"vulnerabilityAlerts": {
+		"enabled": true,
+		"labels": ["security"],
+		"automerge": true
+	},
+	"lockFileMaintenance": {
+		"enabled": true,
+		"schedule": ["before 1am on the first day of the month"]
+	}
+}
