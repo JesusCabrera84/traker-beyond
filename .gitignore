@@ -1,24 +1,43 @@
-node_modules
+# ============================================================
+#  GEMINIS LABS — .gitignore
+# ============================================================
 
-# Output
+# ── Dependencies ─────────────────────────────────────────────
+node_modules/
+
+# ── Build & Output ───────────────────────────────────────────
+.svelte-kit/
+/build
 .output
 .vercel
 .netlify
 .wrangler
-/.svelte-kit
-/build
 
-# OS
-.DS_Store
-Thumbs.db
-
-# Env
+# ── Enviroments ─────────────────────────────────────
 .env
 .env.*
 !.env.example
 !.env.test
 
-# Vite
+# ── Tests & Coverage ────────────────────────────────────────
+test-results/
+playwright-report/
+coverage/
+
+# ── Tools ─────────────────────────────────────────────
+.husky/_
+.last-run.json
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
-.npmrc
+
+# ── OS ───────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDEs ─────────────────────────────────────────────────────
+.vscode/settings.json
+.idea/
+
+# ── Logs ─────────────────────────────────────────────────────
+*.log
+npm-debug.log*

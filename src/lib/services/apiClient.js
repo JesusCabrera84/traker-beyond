@@ -1,5 +1,7 @@
 import { API_CONFIG, buildApiUrl, getAuthHeaders } from '$lib/config/api.js';
 import { browser } from '$app/environment';
+import { toastStore } from '../stores/toastStore.js';
+import { authStore } from '../stores/authStore.js';
 
 /**
  * Cliente API para manejar todas las peticiones al backend
@@ -93,9 +95,7 @@ class ApiClient {
 
 		try {
 			// Importar dinámicamente para evitar dependencias circulares
-			const { authStore } = await import('$lib/stores/authStore.js');
 			const { pageTransitionStore } = await import('$lib/stores/pageTransitionStore.js');
-			const { toastStore } = await import('$lib/stores/toastStore.js');
 
 			// Cerrar sesión automáticamente
 			await authStore.logout();

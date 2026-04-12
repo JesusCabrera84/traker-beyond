@@ -26,7 +26,9 @@ export default [
 					argsIgnorePattern: '^_',
 					varsIgnorePattern: '^_'
 				}
-			]
+			],
+			// Check this further, it seems to be a false positive when using sveltekit with the new file-based routing system
+			'svelte/no-navigation-without-resolve': 'off'
 		}
 	},
 	{

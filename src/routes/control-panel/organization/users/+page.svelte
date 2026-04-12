@@ -321,7 +321,10 @@
 {#if showInviteModal}
 	<div
 		class="modal-backdrop"
+		role="button"
+		tabindex="0"
 		on:click|self={() => (showInviteModal = false)}
+		on:keydown={(e) => e.key === 'Escape' && (showInviteModal = false)}
 		in:fade={{ duration: 200 }}
 	>
 		<div class="modal-content" in:slide={{ duration: 300, y: 50 }}>
@@ -357,7 +360,10 @@
 {#if showAddModal}
 	<div
 		class="modal-backdrop"
+		role="button"
+		tabindex="0"
 		on:click|self={() => (showAddModal = false)}
+		on:keydown={(e) => e.key === 'Escape' && (showAddModal = false)}
 		in:fade={{ duration: 200 }}
 	>
 		<div class="modal-content" in:slide={{ duration: 300, y: 50 }}>
