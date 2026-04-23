@@ -474,7 +474,6 @@
 	}
 </script>
 
-<!-- Bind scroll y window dimensions -->
 <svelte:window bind:scrollY bind:innerHeight bind:innerWidth={innerWindowWidth} />
 
 <svelte:head>
@@ -764,6 +763,13 @@
 
 					<!-- Right Side: Visual (Logo + Name) -->
 					<div class="product-visual orion-visual-branding">
+						<div class="orion-planet-rings">
+							<div class="orion-ring orion-ring-1"></div>
+							<div class="orion-ring orion-ring-2"></div>
+							<div class="orion-ring orion-ring-3"></div>
+						</div>
+
+						<!-- Planeta Tierra (video de fondo) -->
 						<video
 							class="orion-bg-video"
 							muted
@@ -771,16 +777,19 @@
 							playsinline
 							use:lazyVideo={'/img/products/orion/planeta-tierra.webm'}
 						>
-							<!-- El src se carga vía lazyVideo en background -->
 						</video>
-						<div class="orion-logo-content">
+						<a
+							href="/products/orion"
+							class="orion-logo-content"
+							aria-label="Ver información de Orion"
+						>
 							<img
 								src="/img/products/logo-orion.png"
 								alt="Logo Orion"
 								class="product-logo orion-big-logo"
 							/>
 							<h3 class="audiowide-regular orion-brand-name">ORION</h3>
-						</div>
+						</a>
 					</div>
 				</div>
 			</div>
@@ -826,14 +835,7 @@
 			</div>
 			<div class="about-image">
 				<div class="tech-showcase">
-					<!-- Elementos decorativos de fondo -->
-					<div class="tech-rings">
-						<div class="tech-ring ring-1"></div>
-						<div class="tech-ring ring-2"></div>
-						<div class="tech-ring ring-3"></div>
-					</div>
-
-					<!-- Partículas flotantes -->
+					<!-- Partículas flotantes de fondo -->
 					<div class="floating-particles">
 						<div class="particle particle-1"></div>
 						<div class="particle particle-2"></div>
@@ -843,29 +845,29 @@
 						<div class="particle particle-6"></div>
 					</div>
 
-					<!-- Logo central con efectos -->
+					<!-- Anillos externos decorativos (fondo lejano) -->
+					<div class="tech-ring-wrap tech-ring-wrap-1"><div class="tech-ring ring-1"></div></div>
+					<div class="tech-ring-wrap tech-ring-wrap-2"><div class="tech-ring ring-2"></div></div>
+					<div class="tech-ring-wrap tech-ring-wrap-3"><div class="tech-ring ring-3"></div></div>
+
+					<!-- Logo central con órbitas -->
 					<div class="logo-container">
-						<!-- Múltiples capas de resplandor -->
 						<div class="logo-aura aura-1"></div>
 						<div class="logo-aura aura-2"></div>
 						<div class="logo-aura aura-3"></div>
 
-						<!-- Anillos orbitales alrededor del logo -->
-						<div class="orbital-rings">
-							<div class="orbital-ring ring-inner"></div>
-							<div class="orbital-ring ring-middle"></div>
-							<div class="orbital-ring ring-outer"></div>
-						</div>
+						<!-- Anillos orbitales inmediatos al logo -->
+						<div class="orbital-ring ring-inner"></div>
+						<div class="orbital-ring ring-middle"></div>
+						<div class="orbital-ring ring-outer"></div>
 
-						<!-- Puntos orbitales -->
-						<div class="orbital-dots">
-							<div class="orbital-dot dot-1"></div>
-							<div class="orbital-dot dot-2"></div>
-							<div class="orbital-dot dot-3"></div>
-							<div class="orbital-dot dot-4"></div>
-						</div>
+						<!-- Puntos que orbitan -->
+						<div class="orbital-dot dot-1"></div>
+						<div class="orbital-dot dot-2"></div>
+						<div class="orbital-dot dot-3"></div>
+						<div class="orbital-dot dot-4"></div>
 
-						<!-- Logo flotante sin contenedor -->
+						<!-- Logo -->
 						<div class="logo-floating animate-[rotateSlow_30s_linear_infinite]">
 							<picture>
 								<source srcset="/img/geminis-labs-logo-short.png" media="(max-width: 768px)" />
@@ -1194,12 +1196,10 @@
 </footer>
 
 <style>
-	/* Estilos para el formulario de contacto */
 	.form-group {
 		position: relative;
 		margin-bottom: 1.5rem;
 	}
-
 	.form-group input,
 	.form-group textarea {
 		width: 100%;
@@ -1211,20 +1211,17 @@
 		font-size: 1rem;
 		transition: all 0.3s ease;
 	}
-
 	.form-group input:focus,
 	.form-group textarea:focus {
 		outline: none;
 		border-color: #00a6c0;
 		background: rgba(255, 255, 255, 0.08);
 	}
-
 	.form-group input:disabled,
 	.form-group textarea:disabled {
 		opacity: 0.6;
 		cursor: not-allowed;
 	}
-
 	.form-group input.error,
 	.form-group textarea.error {
 		border-color: #ff4444;
@@ -1238,7 +1235,6 @@
 		margin-top: 0.5rem;
 		font-weight: 500;
 	}
-
 	.char-count {
 		display: block;
 		text-align: right;
@@ -1246,7 +1242,6 @@
 		color: rgba(255, 255, 255, 0.4);
 		margin-top: 0.25rem;
 	}
-
 	.hint-text {
 		display: block;
 		font-size: 0.75rem;
@@ -1262,13 +1257,11 @@
 		font-weight: 500;
 		animation: slideIn 0.3s ease;
 	}
-
 	.form-message.success {
 		background: rgba(46, 213, 115, 0.1);
 		border: 2px solid #2ed573;
 		color: #2ed573;
 	}
-
 	.form-message.error {
 		background: rgba(255, 68, 68, 0.1);
 		border: 2px solid #ff4444;
@@ -1285,7 +1278,6 @@
 		font-weight: 500;
 		animation: slideIn 0.3s ease;
 	}
-
 	.form-note {
 		margin-top: 1rem;
 		font-size: 0.875rem;
@@ -1293,7 +1285,6 @@
 		text-align: center;
 		font-style: italic;
 	}
-
 	.recaptcha-notice {
 		margin-top: 1rem;
 		padding-top: 1rem;
@@ -1303,17 +1294,14 @@
 		text-align: center;
 		line-height: 1.5;
 	}
-
 	.recaptcha-notice a {
 		color: #00a6c0;
 		text-decoration: underline;
 		transition: color 0.3s ease;
 	}
-
 	.recaptcha-notice a:hover {
 		color: #d8d7cc;
 	}
-
 	.btn-primary:disabled {
 		opacity: 0.6;
 		cursor: not-allowed;
@@ -1331,31 +1319,26 @@
 		}
 	}
 
-	/* Responsive adjustments */
 	@media (max-width: 768px) {
 		.form-group input,
 		.form-group textarea {
 			font-size: 0.9375rem;
 		}
-
 		.error-text,
 		.form-note {
 			font-size: 0.8125rem;
 		}
-
 		.char-count,
 		.hint-text {
 			font-size: 0.6875rem;
 		}
 	}
 
-	/* Estilos para la sección de Productos */
 	.products-section {
 		padding: 6rem 0;
 		position: relative;
 		background: linear-gradient(to bottom, black 11%, #000028 34%, #000000 90%);
 	}
-
 	.products-container {
 		max-width: 1100px;
 		margin: 0 auto;
@@ -1363,8 +1346,6 @@
 		flex-direction: column;
 		gap: 0;
 	}
-
-	/* Eliminados estilos de tabs/selector */
 
 	.product-item {
 		width: 100%;
@@ -1404,17 +1385,15 @@
 		font-weight: 800;
 		margin: 0;
 		line-height: 1;
-		font-family: 'Outfit', sans-serif; /* Asumiendo que se usa esta fuente o similar */
+		font-family: 'Outfit', sans-serif;
 		letter-spacing: -1px;
 	}
 
 	.nexus-title {
 		font-size: 4.5rem;
-		background-clip: text;
 		color: #ffffff;
 		filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.4))
 			drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
-		position: relative;
 		text-shadow:
 			0 0 12px rgba(120, 255, 220, 0.25),
 			0 0 32px rgba(0, 180, 255, 0.15);
@@ -1434,7 +1413,6 @@
 		flex-direction: column;
 		gap: 1rem;
 	}
-
 	.product-features li {
 		display: flex;
 		align-items: center;
@@ -1442,7 +1420,6 @@
 		color: #d8d7cc;
 		font-size: 1.1rem;
 	}
-
 	.product-features li svg {
 		width: 24px;
 		height: 24px;
@@ -1458,26 +1435,23 @@
 	}
 
 	.nexus-full-container {
-		/* Removed heavy black background - now transparent */
 		position: relative;
 		padding: 2rem;
-		margin-top: 5rem; /* Improvement #1: More space from section title */
+		margin-top: 5rem;
 		margin-bottom: 5rem;
 	}
 
 	.nexus-item {
 		position: relative;
 		overflow: hidden;
-		border-radius: 20px; /* Slightly smaller radius for inner content if needed, or 0 */
-		/* Background moved to container */
+		border-radius: 20px;
 	}
 
 	.orion-item {
-		min-height: auto; /* Allow natural height rather than forcing 100vh which might clip on smaller screens */
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		padding: 2rem 0; /* Reduced padding to help fit on screen better */
+		padding: 2rem 0;
 	}
 
 	.product-bg-video {
@@ -1489,7 +1463,6 @@
 		object-fit: cover;
 		z-index: 0;
 	}
-
 	.product-bg-overlay {
 		position: absolute;
 		top: 0;
@@ -1504,7 +1477,7 @@
 	.nexus-item .product-content {
 		position: relative;
 		z-index: 2;
-		padding-left: 2rem; /* Separación del borde izquierdo */
+		padding-left: 2rem;
 	}
 
 	.centered-info {
@@ -1516,19 +1489,16 @@
 		position: relative;
 		z-index: 5;
 	}
-
-	/* Black strip backdrop removed */
 	.centered-info::before {
 		content: none;
 	}
 
 	.nexus-logo {
-		width: 180px; /* Increased size */
+		width: 180px;
 		max-width: 100%;
 		height: auto;
-		filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5)); /* Add depth */
+		filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.5));
 	}
-
 	.nexus-slogan-title {
 		font-size: 2.2rem;
 		font-weight: 700;
@@ -1537,7 +1507,6 @@
 		margin-bottom: 0.5rem;
 		line-height: 1.2;
 	}
-
 	.nexus-slogan-subtitle {
 		font-size: 1.5rem !important;
 		color: #ffffff !important;
@@ -1552,16 +1521,14 @@
 		top: 50%;
 		transform: translateY(-50%);
 		z-index: 10;
-		width: 300px; /* Limit width for consistency */
+		width: 300px;
 	}
-
 	.feature-block {
 		display: flex;
 		flex-direction: column;
 		align-items: flex-end;
 		gap: 0.5rem;
 	}
-
 	.feature-title {
 		font-size: 1.6rem;
 		font-weight: 700;
@@ -1570,8 +1537,6 @@
 		letter-spacing: 0.05em;
 		margin-bottom: 0.8rem;
 		text-align: right;
-
-		/* Visual enhancement */
 		background: rgba(0, 0, 0, 0.6);
 		backdrop-filter: blur(4px);
 		padding: 0.5rem 1.2rem;
@@ -1580,7 +1545,6 @@
 		box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 		text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 	}
-
 	.overlay-features {
 		list-style: none;
 		padding: 0;
@@ -1588,10 +1552,7 @@
 		flex-direction: column;
 		align-items: flex-end;
 		gap: 0.8rem;
-		position: static; /* Let container handle positioning */
-		transform: none;
 	}
-
 	.overlay-features li {
 		background: rgba(0, 0, 0, 0.6);
 		padding: 0.8rem 1.5rem;
@@ -1606,7 +1567,6 @@
 		box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
 		transition: transform 0.3s ease;
 	}
-
 	.overlay-features li:hover {
 		transform: translateX(-5px);
 		background: rgba(0, 0, 0, 0.8);
@@ -1614,7 +1574,7 @@
 	}
 
 	.nexus-visual {
-		position: relative; /* Context for overlay */
+		position: relative;
 	}
 
 	.product-visual {
@@ -1622,8 +1582,8 @@
 		background: rgba(255, 255, 255, 0.02);
 		border-radius: 20px;
 		border: 1px solid rgba(255, 255, 255, 0.05);
-		aspect-ratio: 4/3; /* Taller aspect ratio (approx 50% taller than 16/10 which is 8/5) */
-		min-height: 600px; /* Ensure sufficient height */
+		aspect-ratio: 4/3;
+		min-height: 600px;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -1631,12 +1591,9 @@
 		overflow: hidden;
 		box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
 	}
-
 	.nexus-visual {
 		border: none;
-		/* Fade curvo del lado izquierdo */
-		-webkit-mask-image: radial-gradient(ellipse 100% 100% at 68% 50%, black 50%, transparent 70%);
-
+		-webkit-mask-image: radial-gradient(ellipse 97% 184% at 71% 50%, black 50%, transparent 70%);
 		mask-image: radial-gradient(ellipse 97% 184% at 71% 50%, black 50%, transparent 70%);
 	}
 
@@ -1645,7 +1602,6 @@
 		height: 100%;
 		position: relative;
 	}
-
 	.carousel-slide {
 		position: absolute;
 		top: 0;
@@ -1654,19 +1610,16 @@
 		height: 100%;
 		background-size: cover;
 		background-position: center;
-		background-repeat: no-repeat;
 		opacity: 0;
 		transition: opacity 1s ease-in-out;
 		z-index: 1;
-		transform: scale(1); /* Base state matches end of animation */
+		transform: scale(1);
 	}
-
 	.carousel-slide.active {
 		opacity: 1;
 		z-index: 2;
 		animation: zoomOut 8s linear forwards;
 	}
-
 	@keyframes zoomOut {
 		from {
 			transform: scale(1.1);
@@ -1680,7 +1633,6 @@
 		animation: fadeIn 0.8s ease-out forwards;
 		opacity: 0;
 	}
-
 	@keyframes fadeIn {
 		from {
 			opacity: 0;
@@ -1698,26 +1650,22 @@
 			gap: 3rem;
 			text-align: center;
 		}
-
 		.product-header {
 			justify-content: center;
 			flex-direction: column;
 		}
-
 		.product-info {
 			align-items: center;
 		}
-
 		.product-features li {
 			justify-content: center;
 			text-align: left;
 		}
-
 		.product-visual {
 			width: 100%;
 		}
 	}
-	/* Estilos para Orion (Nuevo) */
+
 	.audiowide-regular {
 		font-family: 'Audiowide', sans-serif;
 		font-weight: 400;
@@ -1737,10 +1685,76 @@
 		border: none;
 		box-shadow: none;
 		position: relative;
-		overflow: hidden; /* Ensure video stays within bounds */
+		overflow: hidden;
 	}
 
-	/* Removed hover from container, moving to logo */
+	.orion-planet-rings {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		pointer-events: none;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.orion-ring {
+		position: absolute;
+		border-radius: 50%;
+		top: 50%;
+		left: 50%;
+	}
+	.orion-ring-1 {
+		width: 54%;
+		aspect-ratio: 1;
+		margin-top: -27%;
+		margin-left: -27%;
+		border: 1.5px dashed rgba(0, 198, 255, 0.55);
+		box-shadow: 0 0 12px rgba(0, 198, 255, 0.12);
+		animation: orion-orbit-1 22s linear infinite;
+	}
+	.orion-ring-2 {
+		width: 76%;
+		aspect-ratio: 1;
+		margin-top: -38%;
+		margin-left: -38%;
+		border: 1px dotted rgba(0, 198, 255, 0.32);
+		animation: orion-orbit-2 38s linear infinite reverse;
+	}
+	.orion-ring-3 {
+		width: 96%;
+		aspect-ratio: 1;
+		margin-top: -48%;
+		margin-left: -48%;
+		border-top: 2px solid transparent;
+		border-right: 2px solid transparent;
+		border-bottom: 2px solid rgba(0, 198, 255, 0.22);
+		border-left: 2px solid rgba(0, 198, 255, 0.35);
+		animation: orion-orbit-3 60s linear infinite;
+	}
+	@keyframes orion-orbit-1 {
+		0% {
+			transform: rotateX(68deg) rotateZ(0deg);
+		}
+		100% {
+			transform: rotateX(68deg) rotateZ(360deg);
+		}
+	}
+	@keyframes orion-orbit-2 {
+		0% {
+			transform: rotateX(72deg) rotateY(12deg) rotateZ(0deg);
+		}
+		100% {
+			transform: rotateX(72deg) rotateY(12deg) rotateZ(360deg);
+		}
+	}
+	@keyframes orion-orbit-3 {
+		0% {
+			transform: rotateX(55deg) rotateY(-8deg) rotateZ(0deg);
+		}
+		100% {
+			transform: rotateX(55deg) rotateY(-8deg) rotateZ(360deg);
+		}
+	}
 
 	.orion-bg-video {
 		position: absolute;
@@ -1749,37 +1763,50 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		opacity: 0.3; /* Semi-transparent as requested */
+		opacity: 0.3;
 		z-index: 0;
-		mix-blend-mode: screen; /* Optional: helps blend better with dark background */
+		mix-blend-mode: screen;
 	}
 
 	.orion-logo-content {
 		position: relative;
-		z-index: 1; /* Above video */
+		z-index: 3;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		text-decoration: none;
+		color: inherit;
+		cursor: pointer;
+		border-radius: 12px;
+		transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.orion-logo-content:focus-visible {
+		outline: 2px solid rgba(167, 139, 250, 0.85);
+		outline-offset: 6px;
+	}
+
+	.orion-logo-content:hover {
+		transform: scale(1.02);
 	}
 
 	.orion-big-logo {
-		width: 180px; /* Tamaño grande */
+		width: 180px;
 		height: auto;
 		filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.4));
 		margin-bottom: 1rem;
-		cursor: pointer;
 		transition:
 			transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
 			filter 0.3s ease;
 	}
 
-	.orion-big-logo:hover {
-		transform: scale(1.1); /* Slightly larger scale for better effect */
+	.orion-logo-content:hover .orion-big-logo {
+		transform: scale(1.08);
 		filter: drop-shadow(0 0 35px rgba(255, 255, 255, 0.8));
 	}
 
 	.orion-brand-name {
-		font-size: 4rem; /* Grande */
+		font-size: 4rem;
 		color: #ffffff;
 		text-transform: uppercase;
 		letter-spacing: 2px;
@@ -1789,9 +1816,8 @@
 
 	.orion-features-container {
 		width: 100%;
-		flex: 1.2; /* Darle un poco más de espacio al texto */
+		flex: 1.2;
 	}
-
 	.orion-features-grid {
 		display: flex;
 		flex-direction: column;
@@ -1799,97 +1825,12 @@
 	}
 
 	.orion-list-body {
-		display: grid;
-		grid-template-columns: 2px 1fr; /* La línea divisoria es absoluta, ajustamos el grid para el contenido */
-		position: relative;
-		/* Usamos un grid trick para alinear */
-		grid-template-columns: 1fr 2px 2fr;
-		gap: 2rem;
-	}
-
-	.orion-divider-container {
-		grid-column: 2;
-		grid-row: 1 / span 10; /* Abarca todas las filas */
-		position: relative;
-		width: 2px;
-		height: 100%;
-		background: rgba(255, 255, 255, 0.1);
-		border-radius: 1px;
-	}
-
-	.orion-scroll-indicator {
-		position: absolute;
-		left: 50%;
-		transform: translateX(-50%);
-		width: 4px; /* Más grueso que la línea */
-		background: #ffffff;
-		border-radius: 4px;
-		transition:
-			top 0.5s ease-in-out,
-			height 0.5s ease-in-out;
-		box-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
-	}
-
-	.orion-items-column {
-		display: contents; /* Permite que los hijos de este div sean parte del grid padre (.orion-list-body) */
-	}
-
-	/* Ya que 'display: contents' elimina el contenedor visualmente, necesitamos iterar items que sean "features rows"
-	   pero como queremos que Titulo quede en col 1 y Desc en col 3, mejor reestructuramos un poco el HTML o CSS.
-	   
-	   Mejor aproximación dada la estructura HTML actual:
-	   .orion-feature-row contiene titulo y descripcion.
-	   Haremos que .orion-feature-row sea un sub-grid o display flex que se alinee visualmente.
-	   
-	   PERO, el requerimiento es que la línea divisoria esté ENTRE sección y descripción.
-	   Entonces la estructura visual debe ser: [SECCION] [LINEA] [DESCRIPCION]
-	*/
-
-	.orion-list-body {
-		display: flex;
-		flex-direction: row;
-		position: relative;
-		gap: 0; /* Espacio manejado por padding/width */
-	}
-
-	.orion-divider-container {
-		width: 2px;
-		background: rgba(255, 255, 255, 0.1);
-		position: relative;
-		margin: 0 2rem;
-		flex-shrink: 0;
-	}
-
-	.orion-items-column {
-		/* No se usa layout de columna, en realidad el body envuelve todo. 
-		   Espera, mi HTML estructura:
-		   Grid Header: [Span] [Div] [Span]
-		   List Body: [Divider] [Items Column] -> Esto no alinea la linea EN MEDIO.
-		   
-		   Revisemos el HTML que propuse:
-		   .orion-list-body
-			  .orion-divider-container (linea)
-			  .orion-items-column (filas)
-				 .orion-feature-row (titulo, desc) 
-				 
-		   Esto pondría la linea a la izquierda de TODO. NO es lo pedido.
-		   
-		   CORRECCION EN CSS (hacky pero funciona sin cambiar HTML otra vez):
-		   Vamos a posicionar la linea divider de forma absoluta en el centro relativo de los items.
-		*/
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-	}
-
-	.orion-list-body {
-		display: block; /* Reset */
+		display: block;
 		position: relative;
 	}
-
 	.orion-divider-container {
 		position: absolute;
-		left: 35%; /* Ajustar porcentaje según ancho de columna título */
+		left: 35%;
 		top: 0;
 		bottom: 0;
 		width: 2px;
@@ -1901,95 +1842,467 @@
 
 	.orion-feature-row {
 		display: flex;
-		padding: 0.75rem 0; /* Reduced padding from 1rem to 0.75rem to fit all 7 features */
+		padding: 0.75rem 0;
 		opacity: 0.5;
 		transition: all 0.5s ease;
 		border-bottom: 1px solid rgba(255, 255, 255, 0.02);
 	}
-
 	.orion-feature-row:last-child {
 		border-bottom: none;
 	}
-
 	.orion-feature-row.feature-active {
 		opacity: 1;
-		transform: scale(1.01); /* Reduced scale on active state to prevent layout jumps */
-		background: rgba(255, 255, 255, 0.03); /* Sutil highlight fondo */
+		transform: scale(1.01);
+		background: rgba(255, 255, 255, 0.03);
 	}
 
 	.orion-feature-title {
-		width: 35%; /* Debe coincidir */
-		padding-right: 1.5rem; /* Reduced padding to fit smaller screens */
+		width: 35%;
+		padding-right: 1.5rem;
 		text-align: right;
 		font-weight: 500;
 		color: #d1d5db;
 		transition:
 			color 0.3s,
 			font-weight 0.3s;
-		font-size: 0.95rem; /* Slightly smaller font to fit screen */
+		font-size: 0.95rem;
 	}
-
 	.orion-feature-desc {
-		flex: 1; /* Resto del espacio */
-		padding-left: 1.5rem; /* Reduced padding to fit smaller screens */
+		flex: 1;
+		padding-left: 1.5rem;
 		color: #9ca3af;
 		font-weight: 300;
 		transition:
 			color 0.3s,
 			font-weight 0.3s;
-		font-size: 0.85rem; /* Smaller font to ensure all text fits on laptop screens */
+		font-size: 0.85rem;
 		line-height: 1.4;
 	}
-
 	.feature-active .orion-feature-title {
 		color: #ffffff;
-		/* font-weight: 700; Caused layout shift */
-		text-shadow:
-			0 0 1px currentColor,
-			0 0 1px currentColor; /* Bold simulation without shift */
 		text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 	}
-
 	.feature-active .orion-feature-desc {
 		color: #e5e7eb;
-		/* font-weight: 600; Caused layout shift */
-		text-shadow:
-			0 0 1px currentColor,
-			0 0 0.5px currentColor; /* Bold simulation */
 	}
 
 	@media (max-width: 1024px) {
 		.orion-divider-container {
-			display: none; /* Ocultar linea en movil y tablets si no cabe */
+			display: none;
 		}
-
 		.orion-feature-row {
 			flex-direction: column;
 			text-align: center;
 			gap: 0.25rem;
 			padding: 0.8rem 0;
 		}
-
 		.orion-feature-title,
 		.orion-feature-desc {
 			width: 100%;
 			padding: 0;
 			text-align: center;
 		}
-
 		.orion-visual-branding {
 			margin-top: 1rem;
 		}
-
-		/* Fix horizontal overflow caused by min-height + aspect-ratio on product-visual */
 		.product-visual {
 			min-height: 300px;
 			width: 100%;
 			aspect-ratio: auto;
 		}
-
 		.nexus-visual {
-			aspect-ratio: 1/1; /* Keep some square aspect for nexus */
+			aspect-ratio: 1/1;
+		}
+	}
+
+	.tech-showcase {
+		position: relative;
+		width: 400px;
+		height: 400px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.tech-ring-wrap {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		pointer-events: none;
+	}
+	.tech-ring-wrap .tech-ring {
+		position: relative;
+		top: auto;
+		left: auto;
+		transform: none;
+		flex-shrink: 0;
+	}
+	.tech-ring-wrap-1 .tech-ring {
+		width: 200px;
+		height: 200px;
+		border: 2px dashed #4caf4f77 !important;
+		border-radius: 50%;
+		animation: tech-rotate 20s linear infinite;
+	}
+	.tech-ring-wrap-2 .tech-ring {
+		width: 280px;
+		height: 280px;
+		border: 2px dotted #4caf4fa1 !important;
+		border-radius: 50%;
+		animation: tech-rotate 30s linear infinite reverse;
+	}
+	.tech-ring-wrap-3 .tech-ring {
+		width: 360px;
+		height: 360px;
+		border: none !important;
+		border-left: 3px solid #4caf4f80 !important;
+		border-bottom: 3px solid #4caf4f96 !important;
+		border-radius: 50%;
+		animation: tech-rotate 40s linear infinite;
+	}
+	@keyframes tech-rotate {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+
+	.logo-container {
+		position: relative;
+		z-index: 10;
+		width: 200px;
+		height: 200px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.logo-aura {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		border-radius: 50%;
+		pointer-events: none;
+	}
+	.aura-1 {
+		width: 120px;
+		height: 120px;
+		background: radial-gradient(
+			circle,
+			rgba(0, 166, 192, 0.3) 0%,
+			rgba(0, 166, 192, 0.1) 40%,
+			transparent 70%
+		);
+		animation: pulse-aura 3s ease-in-out infinite;
+	}
+	.aura-2 {
+		width: 160px;
+		height: 160px;
+		background: radial-gradient(
+			circle,
+			transparent 0%,
+			rgba(0, 166, 192, 0.15) 30%,
+			rgba(68, 160, 141, 0.1) 60%,
+			transparent 80%
+		);
+		animation: pulse-aura 4s ease-in-out infinite 1s;
+	}
+	.aura-3 {
+		width: 200px;
+		height: 200px;
+		background: radial-gradient(
+			circle,
+			transparent 0%,
+			rgba(78, 205, 196, 0.08) 40%,
+			transparent 70%
+		);
+		animation: pulse-aura 5s ease-in-out infinite 2s;
+	}
+
+	@keyframes pulse-aura {
+		0%,
+		100% {
+			opacity: 0.3;
+			transform: translate(-50%, -50%) scale(1);
+		}
+		50% {
+			opacity: 0.7;
+			transform: translate(-50%, -50%) scale(1.1);
+		}
+	}
+
+	.orbital-ring {
+		position: absolute;
+		border-radius: 50%;
+		inset: 0;
+		margin: auto;
+	}
+	.ring-inner {
+		width: 100px;
+		height: 100px;
+		border: 1px dashed rgba(0, 166, 192, 0.4);
+		animation: tech-rotate 12s linear infinite;
+	}
+	.ring-middle {
+		width: 140px;
+		height: 140px;
+		border: 1px dotted rgba(0, 166, 192, 0.3);
+		animation: tech-rotate 18s linear infinite reverse;
+	}
+	.ring-outer {
+		width: 180px;
+		height: 180px;
+		border-left: 2px solid rgba(0, 166, 192, 0.6);
+		border-right: 2px solid transparent;
+		border-top: 2px solid transparent;
+		border-bottom: 2px solid rgba(0, 166, 192, 0.6);
+		animation: tech-rotate 25s linear infinite;
+	}
+
+	.logo-floating {
+		position: relative;
+		z-index: 15;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100px;
+		height: 100px;
+	}
+	.logo-floating img {
+		width: 90px;
+		height: 90px;
+		filter: drop-shadow(0 0 20px rgba(0, 166, 192, 0.6))
+			drop-shadow(0 0 40px rgba(0, 166, 192, 0.3)) drop-shadow(0 0 60px rgba(0, 166, 192, 0.1));
+		transition:
+			filter 0.3s ease,
+			transform 0.3s ease;
+	}
+	.logo-floating:hover img {
+		filter: drop-shadow(0 0 30px rgba(0, 166, 192, 0.8))
+			drop-shadow(0 0 60px rgba(0, 166, 192, 0.5)) drop-shadow(0 0 90px rgba(0, 166, 192, 0.2));
+		transform: scale(1.05);
+	}
+
+	.orbital-dot {
+		position: absolute;
+		width: 6px;
+		height: 6px;
+		background: var(--accent-cyan, #00a6c0);
+		border-radius: 50%;
+		box-shadow: 0 0 15px rgba(0, 166, 192, 0.8);
+		top: calc(50% - 3px);
+		left: calc(50% - 3px);
+	}
+	.dot-1 {
+		animation: orbital-dot-spin 8s linear infinite;
+	}
+	.dot-2 {
+		animation: orbital-dot-spin 10s linear infinite 2s;
+		--r: 70px;
+	}
+	.dot-3 {
+		animation: orbital-dot-spin 12s linear infinite 4s;
+	}
+	.dot-4 {
+		animation: orbital-dot-spin 14s linear infinite 6s;
+		--r: 70px;
+	}
+
+	@keyframes orbital-dot-spin {
+		from {
+			transform: rotate(0deg) translateX(var(--r, 50px)) rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg) translateX(var(--r, 50px)) rotate(-360deg);
+		}
+	}
+
+	.energy-waves {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		pointer-events: none;
+	}
+	.energy-wave {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		border: 2px solid rgba(0, 166, 192, 0.3);
+		border-radius: 50%;
+		opacity: 0;
+	}
+	.wave-1 {
+		width: 80px;
+		height: 80px;
+		animation: wave-expand 4s ease-out infinite;
+	}
+	.wave-2 {
+		width: 80px;
+		height: 80px;
+		animation: wave-expand 4s ease-out infinite 1.3s;
+	}
+	.wave-3 {
+		width: 80px;
+		height: 80px;
+		animation: wave-expand 4s ease-out infinite 2.6s;
+	}
+
+	@keyframes wave-expand {
+		0% {
+			width: 80px;
+			height: 80px;
+			opacity: 0.8;
+			border-width: 2px;
+		}
+		50% {
+			opacity: 0.4;
+			border-width: 1px;
+		}
+		100% {
+			width: 200px;
+			height: 200px;
+			opacity: 0;
+			border-width: 0;
+		}
+	}
+
+	.floating-particles {
+		position: absolute;
+		width: 100%;
+		height: 100%;
+	}
+	.particle {
+		position: absolute;
+		width: 4px;
+		height: 4px;
+		background: var(--accent-cyan, #00a6c0);
+		border-radius: 50%;
+		box-shadow: 0 0 10px rgba(0, 166, 192, 0.8);
+		will-change: transform;
+	}
+	.particle-1 {
+		top: 20%;
+		left: 15%;
+		animation: float 6s ease-in-out infinite;
+	}
+	.particle-2 {
+		top: 30%;
+		right: 20%;
+		animation: float 8s ease-in-out infinite 1s;
+	}
+	.particle-3 {
+		bottom: 25%;
+		left: 25%;
+		animation: float 7s ease-in-out infinite 2s;
+	}
+	.particle-4 {
+		bottom: 35%;
+		right: 15%;
+		animation: float 9s ease-in-out infinite 0.5s;
+	}
+	.particle-5 {
+		top: 60%;
+		left: 10%;
+		animation: float 5s ease-in-out infinite 1.5s;
+	}
+	.particle-6 {
+		top: 15%;
+		right: 35%;
+		animation: float 10s ease-in-out infinite 3s;
+	}
+
+	@keyframes float {
+		0%,
+		100% {
+			transform: translateY(0) translateX(0);
+			opacity: 0.7;
+		}
+		25% {
+			transform: translateY(-10px) translateX(5px);
+			opacity: 1;
+		}
+		50% {
+			transform: translateY(-5px) translateX(-5px);
+			opacity: 0.8;
+		}
+		75% {
+			transform: translateY(-15px) translateX(3px);
+			opacity: 1;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.tech-showcase {
+			width: 300px;
+			height: 300px;
+		}
+		.tech-ring-wrap-1 .tech-ring {
+			width: 150px;
+			height: 150px;
+		}
+		.tech-ring-wrap-2 .tech-ring {
+			width: 200px;
+			height: 200px;
+		}
+		.tech-ring-wrap-3 .tech-ring {
+			width: 250px;
+			height: 250px;
+		}
+		.logo-container {
+			width: 150px;
+			height: 150px;
+		}
+		.logo-floating {
+			width: 80px;
+			height: 80px;
+		}
+		.logo-floating img {
+			width: 70px;
+			height: 70px;
+		}
+		.aura-1 {
+			width: 90px;
+			height: 90px;
+		}
+		.aura-2 {
+			width: 120px;
+			height: 120px;
+		}
+		.aura-3 {
+			width: 150px;
+			height: 150px;
+		}
+		.ring-inner {
+			width: 80px;
+			height: 80px;
+		}
+		.ring-middle {
+			width: 110px;
+			height: 110px;
+		}
+		.ring-outer {
+			width: 140px;
+			height: 140px;
+		}
+		.orbital-dot {
+			width: 4px;
+			height: 4px;
+		}
+		.animated-circle,
+		.energy-wave,
+		.particle,
+		.tech-ring {
+			display: none;
+		}
+		.floating-card {
+			animation: none;
 		}
 	}
 </style>

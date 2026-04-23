@@ -26,6 +26,11 @@ export const API_CONFIG = {
 		// Organizaciones
 		ORGANIZATIONS: '/api/v1/organizations',
 
+		// Facturación (read-only, contexto = organización del usuario)
+		BILLING_SUMMARY: '/api/v1/billing/summary',
+		BILLING_PAYMENTS: '/api/v1/billing/payments',
+		BILLING_INVOICES: '/api/v1/billing/invoices',
+
 		// Contacto
 		SEND_CONTACT_MESSAGE: '/api/v1/contact/send-message'
 	},

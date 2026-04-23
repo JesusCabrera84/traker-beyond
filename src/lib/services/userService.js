@@ -1,5 +1,6 @@
 import { apiClient, ApiError } from './apiClient.js';
 import { API_CONFIG } from '$lib/config/api.js';
+import { formatDateTimeLocal } from '$lib/utils/datetime.js';
 
 /**
  * Servicio para manejar operaciones relacionadas con usuarios
@@ -132,23 +133,11 @@ class UserService {
 	}
 
 	/**
-	 * Formatea la fecha de último acceso
+	 * Formatea la fecha de último acceso (instante del servidor) en el huso
+	 * y locale del dispositivo del usuario.
 	 */
 	formatLastLogin(lastLoginAt) {
-		if (!lastLoginAt) return 'Nunca';
-
-		try {
-			const date = new Date(lastLoginAt);
-			return date.toLocaleDateString('es-ES', {
-				day: 'numeric',
-				month: 'short',
-				year: 'numeric',
-				hour: '2-digit',
-				minute: '2-digit'
-			});
-		} catch {
-			return 'Fecha inválida';
-		}
+		return formatDateTimeLocal(lastLoginAt);
 	}
 
 	/**

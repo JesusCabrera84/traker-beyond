@@ -50,6 +50,11 @@
 		goto('/control-panel');
 	}
 
+	function goToLogin() {
+		isMenuOpen = false;
+		goto('/auth');
+	}
+
 	function goToRegister() {
 		isMenuOpen = false;
 		goto('/auth?mode=register');
@@ -98,6 +103,7 @@
 				on:logout={handleLogout}
 				on:profile={goToProfile}
 				on:controlpanel={goToControlPanel}
+				on:login={goToLogin}
 				on:register={goToRegister}
 				on:close={() => (isMenuOpen = false)}
 			/>

@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { isAuthenticated } from '$lib/stores/authStore.js';
 	import { organizationService } from '$lib/services/organizationService.js';
+	import { formatDateLocal } from '$lib/utils/datetime.js';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Sidebar from '$lib/components/Sidebar.svelte';
 
@@ -27,12 +28,7 @@
 	});
 
 	function formatDate(dateString) {
-		if (!dateString) return 'N/A';
-		return new Date(dateString).toLocaleDateString('es-MX', {
-			year: 'numeric',
-			month: 'long',
-			day: 'numeric'
-		});
+		return formatDateLocal(dateString);
 	}
 </script>
 
