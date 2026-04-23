@@ -35,7 +35,7 @@ Presenta características, planes, comparativas y llamados a la acción.
    - Hero con logo y animación
    - Características principales
    - Carrusel de imágenes (auto-play cada 3 segundos)
-   - Comparativa de productos (TrackGo, FleetGuard, Nexus Core)
+   - Tres bloques de capacidades (rastreo, operación, integración) y referencia de programas
    - Planes y precios
    - FAQ
    - Call-to-action para crear cuenta
@@ -50,7 +50,7 @@ Presenta características, planes, comparativas y llamados a la acción.
 - **Carrusel automático**: Cambio de imágenes cada 3 segundos con fade
 - **Animaciones de scroll**: Efectos parallax y fade
 - **Video de fondo**: Mapa animado en sección hero
-- **Productos expandibles**: Cards de TrackGo, FleetGuard, Nexus Core
+- **Bloques de capacidades**: Tres columnas informativas (sin catálogo de nombres comerciales de familias de producto)
 
 ---
 

@@ -1,5 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
+	import { afterNavigate } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { authStore, isAuthenticated } from '$lib/stores/authStore.js';
 	import { toastStore } from '$lib/stores/toastStore.js';
@@ -7,6 +8,8 @@
 
 	// Estado de la página
 	let mode = 'login'; // 'login', 'register', 'recover', 'reset'
+
+	$: isCredentialsMode = mode === 'login' || mode === 'register';
 	let loading = false;
 	let isTransitioning = false;
 	let _recoveryStep = 'request'; // 'request' o 'reset'
@@ -46,6 +49,17 @@
 	// Círculos animados de fondo
 	let circles = [];
 
+	function syncModeFromUrl(url) {
+		const m = url.searchParams.get('mode');
+		if (m === 'register') {
+			mode = 'register';
+		} else if (m === 'recover') {
+			mode = 'recover';
+		} else {
+			mode = 'login';
+		}
+	}
+
 	onMount(() => {
 		// Verificar si el usuario ya está autenticado
 		if ($isAuthenticated) {
@@ -53,16 +67,16 @@
 			return;
 		}
 
-		// Obtener modo de la URL
-		const urlMode = $page.url.searchParams.get('mode');
-		if (urlMode === 'register') {
-			mode = 'register';
-		} else if (urlMode === 'recover') {
-			mode = 'recover';
-		}
+		syncModeFromUrl($page.url);
 
 		// Generar círculos de fondo
 		startCircleGeneration();
+	});
+
+	afterNavigate(({ to }) => {
+		if (to?.url?.pathname?.endsWith('/auth')) {
+			syncModeFromUrl(to.url);
+		}
 	});
 
 	function startCircleGeneration() {
@@ -477,12 +491,16 @@
 
 <!-- Contenido principal -->
 <div class="auth-container min-h-screen flex items-center justify-center p-4 relative z-10">
-	<div class="auth-card w-full max-w-md">
+	<div class="auth-card w-full max-w-md" class:auth-card-compact={isCredentialsMode}>
 		<!-- Header -->
-		<div class="auth-header mb-8 text-center justify-center">
+		<div
+			class="auth-header text-center justify-center
+				{isCredentialsMode ? 'mb-3 sm:mb-4' : 'mb-5 sm:mb-6'}"
+		>
 			<button
-				class="back-button mb-4 inline-flex items-center gap-2 text-cyan-400
-					   hover:text-cyan-300 transition-colors duration-200"
+				class="back-button inline-flex items-center gap-2 text-cyan-400
+					   hover:text-cyan-300 transition-colors duration-200
+					   {isCredentialsMode ? 'mb-2' : 'mb-4'}"
 				on:click={goBack}
 			>
 				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -497,14 +515,19 @@
 			</button>
 
 			<div
-				class="logo-container mb-6 flex justify-center self-center items-center place-self-center"
+				class="logo-container flex justify-center self-center items-center place-self-center
+					{isCredentialsMode ? 'mb-3' : 'mb-6'}"
 			>
-				<img src="/img/geminis-labs-logo-short.png" alt="Geminis Labs" class="w-20 h-20" />
+				<img
+					src="/img/geminis-labs-logo-short.png"
+					alt="Geminis Labs"
+					class={isCredentialsMode ? 'h-14 w-14' : 'h-20 w-20'}
+				/>
 			</div>
 
 			<!-- Toggle de modo - Solo mostrar en login/register -->
 			{#if mode === 'login' || mode === 'register'}
-				<div class="mode-toggle">
+				<div class="mode-toggle mode-toggle-compact">
 					<div class="toggle-container bg-gray-800/50 p-1 rounded-lg border border-gray-700/50">
 						<button
 							class="toggle-button {mode === 'login' ? 'active' : ''}"
@@ -538,12 +561,17 @@
 		</div>
 
 		<!-- Formularios -->
-		<div class="form-container {isTransitioning ? 'transitioning' : ''}">
+		<div
+			class="form-container {isTransitioning ? 'transitioning' : ''} {isCredentialsMode
+				? 'form-container--compact'
+				: ''}"
+		>
 			{#if mode === 'login'}
 				<!-- Formulario de Login -->
 				<form
 					on:submit={handleLogin}
-					class="auth-form space-y-4 {isTransitioning ? 'fade-out' : 'fade-in'}"
+					class="auth-form auth-form-compact space-y-2.5 sm:space-y-3
+						{isTransitioning ? 'fade-out' : 'fade-in'}"
 				>
 					<div class="form-group">
 						<label for="email" class="form-label">Correo Electrónico</label>
@@ -608,16 +636,9 @@
 						</button>
 					</div>
 
-					<button
-						type="submit"
-						disabled={loading}
-						class="auth-button w-full py-3 px-4 bg-gradient-to-r from-brand-green to-brand-green-light
-						   text-white font-medium rounded-lg hover:from-brand-green-light hover:to-brand-green
-						   transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-						   flex items-center justify-center gap-2"
-					>
+					<button type="submit" disabled={loading} class="btn-primary auth-login-cta w-full">
 						{#if loading}
-							<svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+							<svg class="shrink-0 animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
 								<circle
 									class="opacity-25"
 									cx="12"
@@ -632,9 +653,15 @@
 									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 								></path>
 							</svg>
-							Iniciando sesión...
+							<span>Iniciando sesión…</span>
 						{:else}
-							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg
+								class="shrink-0 w-5 h-5"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								aria-hidden="true"
+							>
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -642,7 +669,7 @@
 									d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
 								/>
 							</svg>
-							Iniciar Sesión
+							<span>Iniciar sesión</span>
 						{/if}
 					</button>
 
@@ -692,7 +719,8 @@
 				<!-- Formulario de Registro -->
 				<form
 					on:submit={handleRegister}
-					class="auth-form space-y-4 {isTransitioning ? 'fade-out' : 'fade-in'}"
+					class="auth-form auth-form-compact space-y-2.5 sm:space-y-3
+						{isTransitioning ? 'fade-out' : 'fade-in'}"
 				>
 					<div class="form-group">
 						<label for="fullName" class="form-label">Nombre Completo</label>
@@ -737,8 +765,8 @@
 						{#if errors.password}
 							<p class="error-message">{errors.password}</p>
 						{/if}
-						<p class="text-xs text-gray-400 mt-1">
-							Debe contener: mayúscula, número y carácter especial (!@#$%^&*...)
+						<p class="password-hint text-[0.7rem] leading-tight text-gray-400/90 mt-0.5 sm:text-xs">
+							Mayúscula, número y carácter especial (!@#$%…)
 						</p>
 					</div>
 
@@ -757,16 +785,9 @@
 						{/if}
 					</div>
 
-					<button
-						type="submit"
-						disabled={loading}
-						class="auth-button w-full py-3 px-4 bg-gradient-to-r from-brand-green to-brand-green-light
-						   text-white font-medium rounded-lg hover:from-brand-green-light hover:to-brand-green
-						   transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
-						   flex items-center justify-center gap-2"
-					>
+					<button type="submit" disabled={loading} class="btn-primary auth-login-cta w-full">
 						{#if loading}
-							<svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+							<svg class="shrink-0 animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
 								<circle
 									class="opacity-25"
 									cx="12"
@@ -781,9 +802,15 @@
 									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 								></path>
 							</svg>
-							Creando cuenta...
+							<span>Creando cuenta…</span>
 						{:else}
-							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg
+								class="shrink-0 w-5 h-5"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								aria-hidden="true"
+							>
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -791,7 +818,7 @@
 									d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
 								/>
 							</svg>
-							Crear Cuenta
+							<span>Crear cuenta</span>
 						{/if}
 					</button>
 				</form>
@@ -1003,6 +1030,36 @@
 			inset 0 1px 0 rgba(255, 255, 255, 0.1);
 	}
 
+	/* Login + registro: mismos márgenes y densidad (sin salto al cambiar de pestaña) */
+	.auth-card-compact {
+		padding: 1.5rem 1.25rem 1.25rem;
+	}
+
+	@media (min-width: 640px) {
+		.auth-card-compact {
+			padding: 1.75rem 1.75rem 1.5rem;
+		}
+	}
+
+	.form-container.form-container--compact {
+		margin-top: 0.75rem !important;
+	}
+
+	.mode-toggle-compact .toggle-button {
+		padding: 0.5rem 0.625rem;
+		font-size: 0.8125rem;
+	}
+
+	.auth-form-compact .form-label {
+		margin-bottom: 0.2rem;
+		font-size: 0.8125rem;
+	}
+
+	.auth-form-compact .form-input {
+		padding: 0.5rem 0.75rem;
+		font-size: 0.9375rem;
+	}
+
 	.toggle-container {
 		display: flex;
 		gap: 4px;
@@ -1097,16 +1154,48 @@
 			inset 0 1px 0 rgba(255, 255, 255, 0.3);
 	}
 
-	/* Animaciones de transición entre pestañas */
+	/*
+	 * Mismo aspecto que "Enviar Mensaje" (login-page.css → .btn-primary: píldora, sombra, hover).
+	 * Solo se cambia el gradiente a la paleta verde de marca.
+	 */
+	:global(.btn-primary).auth-login-cta {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		width: 100%;
+		margin: 0;
+		background: linear-gradient(135deg, #007a5c 0%, #00a878 50%, #00c896 100%);
+		box-shadow:
+			0 8px 25px rgba(0, 168, 120, 0.35),
+			inset 0 1px 0 rgba(255, 255, 255, 0.2);
+	}
+
+	:global(.btn-primary).auth-login-cta:hover:not(:disabled) {
+		transform: translateY(-3px);
+		box-shadow:
+			0 12px 35px rgba(0, 168, 120, 0.45),
+			inset 0 1px 0 rgba(255, 255, 255, 0.3);
+	}
+
+	:global(.btn-primary).auth-login-cta:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		transform: none;
+	}
+
+	/* Animaciones de transición entre pestañas: altura según contenido (evita scroll innecesario) */
 	.form-container {
 		position: relative;
-		min-height: 400px;
-		margin-top: 2rem !important;
+		min-height: 0;
+		margin-top: 1.25rem !important;
 	}
 
 	.auth-form {
-		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-		height: 450px;
+		transition:
+			opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+			transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		min-height: 0;
 	}
 
 	.fade-in {
@@ -1137,7 +1226,7 @@
 		border: none;
 		cursor: pointer;
 		font-family: inherit;
-		margin-bottom: 2rem !important;
+		margin-bottom: 0.75rem !important;
 	}
 
 	.forgot-password-link:hover {
@@ -1324,8 +1413,13 @@
 			margin: 1rem;
 		}
 
+		.auth-card-compact {
+			padding: 1.25rem 1rem 1rem;
+			margin: 0.5rem;
+		}
+
 		.form-container {
-			min-height: 350px;
+			min-height: 0;
 		}
 
 		.logo-container img {

@@ -7,7 +7,7 @@
 	// SEO
 	const pageTitle = 'Nexus by Geminis Labs - Inteligencia Vehicular en Tiempo Real';
 	const pageDescription =
-		'Plataforma avanzada de rastreo GPS, telemetría y control de flotas. TrackGo, FleetGuard y Nexus Core.';
+		'Plataforma avanzada de rastreo GPS, telemetría y control de flotas. TrackGo, FleetGuard y Nexus Core by GeminisLabs';
 
 	let scrollY = $state(0);
 	let isImageLoaded = $state(false);
@@ -143,6 +143,7 @@
 
 	// Product Verticals Logic
 	let expandedVertical = $state(null);
+	let selectedVariantIndex = $state(0);
 
 	const trackgoVariants = [
 		{
@@ -303,41 +304,20 @@
 		}
 	]);
 
-	// Focused selection logic for variants
-	let selectedVariantIndex = $state(0);
-
 	function toggleVertical(id, event = null) {
-		// If card is expanded and click is on expanded content, don't toggle
-		if (expandedVertical === id && event) {
-			const target = event.target;
-			// Check if click is inside card-expanded-content
-			if (target.closest('.card-expanded-content')) {
-				return; // Don't toggle
-			}
-		}
-
-		selectedVariantIndex = 0; // Reset focus on expansion
-		if (expandedVertical === id) {
-			expandedVertical = null;
-		} else {
-			expandedVertical = id;
-		}
+		if (expandedVertical === id && event?.target?.closest('.card-expanded-content')) return;
+		selectedVariantIndex = 0;
+		expandedVertical = expandedVertical === id ? null : id;
 	}
 
 	onMount(() => {
-		// Reset scroll position instantly to avoid smooth scroll animation from previous page
 		window.scrollTo({ top: 0, behavior: 'instant' });
 
-		// Preload Hero Image
 		const img = new Image();
 		img.src = '/img/products/nexus/hero-bg.png';
-
 		const progressInterval = setInterval(() => {
-			if (loadingProgress < 90) {
-				loadingProgress += Math.random() * 15;
-			}
+			if (loadingProgress < 90) loadingProgress += Math.random() * 15;
 		}, 200);
-
 		img.onload = () => {
 			loadingProgress = 100;
 			setTimeout(() => {
@@ -387,7 +367,7 @@
 	</div>
 
 	<main class="nexus-page">
-		<!-- 1. HERO SECTION (FADE-OUT) -->
+		<!-- 1. HERO -->
 		<section class="hero-initial-container">
 			{#if !isImageLoaded}
 				<div class="nexus-loader-overlay">
@@ -404,14 +384,13 @@
 								<div class="progress-fill" style="width: {loadingProgress}%"></div>
 							</div>
 							<span class="loading-detail"
-								>SYNCING NEXUS CORE... {Math.floor(loadingProgress)}%</span
+								>INICIALIZANDO NEXUS... {Math.floor(loadingProgress)}%</span
 							>
 						</div>
 					</div>
 					<div class="scan-line-loader"></div>
 				</div>
 			{/if}
-
 			<div
 				class="hero-scroll-wrapper"
 				style="opacity: {heroOpacity}; transform: translateY({heroTranslateY}px); z-index: 2; visibility: {isImageLoaded
@@ -427,29 +406,23 @@
 						<div class="orbital-ring nexus-hero-ring-2"></div>
 						<div class="orbital-ring nexus-hero-ring-3"></div>
 					</div>
-
-					<!-- HUD Data Elements -->
 					<div class="hud-data top-left">
-						<span class="label">SYS.LAT</span>
-						<span class="value">{hudData.lat}</span>
+						<span class="label">SYS.LAT</span><span class="value">{hudData.lat}</span>
 					</div>
 					<div class="hud-data top-right">
-						<span class="label">SYS.LON</span>
-						<span class="value">{hudData.lon}</span>
+						<span class="label">SYS.LON</span><span class="value">{hudData.lon}</span>
 					</div>
 					<div class="hud-data bottom-left">
-						<span class="label">ALT</span>
-						<span class="value">{hudData.alt}</span>
+						<span class="label">ALT</span><span class="value">{hudData.alt}</span>
 					</div>
 					<div class="hud-data bottom-right">
-						<span class="label">SPD</span>
-						<span class="value">{hudData.speed}</span>
+						<span class="label">SPD</span><span class="value">{hudData.speed}</span>
 					</div>
 				</div>
 			</div>
 		</section>
 
-		<!-- 2. LOGO SEQUENCE (STICKY REVEAL) -->
+		<!-- 2. LOGO SEQUENCE -->
 		<section class="logo-sequence-container">
 			<div class="sticky-wrapper">
 				<div
@@ -478,12 +451,11 @@
 			</div>
 		</section>
 
-		<!-- 2. EL PROBLEMA (CONTEXTO) -->
+		<!-- 3. EL PROBLEMA -->
 		<section class="problem-section" id="contexto">
 			<div class="container">
 				<h2 class="section-title">El Desafío Actual</h2>
 				<p class="section-subtitle">Operar a ciegas ya no es una opción.</p>
-
 				<div class="problems-grid">
 					<div class="problem-card">
 						<div class="problem-icon">
@@ -492,14 +464,13 @@
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
-							>
-								<path
+								><path
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									stroke-width="1.5"
 									d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-								/>
-							</svg>
+								/></svg
+							>
 						</div>
 						<h3>Riesgo de Seguridad</h3>
 						<p>
@@ -507,7 +478,6 @@
 							recuperación es casi imposible.
 						</p>
 					</div>
-
 					<div class="problem-card">
 						<div class="problem-icon">
 							<svg
@@ -515,14 +485,13 @@
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
-							>
-								<path
+								><path
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									stroke-width="1.5"
 									d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
-								/>
-							</svg>
+								/></svg
+							>
 						</div>
 						<h3>Desconexión Operativa</h3>
 						<p>
@@ -530,7 +499,6 @@
 							genera retrasos y pérdidas.
 						</p>
 					</div>
-
 					<div class="problem-card">
 						<div class="problem-icon">
 							<svg
@@ -538,14 +506,13 @@
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
-							>
-								<path
+								><path
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									stroke-width="1.5"
 									d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-								/>
-							</svg>
+								/></svg
+							>
 						</div>
 						<h3>Datos Sin Valor</h3>
 						<p>
@@ -553,7 +520,6 @@
 							antiguas solo acumulan ruido.
 						</p>
 					</div>
-
 					<div class="problem-card">
 						<div class="problem-icon">
 							<svg
@@ -561,14 +527,13 @@
 								fill="none"
 								viewBox="0 0 24 24"
 								stroke="currentColor"
-							>
-								<path
+								><path
 									stroke-linecap="round"
 									stroke-linejoin="round"
 									stroke-width="1.5"
 									d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-								/>
-							</svg>
+								/></svg
+							>
 						</div>
 						<h3>Costos Ocultos</h3>
 						<p>
@@ -580,7 +545,7 @@
 			</div>
 		</section>
 
-		<!-- 3. QUÉ ES NEXUS (INTRO) -->
+		<!-- 4. INTRO -->
 		<section class="intro-section" id="intro">
 			<div class="container-split">
 				<div class="intro-text">
@@ -614,7 +579,6 @@
 					</ul>
 				</div>
 				<div class="intro-visual">
-					<!-- Dashboard Mockup Placeholder (CSS optimized) -->
 					<div class="dashboard-placeholder">
 						<div class="dashboard-mockup">
 							<div class="mockup-header">
@@ -634,7 +598,7 @@
 			</div>
 		</section>
 
-		<!-- 4. DEMO WEB -->
+		<!-- 5. DEMO WEB -->
 		<section class="demo-section web-demo" id="demo">
 			<div class="container">
 				<div class="demo-split">
@@ -645,7 +609,6 @@
 							Visualiza toda tu operación en un solo mapa inteligente. Filtra por grupos, estados o
 							alertas críticas.
 						</p>
-
 						<div class="feature-bullets">
 							<div class="bullet-item">
 								<span class="bullet-icon">🗺️</span>
@@ -671,7 +634,6 @@
 						</div>
 					</div>
 					<div class="demo-media desktop-frame">
-						<!-- Video Placeholder -->
 						<div class="video-container">
 							<div class="play-button">▶</div>
 							<div class="video-overlay">Demo de Plataforma</div>
@@ -681,7 +643,7 @@
 			</div>
 		</section>
 
-		<!-- 5. DEMO MÓVIL -->
+		<!-- 6. DEMO MÓVIL -->
 		<section class="demo-section mobile-demo">
 			<div class="container">
 				<div class="demo-split reverse">
@@ -692,7 +654,6 @@
 							La potencia de la web, optimizada para tu smartphone. Recibe notificaciones push y
 							mantén el control donde sea.
 						</p>
-
 						<div class="feature-bullets">
 							<div class="bullet-item">
 								<span class="bullet-icon">📱</span>
@@ -711,14 +672,12 @@
 								</div>
 							</div>
 						</div>
-
 						<div class="app-store-buttons">
 							<button class="store-btn apple">App Store</button>
 							<button class="store-btn google">Google Play</button>
 						</div>
 					</div>
 					<div class="demo-media mobile-frame">
-						<!-- Mobile Video Placeholder -->
 						<div class="phone-mockup">
 							<div class="notch"></div>
 							<div class="screen">
@@ -732,7 +691,44 @@
 			</div>
 		</section>
 
-		<!-- 6. PRODUCT VERTICALS -->
+		<!-- 7. CAPACIDADES — overview limpio sin marcas (de v1) -->
+		<section class="verticals-section" id="capacidades">
+			<div class="container">
+				<h2 class="section-title">Una plataforma, muchas formas de operar</h2>
+				<p class="section-subtitle">
+					Nexus concentra rastreo, telemetría y servicios de flota; el alcance concreto se define
+					según tu contrato y tu escala.
+				</p>
+				<div class="problems-grid nexus-pillars">
+					<div class="problem-card">
+						<div class="problem-icon" aria-hidden="true">📍</div>
+						<h3>Visibilidad y rastreo</h3>
+						<p>
+							Ubicación en tiempo real, historial, geocercas y acceso web y móvil para equipos
+							reducidos o de alto recorrido.
+						</p>
+					</div>
+					<div class="problem-card">
+						<div class="problem-icon" aria-hidden="true">🛡️</div>
+						<h3>Operación y seguridad</h3>
+						<p>
+							Alertas, reportes y control operativo de flotillas: incidentes, rutas y cumplimiento
+							en un tablero.
+						</p>
+					</div>
+					<div class="problem-card">
+						<div class="problem-icon" aria-hidden="true">🧩</div>
+						<h3>Integración y partners</h3>
+						<p>
+							Escenarios con migración de equipos, integradores y despliegues empresariales, bajo
+							acuerdo y validación técnica.
+						</p>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- 8. ELIGE TU POTENCIA — verticales expandibles con variantes (de v2) -->
 		<section class="verticals-section" id="verticals">
 			<div class="container">
 				<h2 class="section-title">Elige Tu Potencia</h2>
@@ -754,16 +750,12 @@
 						<div class="card-glow"></div>
 						<div class="card-border-glow"></div>
 						<div class="card-technical-grid"></div>
-
-						<!-- Corner Brackets -->
 						<div class="bracket top-left"></div>
 						<div class="bracket top-right"></div>
 						<div class="bracket bottom-left"></div>
 						<div class="bracket bottom-right"></div>
-
 						<div class="scanning-line"></div>
 
-						<!-- Overview Content -->
 						<div class="card-overview">
 							<div class="vertical-icon">📍</div>
 							<h3>TrackGo</h3>
@@ -781,7 +773,6 @@
 							<button class="btn-vertical">Ver Variantes</button>
 						</div>
 
-						<!-- Expanded Multi-Product View -->
 						{#if expandedVertical === 'trackgo'}
 							<div class="card-expanded-content">
 								<div class="expanded-header">
@@ -791,7 +782,7 @@
 											e.stopPropagation();
 											expandedVertical = null;
 										}}
-										aria-label="Volver a productos"
+										aria-label="Volver"
 									>
 										<svg
 											width="20"
@@ -812,7 +803,6 @@
 										<p>Tu vehículo, siempre bajo control con tecnología Nexus</p>
 									</div>
 								</div>
-
 								<div class="variants-slider-viewport">
 									<div
 										class="variants-grid"
@@ -829,23 +819,19 @@
 												role="button"
 												tabindex="0"
 											>
-												{#if variant.badge}
-													<span class="variant-badge">{variant.badge}</span>
-												{/if}
+												{#if variant.badge}<span class="variant-badge">{variant.badge}</span>{/if}
 												<div class="variant-header">
 													<h4>{variant.name}</h4>
 													<div class="variant-price">
-														<span class="currency">$</span>
-														<span class="amount">{variant.price}</span>
-														<span class="period">/mo</span>
+														<span class="currency">$</span><span class="amount"
+															>{variant.price}</span
+														><span class="period">/mo</span>
 													</div>
 												</div>
 												<p class="variant-focus"><strong>Enfoque:</strong> {variant.focus}</p>
 												<div class="variant-features-mini">
 													<ul>
-														{#each variant.features as feature (feature)}
-															<li>{feature}</li>
-														{/each}
+														{#each variant.features as feature (feature)}<li>{feature}</li>{/each}
 													</ul>
 												</div>
 												<button class="btn-variant-select">Lo quiero</button>
@@ -853,10 +839,8 @@
 										{/each}
 									</div>
 								</div>
-
 								<div class="variant-selector">
-									{#each trackgoVariants as variant, i (variant.id)}
-										<button
+									{#each trackgoVariants as _, i (i)}<button
 											class="selector-dot"
 											class:active={selectedVariantIndex === i}
 											onclick={(e) => {
@@ -864,10 +848,8 @@
 												selectedVariantIndex = i;
 											}}
 											aria-label="Ver variante {i + 1}"
-										></button>
-									{/each}
+										></button>{/each}
 								</div>
-
 								<div class="expanded-footer">
 									<p>
 										🔹 <strong>Beneficios TrackGo:</strong> Sin costo de instalación • Equipo 4G diferible
@@ -878,6 +860,7 @@
 						{/if}
 					</div>
 
+					<!-- FleetGuard -->
 					<div
 						class="vertical-card fleetguard"
 						class:expanded={expandedVertical === 'fleetguard'}
@@ -894,10 +877,8 @@
 						<div class="bracket top-right"></div>
 						<div class="bracket bottom-left"></div>
 						<div class="bracket bottom-right"></div>
-
 						<div class="scanning-line"></div>
 
-						<!-- Overview Content -->
 						<div class="card-overview">
 							<div class="vertical-icon">🛡️</div>
 							<h3>FleetGuard</h3>
@@ -915,7 +896,6 @@
 							<button class="btn-vertical primary">Ver Variantes</button>
 						</div>
 
-						<!-- Expanded Multi-Product View -->
 						{#if expandedVertical === 'fleetguard'}
 							<div class="card-expanded-content">
 								<div class="expanded-header">
@@ -924,16 +904,13 @@
 										onclick={(e) => {
 											e.stopPropagation();
 											expandedVertical = null;
-										}}
+										}}>← Volver a productos</button
 									>
-										← Volver a productos
-									</button>
 									<div class="header-text">
 										<h2>Familia FleetGuard®</h2>
 										<p>Telemetría inteligente para operaciones críticas</p>
 									</div>
 								</div>
-
 								<div class="variants-slider-viewport">
 									<div
 										class="variants-grid"
@@ -950,24 +927,20 @@
 												role="button"
 												tabindex="0"
 											>
-												{#if variant.badge}
-													<span class="variant-badge">{variant.badge}</span>
-												{/if}
+												{#if variant.badge}<span class="variant-badge">{variant.badge}</span>{/if}
 												<div class="variant-header">
 													<h4>{variant.name}</h4>
 													<div class="variant-price">
-														<span class="currency">$</span>
-														<span class="amount">{variant.price}</span>
-														<span class="period">/mo</span>
+														<span class="currency">$</span><span class="amount"
+															>{variant.price}</span
+														><span class="period">/mo</span>
 													</div>
 													<div class="installation-tag">Instalación: ${variant.installation}</div>
 												</div>
 												<p class="variant-focus"><strong>Enfoque:</strong> {variant.focus}</p>
 												<div class="variant-features-mini">
 													<ul>
-														{#each variant.features as feature (feature)}
-															<li>{feature}</li>
-														{/each}
+														{#each variant.features as feature (feature)}<li>{feature}</li>{/each}
 													</ul>
 												</div>
 												<button class="btn-variant-select">Lo quiero</button>
@@ -975,10 +948,8 @@
 										{/each}
 									</div>
 								</div>
-
 								<div class="variant-selector">
-									{#each fleetguardVariants as variant, i (variant.id)}
-										<button
+									{#each fleetguardVariants as _, i (i)}<button
 											class="selector-dot"
 											class:active={selectedVariantIndex === i}
 											onclick={(e) => {
@@ -986,10 +957,8 @@
 												selectedVariantIndex = i;
 											}}
 											aria-label="Ver variante {i + 1}"
-										></button>
-									{/each}
+										></button>{/each}
 								</div>
-
 								<div class="expanded-footer-detailed">
 									<div class="footer-grid">
 										<div class="footer-col">
@@ -1039,10 +1008,8 @@
 						<div class="bracket top-right"></div>
 						<div class="bracket bottom-left"></div>
 						<div class="bracket bottom-right"></div>
-
 						<div class="scanning-line"></div>
 
-						<!-- Overview Content -->
 						<div class="card-overview">
 							<div class="vertical-icon">🧠</div>
 							<h3>Nexus Core®</h3>
@@ -1052,7 +1019,7 @@
 								para partners e integraciones empresariales.
 							</p>
 							<ul class="vertical-features">
-								<li>Migración de Flotillas (>20)</li>
+								<li>Migración de Flotillas (&gt;20)</li>
 								<li>Modalidad Partner / Reseller</li>
 								<li>Análisis de Datos Avanzado</li>
 								<li>Soporte Técnico 24/7</li>
@@ -1060,7 +1027,6 @@
 							<button class="btn-vertical">Ver Soluciones</button>
 						</div>
 
-						<!-- Expanded Multi-Product View -->
 						{#if expandedVertical === 'nexus-core'}
 							<div class="card-expanded-content">
 								<div class="expanded-header">
@@ -1069,16 +1035,13 @@
 										onclick={(e) => {
 											e.stopPropagation();
 											expandedVertical = null;
-										}}
+										}}>← Volver a productos</button
 									>
-										← Volver a productos
-									</button>
 									<div class="header-text">
 										<h2>Nexus Core® y Ecosistema</h2>
 										<p>Tecnología modular para operaciones de alto volumen</p>
 									</div>
 								</div>
-
 								<div class="variants-slider-viewport">
 									<div
 										class="variants-grid"
@@ -1095,19 +1058,15 @@
 												role="button"
 												tabindex="0"
 											>
-												{#if variant.badge}
-													<span class="variant-badge">{variant.badge}</span>
-												{/if}
+												{#if variant.badge}<span class="variant-badge">{variant.badge}</span>{/if}
 												<div class="variant-header">
 													<h4>{variant.name}</h4>
 													<div class="variant-price">
-														<span class="currency">{variant.currency}</span>
-														<span class="amount">{variant.price}</span>
-														<span class="period">/{variant.period}</span>
+														<span class="currency">{variant.currency}</span><span class="amount"
+															>{variant.price}</span
+														><span class="period">/{variant.period}</span>
 													</div>
 												</div>
-
-												<!-- Internal Tabs Navigation -->
 												<div class="internal-tabs">
 													<button
 														class="tab-btn"
@@ -1115,55 +1074,40 @@
 														onclick={(e) => {
 															e.stopPropagation();
 															variant.activeTab = 'propuesta';
-														}}
+														}}>Propuesta</button
 													>
-														Propuesta
-													</button>
 													<button
 														class="tab-btn"
 														class:active={variant.activeTab === 'alcance'}
 														onclick={(e) => {
 															e.stopPropagation();
 															variant.activeTab = 'alcance';
-														}}
+														}}>Alcance</button
 													>
-														Alcance
-													</button>
 												</div>
-
 												<div class="tab-content-wrapper">
 													{#if variant.activeTab === 'propuesta'}
 														<div class="tab-content fadeIn">
 															<p class="variant-focus">{variant.focus}</p>
-
 															<div class="features-icon-grid">
-																{#if variant.includes}
-																	{#each variant.includes as item (item)}
-																		<div class="icon-feature">
-																			<span class="dot"></span>
-																			<span>{item}</span>
-																		</div>
-																	{/each}
-																{/if}
-																{#if variant.features}
-																	{#each variant.features as item (item)}
-																		<div class="icon-feature">
-																			<span class="dot"></span>
-																			<span>{item}</span>
-																		</div>
-																	{/each}
-																{/if}
+																{#if variant.includes}{#each variant.includes as item (item)}<div
+																			class="icon-feature"
+																		>
+																			<span class="dot"></span><span>{item}</span>
+																		</div>{/each}{/if}
+																{#if variant.features}{#each variant.features as item (item)}<div
+																			class="icon-feature"
+																		>
+																			<span class="dot"></span><span>{item}</span>
+																		</div>{/each}{/if}
 															</div>
-
-															{#if variant.oneTimePayments}
-																<div class="one-time-tags mini">
-																	{#each variant.oneTimePayments as payment (payment.label)}
-																		<div class="payment-tag">
+															{#if variant.oneTimePayments}<div class="one-time-tags mini">
+																	{#each variant.oneTimePayments as payment (payment.label)}<div
+																			class="payment-tag"
+																		>
 																			{payment.label}: {payment.currency || '$'}{payment.price}
-																		</div>
-																	{/each}
-																</div>
-															{/if}
+																		</div>{/each}
+																</div>{/if}
 														</div>
 													{:else}
 														<div class="tab-content fadeIn">
@@ -1179,38 +1123,28 @@
 																	</div>
 																</div>
 															{/if}
-
-															{#if variant.limitations}
-																<div class="limitations-box">
+															{#if variant.limitations}<div class="limitations-box">
 																	<p class="mini-title">Limitaciones:</p>
 																	<ul>
-																		{#each variant.limitations as item (item)}
-																			<li>{item}</li>
-																		{/each}
+																		{#each variant.limitations as item (item)}<li>{item}</li>{/each}
 																	</ul>
-																</div>
-															{/if}
-
-															{#if variant.support}
-																<div class="support-tag">{variant.support}</div>
-															{/if}
+																</div>{/if}
+															{#if variant.support}<div class="support-tag">
+																	{variant.support}
+																</div>{/if}
 														</div>
 													{/if}
 												</div>
-
-												{#if variant.footerNote}
-													<p class="variant-footer-note">{variant.footerNote}</p>
-												{/if}
-
+												{#if variant.footerNote}<p class="variant-footer-note">
+														{variant.footerNote}
+													</p>{/if}
 												<button class="btn-variant-select">Solicitar Información</button>
 											</div>
 										{/each}
 									</div>
 								</div>
-
 								<div class="variant-selector">
-									{#each nexusCoreVariants as variant, i (variant.id)}
-										<button
+									{#each nexusCoreVariants as _, i (i)}<button
 											class="selector-dot"
 											class:active={selectedVariantIndex === i}
 											onclick={(e) => {
@@ -1218,10 +1152,8 @@
 												selectedVariantIndex = i;
 											}}
 											aria-label="Ver variante {i + 1}"
-										></button>
-									{/each}
+										></button>{/each}
 								</div>
-
 								<div class="expanded-footer-detailed">
 									<div class="footer-grid">
 										<div class="footer-col addon-highlight">
@@ -1249,332 +1181,146 @@
 			</div>
 		</section>
 
-		<!-- COMPARISON TABLES -->
+		<!-- 9. TABLAS COMPARATIVAS — las 4 completas (de v2) -->
 		<section class="comparison-tables-section">
 			<div class="container">
 				<h2 class="section-title">Tabla Comparativa de Soluciones</h2>
 				<p class="section-subtitle">Nexus by GeminisLabs</p>
 
-				<!-- TrackGo Table -->
+				<!-- TrackGo -->
 				<div class="comparison-table-wrapper">
 					<h3 class="table-title">🔹 TRACKGO® – Rastreo Esencial</h3>
 					<div class="table-responsive">
 						<table class="comparison-table">
-							<thead>
-								<tr>
-									<th>Característica</th>
-									<th>TrackGo®</th>
-								</tr>
-							</thead>
+							<thead><tr><th>Característica</th><th>TrackGo®</th></tr></thead>
 							<tbody>
-								<tr>
-									<td>Público objetivo</td>
-									<td>Usuarios individuales / pequeñas flotillas</td>
-								</tr>
-								<tr>
-									<td>Rastreo en tiempo real</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Geocercas</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Alertas básicas</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Historial de recorridos</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>App móvil y plataforma web</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Dispositivo</td>
-									<td>📡 4G alta gama</td>
-								</tr>
-								<tr>
-									<td>Instalación</td>
-									<td>❌ Sin costo</td>
-								</tr>
-								<tr>
-									<td>Costo del equipo</td>
-									<td>$1,200 MXN (diferible)</td>
-								</tr>
-								<tr>
-									<td>Pago anual</td>
-									<td>10% de descuento</td>
-								</tr>
-								<tr>
-									<td>Soporte</td>
-									<td>☎️ Básico 24/7</td>
-								</tr>
-								<tr>
-									<td>Integraciones / APIs</td>
-									<td>❌ No aplica</td>
-								</tr>
+								<tr><td>Público objetivo</td><td>Usuarios individuales / pequeñas flotillas</td></tr
+								>
+								<tr><td>Rastreo en tiempo real</td><td>✅</td></tr>
+								<tr><td>Geocercas</td><td>✅</td></tr>
+								<tr><td>Alertas básicas</td><td>✅</td></tr>
+								<tr><td>Historial de recorridos</td><td>✅</td></tr>
+								<tr><td>App móvil y plataforma web</td><td>✅</td></tr>
+								<tr><td>Dispositivo</td><td>📡 4G alta gama</td></tr>
+								<tr><td>Instalación</td><td>❌ Sin costo</td></tr>
+								<tr><td>Costo del equipo</td><td>$1,200 MXN (diferible)</td></tr>
+								<tr><td>Pago anual</td><td>10% de descuento</td></tr>
+								<tr><td>Soporte</td><td>☎️ Básico 24/7</td></tr>
+								<tr><td>Integraciones / APIs</td><td>❌ No aplica</td></tr>
 							</tbody>
 						</table>
 					</div>
 				</div>
 
-				<!-- FleetGuard Table -->
+				<!-- FleetGuard -->
 				<div class="comparison-table-wrapper">
 					<h3 class="table-title">🔹 FLEETGUARD® – Control y Seguridad de Flotillas</h3>
 					<div class="table-responsive">
 						<table class="comparison-table fleetguard-table">
-							<thead>
-								<tr>
-									<th>Característica</th>
-									<th>Logistics</th>
-									<th>Recovery</th>
-									<th>Secure Max</th>
-									<th>Advanced Core</th>
-								</tr>
-							</thead>
+							<thead
+								><tr
+									><th>Característica</th><th>Logistics</th><th>Recovery</th><th>Secure Max</th><th
+										>Advanced Core</th
+									></tr
+								></thead
+							>
 							<tbody>
-								<tr>
-									<td>Precio mensual</td>
-									<td>$199 MXN</td>
-									<td>$230 MXN</td>
-									<td>$350 MXN</td>
-									<td>$550 MXN</td>
-								</tr>
-								<tr>
-									<td>Instalación</td>
-									<td>$600 MXN</td>
-									<td>$720 MXN</td>
-									<td>$864 MXN</td>
-									<td>$1,036.80 MXN</td>
-								</tr>
-								<tr>
-									<td>Rastreo en tiempo real</td>
-									<td>✅</td>
-									<td>✅</td>
-									<td>✅</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Geocercas</td>
-									<td>✅</td>
-									<td>✅</td>
-									<td>✅</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Alertas inteligentes</td>
-									<td>Básicas</td>
-									<td>Avanzadas</td>
-									<td>Críticas</td>
-									<td>Avanzadas</td>
-								</tr>
-								<tr>
-									<td>Historial</td>
-									<td>Estándar</td>
-									<td>Extendido</td>
-									<td>Extendido</td>
-									<td>Avanzado</td>
-								</tr>
-								<tr>
-									<td>Reportes</td>
-									<td>Básicos</td>
-									<td>Intermedios</td>
-									<td>Avanzados</td>
-									<td>Personalizados</td>
-								</tr>
-								<tr>
-									<td>Seguridad vehicular</td>
-									<td>❌</td>
-									<td>✅</td>
-									<td>✅</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Sensores adicionales</td>
-									<td>❌</td>
-									<td>❌</td>
-									<td>✅</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Equipo secundario portátil</td>
-									<td>❌</td>
-									<td>❌</td>
-									<td>✅</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Análisis de datos</td>
-									<td>❌</td>
-									<td>❌</td>
-									<td>Intermedio</td>
-									<td>🧠 Avanzado</td>
-								</tr>
-								<tr>
-									<td>Dispositivo</td>
-									<td colspan="4">📡 4G alta gama</td>
-								</tr>
-								<tr>
-									<td>Modalidad sin plazo</td>
-									<td>✅</td>
-									<td>✅</td>
-									<td>✅</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Modalidad 18 meses</td>
-									<td colspan="4">✅ (equipo incluido)</td>
-								</tr>
-								<tr>
-									<td>Soporte</td>
-									<td colspan="4">🛠️ Avanzado 24/7</td>
-								</tr>
-								<tr>
-									<td>Integraciones / APIs</td>
-									<td colspan="4">⚙️ Según plan</td>
-								</tr>
+								<tr
+									><td>Precio mensual</td><td>$199 MXN</td><td>$230 MXN</td><td>$350 MXN</td><td
+										>$550 MXN</td
+									></tr
+								>
+								<tr
+									><td>Instalación</td><td>$600 MXN</td><td>$720 MXN</td><td>$864 MXN</td><td
+										>$1,036.80 MXN</td
+									></tr
+								>
+								<tr><td>Rastreo en tiempo real</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+								<tr><td>Geocercas</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+								<tr
+									><td>Alertas inteligentes</td><td>Básicas</td><td>Avanzadas</td><td>Críticas</td
+									><td>Avanzadas</td></tr
+								>
+								<tr
+									><td>Historial</td><td>Estándar</td><td>Extendido</td><td>Extendido</td><td
+										>Avanzado</td
+									></tr
+								>
+								<tr
+									><td>Reportes</td><td>Básicos</td><td>Intermedios</td><td>Avanzados</td><td
+										>Personalizados</td
+									></tr
+								>
+								<tr><td>Seguridad vehicular</td><td>❌</td><td>✅</td><td>✅</td><td>✅</td></tr>
+								<tr><td>Sensores adicionales</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
+								<tr
+									><td>Equipo secundario portátil</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td
+									></tr
+								>
+								<tr
+									><td>Análisis de datos</td><td>❌</td><td>❌</td><td>Intermedio</td><td
+										>🧠 Avanzado</td
+									></tr
+								>
+								<tr><td>Dispositivo</td><td colspan="4">📡 4G alta gama</td></tr>
+								<tr><td>Modalidad sin plazo</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
+								<tr><td>Modalidad 18 meses</td><td colspan="4">✅ (equipo incluido)</td></tr>
+								<tr><td>Soporte</td><td colspan="4">🛠️ Avanzado 24/7</td></tr>
+								<tr><td>Integraciones / APIs</td><td colspan="4">⚙️ Según plan</td></tr>
 							</tbody>
 						</table>
 					</div>
 				</div>
 
-				<!-- Nexus Core Migrate Table -->
+				<!-- Nexus Core Migrate -->
 				<div class="comparison-table-wrapper">
 					<h3 class="table-title">🔹 NEXUS CORE MIGRATE – Migración de Flotillas</h3>
 					<div class="table-responsive">
 						<table class="comparison-table">
-							<thead>
-								<tr>
-									<th>Característica</th>
-									<th>Nexus Core Migrate</th>
-								</tr>
-							</thead>
+							<thead><tr><th>Característica</th><th>Nexus Core Migrate</th></tr></thead>
 							<tbody>
-								<tr>
-									<td>Público objetivo</td>
-									<td>Flotillas con GPS ya instalado</td>
-								</tr>
-								<tr>
-									<td>Flotilla mínima</td>
-									<td>🚛 20 unidades</td>
-								</tr>
-								<tr>
-									<td>Precio mensual</td>
-									<td>$65 MXN por unidad</td>
-								</tr>
-								<tr>
-									<td>Licencia (única)</td>
-									<td>$150 MXN</td>
-								</tr>
-								<tr>
-									<td>Configuración (única)</td>
-									<td>$400 MXN</td>
-								</tr>
-								<tr>
-									<td>App móvil y plataforma</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Rastreo en tiempo real</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Configuración de reporteo</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Análisis avanzado opcional</td>
-									<td>+$15 MXN / unidad</td>
-								</tr>
-								<tr>
-									<td>Instalación de equipo</td>
-									<td>❌ Cliente</td>
-								</tr>
-								<tr>
-									<td>SIM y datos</td>
-									<td>❌ Cliente</td>
-								</tr>
-								<tr>
-									<td>Mantenimiento</td>
-									<td>❌ Cliente</td>
-								</tr>
-								<tr>
-									<td>Soporte</td>
-									<td>☎️ Avanzado 24/7</td>
-								</tr>
-								<tr>
-									<td>Integraciones</td>
-									<td>⚙️ Opcional</td>
-								</tr>
+								<tr><td>Público objetivo</td><td>Flotillas con GPS ya instalado</td></tr>
+								<tr><td>Flotilla mínima</td><td>🚛 20 unidades</td></tr>
+								<tr><td>Precio mensual</td><td>$65 MXN por unidad</td></tr>
+								<tr><td>Licencia (única)</td><td>$150 MXN</td></tr>
+								<tr><td>Configuración (única)</td><td>$400 MXN</td></tr>
+								<tr><td>App móvil y plataforma</td><td>✅</td></tr>
+								<tr><td>Rastreo en tiempo real</td><td>✅</td></tr>
+								<tr><td>Configuración de reporteo</td><td>✅</td></tr>
+								<tr><td>Análisis avanzado opcional</td><td>+$15 MXN / unidad</td></tr>
+								<tr><td>Instalación de equipo</td><td>❌ Cliente</td></tr>
+								<tr><td>SIM y datos</td><td>❌ Cliente</td></tr>
+								<tr><td>Mantenimiento</td><td>❌ Cliente</td></tr>
+								<tr><td>Soporte</td><td>☎️ Avanzado 24/7</td></tr>
+								<tr><td>Integraciones</td><td>⚙️ Opcional</td></tr>
 							</tbody>
 						</table>
 					</div>
 				</div>
 
-				<!-- Nexus Partner Table -->
+				<!-- Nexus Partner -->
 				<div class="comparison-table-wrapper">
 					<h3 class="table-title">🔹 NEXUS PARTNER – Plataforma para Reventa</h3>
 					<div class="table-responsive">
 						<table class="comparison-table">
-							<thead>
-								<tr>
-									<th>Característica</th>
-									<th>Nexus Partner</th>
-								</tr>
-							</thead>
+							<thead><tr><th>Característica</th><th>Nexus Partner</th></tr></thead>
 							<tbody>
-								<tr>
-									<td>Público objetivo</td>
-									<td>Empresas de telemetría</td>
-								</tr>
-								<tr>
-									<td>Precio mensual</td>
-									<td>$2.5 USD por unidad</td>
-								</tr>
-								<tr>
-									<td>Licencia única</td>
-									<td>$100 USD</td>
-								</tr>
-								<tr>
-									<td>Plataforma de rastreo</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Servicios avanzados Nexus</td>
-									<td>❌ No incluidos</td>
-								</tr>
-								<tr>
-									<td>Histórico</td>
-									<td>6 meses</td>
-								</tr>
-								<tr>
-									<td>Expansión de histórico</td>
-									<td>💰 Con costo</td>
-								</tr>
-								<tr>
-									<td>App móvil</td>
-									<td>✅</td>
-								</tr>
-								<tr>
-									<td>Integraciones</td>
-									<td>⚙️ Limitadas</td>
-								</tr>
-								<tr>
-									<td>Soporte a partner</td>
-									<td>🛠️ Avanzado</td>
-								</tr>
-								<tr>
-									<td>Soporte a clientes finales</td>
-									<td>❌ A cargo del partner</td>
-								</tr>
+								<tr><td>Público objetivo</td><td>Empresas de telemetría</td></tr>
+								<tr><td>Precio mensual</td><td>$2.5 USD por unidad</td></tr>
+								<tr><td>Licencia única</td><td>$100 USD</td></tr>
+								<tr><td>Plataforma de rastreo</td><td>✅</td></tr>
+								<tr><td>Servicios avanzados Nexus</td><td>❌ No incluidos</td></tr>
+								<tr><td>Histórico</td><td>6 meses</td></tr>
+								<tr><td>Expansión de histórico</td><td>💰 Con costo</td></tr>
+								<tr><td>App móvil</td><td>✅</td></tr>
+								<tr><td>Integraciones</td><td>⚙️ Limitadas</td></tr>
+								<tr><td>Soporte a partner</td><td>🛠️ Avanzado</td></tr>
+								<tr><td>Soporte a clientes finales</td><td>❌ A cargo del partner</td></tr>
 							</tbody>
 						</table>
 					</div>
 				</div>
 
-				<!-- General Notes -->
 				<div class="comparison-notes">
 					<h3 class="notes-title">🧠 Notas Generales</h3>
 					<ul class="notes-list">
@@ -1589,7 +1335,7 @@
 			</div>
 		</section>
 
-		<!-- CTA Final -->
+		<!-- 10. CTA FINAL -->
 		<section class="final-cta">
 			<div class="container">
 				<div class="cta-box">
@@ -1602,7 +1348,8 @@
 				</div>
 			</div>
 		</section>
-		<!-- 8. TRUST & SUPPORT -->
+
+		<!-- 11. TRUST & SUPPORT -->
 		<section class="trust-section">
 			<div class="container">
 				<div class="trust-grid">
@@ -1619,7 +1366,6 @@
 						<p>SLA del 99.9%. Si el sistema cae, te reembolsamos el mes.</p>
 					</div>
 				</div>
-
 				<div class="faq-container">
 					<h3>Preguntas Frecuentes</h3>
 					<div class="faq-grid">
@@ -1649,21 +1395,12 @@
 						</div>
 					</div>
 				</div>
-
-				<!-- 10. TRUST & SUPPORT -->
-				<section class="trust-section">
-					<div class="container">
-						<div class="payment-methods">
-							<p>Aceptamos todas las tarjetas y facturamos fiscalmente.</p>
-							<div class="card-icons">
-								<span>VISA</span>
-								<span>Mastercard</span>
-								<span>Amex</span>
-								<span>Stripe</span>
-							</div>
-						</div>
+				<div class="payment-methods">
+					<p>Aceptamos todas las tarjetas y facturamos fiscalmente.</p>
+					<div class="card-icons">
+						<span>VISA</span><span>Mastercard</span><span>Amex</span><span>Stripe</span>
 					</div>
-				</section>
+				</div>
 			</div>
 		</section>
 	</main>

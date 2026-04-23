@@ -1,5 +1,7 @@
 /* Base Tailwind CSS imports */
 @import 'tailwindcss';
+
+@source '../../**/*.{svelte,js,mjs,ts}';
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 
