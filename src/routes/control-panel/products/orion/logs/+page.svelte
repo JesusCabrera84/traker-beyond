@@ -1,121 +1,138 @@
 <script>
+	import { onMount } from 'svelte';
+
+	const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+	const API_PLATFORM_LOGS_ENDPOINT = '/api/v1/api-platform/logs';
+	const API_PLATFORM_LOGS_STATS_ENDPOINT = '/api/v1/api-platform/logs/stats';
+	const DEFAULT_LIMIT = 50;
+
 	let filterStatus = 'all';
 	let filterMethod = 'all';
 	let search = '';
+	let logs = [];
+	let logsError = null;
+	let logsLoading = true;
+	let loadingMore = false;
+	let nextCursor = null;
+	let logsStats = null;
+	let statsError = null;
+	let didMount = false;
+	let searchDebounceId;
+	let logsQueryTrigger = '';
+ 	let filteredLogs = [];
 
-	const logs = [
-		{
-			id: 'req_001',
-			ts: '14:32:18.821',
-			method: 'POST',
-			path: '/v1/locate',
-			status: 200,
-			ms: 142,
-			key: 'or_live_8f3k',
-			ip: '187.174.12.44'
-		},
-		{
-			id: 'req_002',
-			ts: '14:32:16.504',
-			method: 'GET',
-			path: '/v1/status',
-			status: 200,
-			ms: 38,
-			key: 'or_live_8f3k',
-			ip: '187.174.12.44'
-		},
-		{
-			id: 'req_003',
-			ts: '14:31:58.113',
-			method: 'POST',
-			path: '/v1/locate/batch',
-			status: 200,
-			ms: 317,
-			key: 'or_test_2a9x',
-			ip: '10.0.0.15'
-		},
-		{
-			id: 'req_004',
-			ts: '14:31:44.882',
-			method: 'POST',
-			path: '/v1/locate',
-			status: 422,
-			ms: 61,
-			key: 'or_live_8f3k',
-			ip: '187.174.12.44'
-		},
-		{
-			id: 'req_005',
-			ts: '14:31:33.210',
-			method: 'POST',
-			path: '/v1/locate',
-			status: 200,
-			ms: 188,
-			key: 'or_live_8f3k',
-			ip: '187.174.12.44'
-		},
-		{
-			id: 'req_006',
-			ts: '14:30:57.442',
-			method: 'GET',
-			path: '/v1/status',
-			status: 200,
-			ms: 29,
-			key: 'or_test_2a9x',
-			ip: '10.0.0.15'
-		},
-		{
-			id: 'req_007',
-			ts: '14:30:41.111',
-			method: 'POST',
-			path: '/v1/locate',
-			status: 429,
-			ms: 5,
-			key: 'or_live_8f3k',
-			ip: '187.174.12.44'
-		},
-		{
-			id: 'req_008',
-			ts: '14:29:58.770',
-			method: 'POST',
-			path: '/v1/locate/batch',
-			status: 200,
-			ms: 284,
-			key: 'or_live_8f3k',
-			ip: '187.174.12.44'
-		},
-		{
-			id: 'req_009',
-			ts: '14:28:12.334',
-			method: 'POST',
-			path: '/v1/locate',
-			status: 200,
-			ms: 155,
-			key: 'or_test_2a9x',
-			ip: '10.0.0.15'
-		},
-		{
-			id: 'req_010',
-			ts: '14:27:44.991',
-			method: 'POST',
-			path: '/v1/locate',
-			status: 500,
-			ms: 8001,
-			key: 'or_live_8f3k',
-			ip: '187.174.12.44'
-		}
-	];
-
-	$: filtered = logs.filter((l) => {
-		const s =
-			filterStatus === 'all' ||
-			(filterStatus === '2xx' && l.status < 300) ||
-			(filterStatus === '4xx' && l.status >= 400 && l.status < 500) ||
-			(filterStatus === '5xx' && l.status >= 500);
-		const m = filterMethod === 'all' || l.method === filterMethod;
-		const q = !search || l.path.includes(search) || l.key.includes(search) || l.ip.includes(search);
-		return s && m && q;
+	onMount(async () => {
+		didMount = true;
+		await loadStats();
 	});
+
+	$: logsQueryTrigger = `${filterMethod}|${search.trim()}`;
+
+	$: filteredLogs = logs.filter((l) => {
+		if (filterStatus === '2xx') return l.status_code >= 200 && l.status_code < 300;
+		if (filterStatus === '4xx') return l.status_code >= 400 && l.status_code < 500;
+		if (filterStatus === '5xx') return l.status_code >= 500;
+		return true;
+	});
+
+	$: if (didMount && logsQueryTrigger) {
+		scheduleLogsReload();
+	}
+
+	function scheduleLogsReload() {
+		clearTimeout(searchDebounceId);
+		searchDebounceId = setTimeout(() => {
+			loadLogs({ reset: true });
+		}, 250);
+	}
+
+	function getAuthToken() {
+		return sessionStorage.getItem('geminis_id_token') || sessionStorage.getItem('geminis_access_token');
+	}
+
+	function buildLogsQuery({ cursor = null } = {}) {
+		const params = new URLSearchParams();
+		params.set('limit', String(DEFAULT_LIMIT));
+		if (cursor) params.set('cursor', cursor);
+		if (filterMethod !== 'all') params.set('method', filterMethod);
+		if (search.trim()) params.set('endpoint', search.trim());
+		return params;
+	}
+
+	async function loadStats() {
+		statsError = null;
+		try {
+			const token = getAuthToken();
+			if (!token) throw new Error('No hay sesión activa');
+			const res = await fetch(`${API_BASE_URL}${API_PLATFORM_LOGS_STATS_ENDPOINT}`, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+					Accept: 'application/json'
+				}
+			});
+			if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
+			logsStats = await res.json();
+		} catch (e) {
+			statsError = e.message;
+		}
+	}
+
+	async function loadLogs({ reset = false, cursor = null } = {}) {
+		if (reset) {
+			logsLoading = true;
+			logsError = null;
+			nextCursor = null;
+		} else {
+			loadingMore = true;
+		}
+
+		try {
+			const token = getAuthToken();
+			if (!token) throw new Error('No hay sesión activa');
+
+			const params = buildLogsQuery({ cursor });
+			const res = await fetch(`${API_BASE_URL}${API_PLATFORM_LOGS_ENDPOINT}?${params.toString()}`, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+					Accept: 'application/json'
+				}
+			});
+			if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
+			const data = await res.json();
+			const items = Array.isArray(data?.items) ? data.items : [];
+			logs = reset ? items : [...logs, ...items];
+			nextCursor = data?.next_cursor ?? null;
+		} catch (e) {
+			logsError = e.message;
+		} finally {
+			logsLoading = false;
+			loadingMore = false;
+		}
+	}
+
+	async function loadMore() {
+		if (!nextCursor || loadingMore) return;
+		await loadLogs({ reset: false, cursor: nextCursor });
+	}
+
+	function formatTime(iso) {
+		if (!iso) return '—';
+		return new Date(iso).toLocaleTimeString('es-MX', {
+			hour: '2-digit',
+			minute: '2-digit',
+			second: '2-digit'
+		});
+	}
+
+	function formatNumber(value) {
+		const n = Number(value ?? 0);
+		return Number.isFinite(n) ? n.toLocaleString('es-MX') : '0';
+	}
+
+	function formatRate(value) {
+		const n = Number(value ?? 0);
+		return Number.isFinite(n) ? `${(n * 100).toFixed(2)}%` : '0.00%';
+	}
 
 	function statusMeta(c) {
 		if (c < 300)
@@ -138,7 +155,7 @@
 
 <!-- ───── KPIs ───── -->
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px;">
-	{#each [{ label: 'Solicitudes hoy', value: '1,284', color: '#818cf8', border: 'rgba(99,102,241,0.25)', glow: 'rgba(99,102,241,0.08)' }, { label: 'Tasa de éxito', value: '99.1%', color: '#4ade80', border: 'rgba(74,222,128,0.25)', glow: 'rgba(74,222,128,0.06)' }, { label: 'Latencia p50', value: '144 ms', color: '#34d399', border: 'rgba(52,211,153,0.25)', glow: 'rgba(52,211,153,0.06)' }, { label: 'Errores 24 h', value: '11', color: '#fbbf24', border: 'rgba(251,191,36,0.25)', glow: 'rgba(251,191,36,0.06)' }] as k (k.label)}
+	{#each [{ label: 'Solicitudes hoy', value: logsStats ? formatNumber(logsStats.requests_today) : '—', color: '#818cf8', border: 'rgba(99,102,241,0.25)', glow: 'rgba(99,102,241,0.08)' }, { label: 'Tasa de éxito', value: logsStats ? formatRate(logsStats.success_rate) : '—', color: '#4ade80', border: 'rgba(74,222,128,0.25)', glow: 'rgba(74,222,128,0.06)' }, { label: 'Latencia p50', value: logsStats?.p50_latency_ms != null ? `${Math.round(logsStats.p50_latency_ms)} ms` : '—', color: '#34d399', border: 'rgba(52,211,153,0.25)', glow: 'rgba(52,211,153,0.06)' }, { label: 'Errores 24 h', value: logsStats ? formatNumber(logsStats.errors_24h) : '—', color: '#fbbf24', border: 'rgba(251,191,36,0.25)', glow: 'rgba(251,191,36,0.06)' }] as k (k.label)}
 		<div
 			style="position:relative;overflow:hidden;background:rgba(10,16,26,0.75);border:1px solid {k.border};border-radius:16px;padding:22px 20px;"
 		>
@@ -156,6 +173,13 @@
 		</div>
 	{/each}
 </div>
+
+{#if statsError}
+	<div style="display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;">
+		<span style="font-size:12px;color:#f87171;flex:1;">No se pudieron cargar las estadísticas: {statsError}</span>
+		<button on:click={loadStats} style="border-radius:8px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);padding:4px 10px;font-size:11px;font-weight:600;color:#f87171;cursor:pointer;">Reintentar</button>
+	</div>
+{/if}
 
 <!-- ───── Filtros ───── -->
 <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
@@ -227,18 +251,23 @@
 				</tr>
 			</thead>
 			<tbody>
-				{#each filtered as l (l.id)}
-					{@const st = statusMeta(l.status)}
+				{#if logsLoading}
+					<tr>
+						<td colspan="8" style="padding:24px;text-align:center;color:#334155;font-size:13px;">Cargando logs…</td>
+					</tr>
+				{:else}
+				{#each filteredLogs as l (l.id)}
+					{@const st = statusMeta(l.status_code)}
 					<tr
-						style="border-bottom:1px solid rgba(255,255,255,0.025);{l.status >= 500
+						style="border-bottom:1px solid rgba(255,255,255,0.025);{l.status_code >= 500
 							? 'background:rgba(248,113,113,0.03);'
-							: l.status >= 400
+							: l.status_code >= 400
 								? 'background:rgba(251,191,36,0.02);'
 								: ''}"
 					>
 						<td
 							style="padding:11px 14px;font-family:monospace;font-size:11px;color:#475569;white-space:nowrap;"
-							>{l.ts}</td
+							>{formatTime(l.created_at)}</td
 						>
 						<td style="padding:11px 14px;">
 							<code
@@ -251,23 +280,23 @@
 						</td>
 						<td
 							style="padding:11px 14px;font-family:monospace;font-size:11px;color:#94a3b8;white-space:nowrap;"
-							>{l.path}</td
+							>{l.endpoint}</td
 						>
 						<td style="padding:11px 14px;">
 							<span
 								style="display:inline-flex;align-items:center;gap:3px;border-radius:99px;border:1px solid {st.border};background:{st.bg};padding:2px 7px;font-size:10px;font-weight:700;color:{st.color};"
-								>{l.status}</span
+								>{l.status_code}</span
 							>
 						</td>
 						<td
 							style="padding:11px 14px;font-family:monospace;font-size:11px;font-weight:600;color:{latencyColor(
-								l.ms
+								l.latency_ms
 							)};font-variant-numeric:tabular-nums;white-space:nowrap;"
-							>{l.ms >= 1000 ? (l.ms / 1000).toFixed(1) + 's' : l.ms + 'ms'}</td
+							>{l.latency_ms >= 1000 ? (l.latency_ms / 1000).toFixed(1) + 's' : l.latency_ms + 'ms'}</td
 						>
 						<td
 							style="padding:11px 14px;font-family:monospace;font-size:10px;color:#475569;white-space:nowrap;"
-							>{l.key}••••</td
+							>{l.api_key_id?.slice(0, 8)}…</td
 						>
 						<td
 							style="padding:11px 14px;font-family:monospace;font-size:10px;color:#334155;white-space:nowrap;"
@@ -281,7 +310,8 @@
 						</td>
 					</tr>
 				{/each}
-				{#if filtered.length === 0}
+				{/if}
+				{#if !logsLoading && filteredLogs.length === 0}
 					<tr
 						><td colspan="8" style="padding:40px;text-align:center;color:#334155;font-size:13px;"
 							>Sin registros para los filtros seleccionados.</td
@@ -294,9 +324,13 @@
 	<div
 		style="padding:10px 14px;border-top:1px solid rgba(255,255,255,0.05);display:flex;align-items:center;justify-content:space-between;"
 	>
-		<span style="font-size:11px;color:#334155;"
-			>{filtered.length} registros · Datos de demostración</span
-		>
-		<span style="font-size:11px;color:#334155;">Retención: 30 días</span>
+		<span style="font-size:11px;color:#334155;">{filteredLogs.length} registros visibles</span>
+		{#if logsError}
+			<button on:click={() => loadLogs({ reset: true })} style="border-radius:8px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);padding:4px 10px;font-size:11px;font-weight:600;color:#f87171;cursor:pointer;">Reintentar</button>
+		{:else if nextCursor}
+			<button on:click={loadMore} disabled={loadingMore} style="border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);padding:4px 10px;font-size:11px;font-weight:600;color:#94a3b8;cursor:{loadingMore ? 'not-allowed' : 'pointer'};opacity:{loadingMore ? 0.7 : 1};">{loadingMore ? 'Cargando…' : 'Cargar más'}</button>
+		{:else}
+			<span style="font-size:11px;color:#334155;">No hay más registros</span>
+		{/if}
 	</div>
 </div>

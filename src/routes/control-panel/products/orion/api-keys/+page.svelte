@@ -1,64 +1,109 @@
 <script>
-	const ORION_API = import.meta.env.VITE_ORION_API_URL ?? '';
+	import { onMount } from 'svelte';
 
-	const keys = [
-		{
-			id: '1',
-			name: 'Producción — ERP',
-			prefix: 'or_live_8f3k',
-			env: 'live',
-			created: '2026-01-12',
-			lastUsed: 'hace 2 h',
-			requests: 48320,
-			status: 'active'
-		},
-		{
-			id: '2',
-			name: 'Staging — Backend',
-			prefix: 'or_test_2a9x',
-			env: 'test',
-			created: '2025-11-03',
-			lastUsed: 'hace 4 d',
-			requests: 1240,
-			status: 'active'
-		},
-		{
-			id: '3',
-			name: 'Demo interno',
-			prefix: 'or_test_9k2m',
-			env: 'test',
-			created: '2025-08-30',
-			lastUsed: 'hace 2 sem',
-			requests: 82,
-			status: 'inactive'
+	const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+	const API_PLATFORM_KEYS_ENDPOINT = '/api/v1/api-platform/keys';
+	const API_PLATFORM_USAGE_SUMMARY_ENDPOINT = '/api/v1/api-platform/usage/summary';
+	const ORION_PRODUCT_CODE = 'orion';
+
+	let keys = [];
+	let keysLoading = true;
+	let keysError = null;
+	let usageSummary = null;
+
+	onMount(() => {
+		loadKeys();
+		loadUsageSummary();
+	});
+
+	async function loadKeys() {
+		keysLoading = true;
+		keysError = null;
+		try {
+			const token = getAuthToken();
+			if (!token) throw new Error('No hay sesión activa');
+			const params = new URLSearchParams({ product_code: ORION_PRODUCT_CODE });
+			if (keyStatusFilter === 'active') params.set('status', 'ACTIVE');
+			if (keyStatusFilter === 'revoked') params.set('status', 'REVOKED');
+			const res = await fetch(
+				`${API_BASE_URL}${API_PLATFORM_KEYS_ENDPOINT}?${params.toString()}`,
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+						Accept: 'application/json'
+					}
+				}
+			);
+			if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
+			keys = await res.json();
+		} catch (e) {
+			keysError = e.message;
+		} finally {
+			keysLoading = false;
 		}
-	];
+	}
 
-	const stats = [
+	function formatDate(iso) {
+		if (!iso) return '—';
+		return new Date(iso).toLocaleDateString('es-MX', {
+			year: 'numeric',
+			month: 'short',
+			day: 'numeric'
+		});
+	}
+
+	function formatNumber(value) {
+		const amount = Number(value ?? 0);
+		return Number.isFinite(amount) ? amount.toLocaleString('es-MX') : '0';
+	}
+
+	function formatErrorRate(value) {
+		const rate = Number(value ?? 0);
+		return Number.isFinite(rate) ? `${(rate * 100).toFixed(2)}%` : '0.00%';
+	}
+
+	async function loadUsageSummary() {
+		try {
+			const token = getAuthToken();
+			if (!token) throw new Error('No hay sesión activa');
+			const res = await fetch(`${API_BASE_URL}${API_PLATFORM_USAGE_SUMMARY_ENDPOINT}`, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+					Accept: 'application/json'
+				}
+			});
+			if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
+			usageSummary = await res.json();
+		} catch {
+			usageSummary = null;
+		}
+	}
+
+	$: stats = [
 		{
 			label: 'Claves activas',
-			value: 2,
+			value: usageSummary ? formatNumber(usageSummary.active_keys) : '—',
 			color: '#4ade80',
 			border: 'rgba(74,222,128,0.25)',
 			glow: 'rgba(74,222,128,0.06)'
 		},
 		{
 			label: 'Req. hoy',
-			value: '1,284',
+			value: usageSummary ? formatNumber(usageSummary.requests_today) : '—',
 			color: '#818cf8',
 			border: 'rgba(99,102,241,0.25)',
 			glow: 'rgba(99,102,241,0.08)'
 		},
 		{
 			label: 'Req. este mes',
-			value: '49,642',
+			value: usageSummary ? formatNumber(usageSummary.requests_month) : '—',
 			color: '#a5b4fc',
 			border: 'rgba(165,180,252,0.25)',
 			glow: 'rgba(165,180,252,0.06)'
 		},
 		{
 			label: 'Tasa de error',
-			value: '0.03%',
+			value: usageSummary ? formatErrorRate(usageSummary.error_rate) : '—',
 			color: '#34d399',
 			border: 'rgba(52,211,153,0.25)',
 			glow: 'rgba(52,211,153,0.06)'
@@ -73,17 +118,55 @@
 	];
 
 	let view = 'table';
+	let keyStatusFilter = 'all';
 	let keyName = '';
 	let selectedPlan = 'free';
 	let creating = false;
 	let createError = null;
 	let newApiKey = null;
 	let keyCopied = false;
-	let copied = null;
+	let revoking = null;
+	let revokeError = null;
+	let confirmingRevoke = null;
 
-	function copy(id) {
-		copied = id;
-		setTimeout(() => (copied = null), 2000);
+	function getAuthToken() {
+		return sessionStorage.getItem('geminis_id_token') || sessionStorage.getItem('geminis_access_token');
+	}
+
+	function setKeyStatusFilter(status) {
+		if (keyStatusFilter === status) return;
+		keyStatusFilter = status;
+		loadKeys();
+	}
+
+	async function revokeKey(keyId) {
+		revoking = keyId;
+		revokeError = null;
+		confirmingRevoke = null;
+		try {
+			const token = getAuthToken();
+			if (!token) throw new Error('No hay sesión activa');
+			const res = await fetch(
+				`${API_BASE_URL}${API_PLATFORM_KEYS_ENDPOINT}/${keyId}/revoke`,
+				{
+					method: 'POST',
+					headers: {
+						Authorization: `Bearer ${token}`,
+						Accept: 'application/json'
+					}
+				}
+			);
+			if (!res.ok) {
+				const err = await res.json().catch(() => ({}));
+				throw new Error(err.detail || `Error ${res.status}: ${res.statusText}`);
+			}
+			await loadKeys();
+			await loadUsageSummary();
+		} catch (e) {
+			revokeError = e.message;
+		} finally {
+			revoking = null;
+		}
 	}
 
 	function copyKey() {
@@ -97,13 +180,31 @@
 		creating = true;
 		createError = null;
 		try {
-			console.log('Creating API key with name:', keyName, 'and plan:', selectedPlan);
-			console.log('Using ORION_API endpoint:', ORION_API);
-			const res = await fetch(`${ORION_API}/api/v1/apikey`, { method: 'POST' });
+			if (!API_BASE_URL) throw new Error('Falta configurar VITE_API_BASE_URL');
+
+			const token = getAuthToken();
+			if (!token) throw new Error('No hay sesión activa para crear API keys');
+
+			const res = await fetch(`${API_BASE_URL}${API_PLATFORM_KEYS_ENDPOINT}`, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					'Content-Type': 'application/json',
+					Accept: 'application/json'
+				},
+				body: JSON.stringify({
+					product_code: ORION_PRODUCT_CODE,
+					name: keyName.trim(),
+					expires_at: null
+				})
+			});
 			if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
 			const data = await res.json();
-			newApiKey = data.api_key;
-			view = 'reveal';
+			newApiKey = data.full_key;
+			if (!newApiKey) throw new Error('La API no devolvió full_key');
+				view = 'reveal';
+			await loadKeys();
+			await loadUsageSummary();
 		} catch (e) {
 			createError = e.message;
 		} finally {
@@ -120,8 +221,9 @@
 		view = 'table';
 	}
 
-	function envMeta(e) {
-		return e === 'live'
+	function envMeta(prefix) {
+		const isLive = typeof prefix === 'string' && prefix.toLowerCase().includes('live');
+		return isLive
 			? {
 					color: '#4ade80',
 					bg: 'rgba(74,222,128,0.08)',
@@ -229,16 +331,58 @@
 	{/if}
 </div>
 
+{#if view === 'table'}
+	<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+		<span
+			style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748b;"
+			>Estado:</span
+		>
+		<div
+			style="display:flex;gap:3px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.06);border-radius:9px;padding:3px;"
+		>
+			{#each [['all', 'Todas'], ['active', 'Activas'], ['revoked', 'Revocadas']] as [value, label] (value)}
+				<button
+					on:click={() => setKeyStatusFilter(value)}
+					style="border-radius:6px;border:none;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;background:{keyStatusFilter ===
+					value
+						? 'rgba(99,102,241,0.8)'
+						: 'transparent'};color:{keyStatusFilter === value ? '#fff' : '#64748b'};"
+				>
+					{label}
+				</button>
+			{/each}
+		</div>
+	</div>
+{/if}
+
 <!-- ───── Vista: Tabla ───── -->
 {#if view === 'table'}
+	{#if keysLoading}
+		<div style="display:flex;align-items:center;justify-content:center;padding:48px;color:#475569;font-size:13px;gap:10px;">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;"><path stroke-linecap="round" d="M12 2a10 10 0 0110 10"/></svg>
+			Cargando claves…
+		</div>
+	{:else if keysError}
+		<div style="display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
+			<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#f87171" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+			<span style="font-size:13px;color:#f87171;flex:1;">{keysError}</span>
+			<button on:click={loadKeys} style="border-radius:8px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);padding:4px 10px;font-size:11px;font-weight:600;color:#f87171;cursor:pointer;">Reintentar</button>
+		</div>
+	{:else if revokeError}
+		<div style="display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;">
+			<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#f87171" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+			<span style="font-size:13px;color:#f87171;flex:1;">Error al revocar: {revokeError}</span>
+			<button on:click={() => (revokeError = null)} style="border-radius:8px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);padding:4px 10px;font-size:11px;font-weight:600;color:#f87171;cursor:pointer;">Cerrar</button>
+		</div>
+	{:else}
 	<div
 		style="background:rgba(10,16,26,0.75);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden;margin-bottom:14px;"
 	>
 		<div style="overflow-x:auto;">
-			<table style="width:100%;min-width:700px;border-collapse:collapse;font-size:13px;">
+			<table style="width:100%;min-width:600px;border-collapse:collapse;font-size:13px;">
 				<thead>
 					<tr style="background:rgba(0,0,0,0.3);">
-						{#each ['Nombre', 'Entorno', 'Clave', 'Creada', 'Último uso', 'Solicitudes', 'Estado', ''] as col (col)}
+						{#each ['Nombre', 'Entorno', 'Creada', 'Último uso', 'Estado', ''] as col (col)}
 							<th
 								style="padding:11px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#334155;border-bottom:1px solid rgba(255,255,255,0.05);white-space:nowrap;"
 								>{col}</th
@@ -247,109 +391,79 @@
 					</tr>
 				</thead>
 				<tbody>
-					{#each keys as k (k.id)}
-						{@const env = envMeta(k.env)}
-						<tr
-							style="border-bottom:1px solid rgba(255,255,255,0.03);{k.status === 'inactive'
-								? 'opacity:.6;'
-								: ''}"
-						>
-							<td style="padding:14px 16px;font-size:13px;font-weight:500;color:#e2e8f0;">{k.name}</td
-							>
-							<td style="padding:14px 16px;">
-								<span
-									style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid {env.border};background:{env.bg};padding:3px 8px;font-size:10px;font-weight:700;color:{env.color};"
-									>{env.label}</span
-								>
-							</td>
-							<td style="padding:14px 16px;">
-								<code
-									style="display:inline-flex;align-items:center;gap:6px;border-radius:8px;border:1px solid rgba(255,255,255,0.07);background:rgba(0,0,0,0.25);padding:5px 10px;font-family:monospace;font-size:12px;color:#94a3b8;"
-								>
-									{k.prefix}••••••••
-								</code>
-							</td>
-							<td style="padding:14px 16px;font-size:12px;color:#475569;white-space:nowrap;"
-								>{k.created}</td
-							>
-							<td style="padding:14px 16px;font-size:12px;color:#475569;white-space:nowrap;"
-								>{k.lastUsed}</td
-							>
-							<td
-								style="padding:14px 16px;font-size:13px;font-weight:600;color:#94a3b8;font-variant-numeric:tabular-nums;"
-								>{k.requests.toLocaleString('es-MX')}</td
-							>
-							<td style="padding:14px 16px;">
-								{#if k.status === 'active'}
-									<span
-										style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid rgba(74,222,128,0.2);background:rgba(74,222,128,0.08);padding:3px 8px;font-size:10px;font-weight:600;color:#4ade80;"
-									>
-										<span style="width:5px;height:5px;border-radius:50%;background:#4ade80;"
-										></span>Activa
-									</span>
-								{:else}
-									<span
-										style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid rgba(100,116,139,0.2);background:rgba(100,116,139,0.08);padding:3px 8px;font-size:10px;font-weight:600;color:#64748b;"
-										>Inactiva</span
-									>
-								{/if}
-							</td>
-							<td style="padding:14px 16px;text-align:right;">
-								<div style="display:flex;justify-content:flex-end;gap:6px;">
-									<button
-										on:click={() => copy(k.id)}
-										style="border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);padding:5px 10px;font-size:11px;font-weight:600;color:{copied ===
-										k.id
-											? '#4ade80'
-											: '#64748b'};cursor:pointer;transition:color .2s;white-space:nowrap;"
-									>
-										{copied === k.id ? '✓ Copiado' : 'Copiar prefijo'}
-									</button>
-									<button
-										style="border-radius:8px;border:1px solid rgba(239,68,68,0.15);background:rgba(239,68,68,0.06);padding:5px 10px;font-size:11px;font-weight:600;color:rgba(248,113,113,0.7);cursor:pointer;"
-										>Revocar</button
-									>
-								</div>
-							</td>
+					{#if keys.length === 0}
+						<tr>
+							<td colspan="7" style="padding:32px 16px;text-align:center;font-size:13px;color:#475569;">No hay claves creadas aún.</td>
 						</tr>
-					{/each}
+					{:else}
+						{#each keys as k (k.id)}
+							{@const env = envMeta(k.prefix)}
+							<tr
+								style="border-bottom:1px solid rgba(255,255,255,0.03);{k.status !== 'ACTIVE'
+									? 'opacity:.6;'
+									: ''}"
+							>
+								<td style="padding:14px 16px;font-size:13px;font-weight:500;color:#e2e8f0;">{k.name}</td>
+								<td style="padding:14px 16px;">
+									<span
+										style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid {env.border};background:{env.bg};padding:3px 8px;font-size:10px;font-weight:700;color:{env.color};"
+										>{env.label}</span
+									>
+								</td>
+								<td style="padding:14px 16px;font-size:12px;color:#475569;white-space:nowrap;">{formatDate(k.created_at)}</td>
+								<td style="padding:14px 16px;font-size:12px;color:#475569;white-space:nowrap;">{formatDate(k.last_used_at)}</td>
+								<td style="padding:14px 16px;">
+									{#if k.status === 'ACTIVE'}
+										<span
+											style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid rgba(74,222,128,0.2);background:rgba(74,222,128,0.08);padding:3px 8px;font-size:10px;font-weight:600;color:#4ade80;"
+										>
+											<span style="width:5px;height:5px;border-radius:50%;background:#4ade80;"></span>Activa
+										</span>
+									{:else if k.status === 'REVOKED'}
+										<span
+											style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.07);padding:3px 8px;font-size:10px;font-weight:600;color:#f87171;"
+										>Revocada</span
+										>
+									{:else}
+										<span
+											style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid rgba(100,116,139,0.2);background:rgba(100,116,139,0.08);padding:3px 8px;font-size:10px;font-weight:600;color:#64748b;"
+										>Expirada</span
+										>
+									{/if}
+								</td>
+								<td style="padding:14px 16px;text-align:right;">
+									{#if k.status === 'ACTIVE'}
+										{#if confirmingRevoke === k.id}
+											<div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;">
+												<span style="font-size:11px;color:#94a3b8;white-space:nowrap;">¿Confirmar? Esta acción es irreversible.</span>
+												<button
+													on:click={() => (confirmingRevoke = null)}
+													style="border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);padding:5px 10px;font-size:11px;font-weight:600;color:#64748b;cursor:pointer;white-space:nowrap;"
+												>Cancelar</button>
+												<button
+													on:click={() => revokeKey(k.id)}
+													disabled={revoking === k.id}
+													style="border-radius:8px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.12);padding:5px 10px;font-size:11px;font-weight:700;color:#f87171;cursor:{revoking === k.id ? 'not-allowed' : 'pointer'};opacity:{revoking === k.id ? 0.6 : 1};white-space:nowrap;"
+												>
+													{revoking === k.id ? 'Revocando…' : 'Sí, revocar'}
+												</button>
+											</div>
+										{:else}
+											<button
+												on:click={() => (confirmingRevoke = k.id)}
+												style="border-radius:8px;border:1px solid rgba(239,68,68,0.15);background:rgba(239,68,68,0.06);padding:5px 10px;font-size:11px;font-weight:600;color:rgba(248,113,113,0.7);cursor:pointer;white-space:nowrap;"
+											>Revocar</button>
+										{/if}
+									{/if}
+								</td>
+							</tr>
+						{/each}
+					{/if}
 				</tbody>
 			</table>
 		</div>
 	</div>
-
-	<!-- ───── Uso por clave (mini-barras) ───── -->
-	<div
-		style="background:rgba(10,16,26,0.75);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:20px 22px;"
-	>
-		<div style="font-size:13px;font-weight:600;color:#e2e8f0;margin-bottom:14px;">
-			Distribución de solicitudes (mes actual)
-		</div>
-		{#each keys as k (k.id)}
-			{@const pct = Math.round((k.requests / 49642) * 100)}
-			<div style="margin-bottom:12px;">
-				<div
-					style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;"
-				>
-					<span style="font-size:12px;color:#94a3b8;">{k.name}</span>
-					<span
-						style="font-size:12px;font-weight:600;color:#e2e8f0;font-variant-numeric:tabular-nums;"
-						>{k.requests.toLocaleString('es-MX')}
-						<span style="color:#334155;font-weight:400;">({pct}%)</span></span
-					>
-				</div>
-				<div
-					style="height:5px;background:rgba(255,255,255,0.04);border-radius:99px;overflow:hidden;"
-				>
-					<div
-						style="height:100%;width:{pct}%;border-radius:99px;background:{k.env === 'live'
-							? 'linear-gradient(90deg,#6366f1,#8b5cf6)'
-							: 'rgba(251,191,36,0.5)'};transition:width .4s ease;"
-					></div>
-				</div>
-			</div>
-		{/each}
-	</div>
+	{/if}
 
 <!-- ───── Vista: Formulario creación ───── -->
 {:else if view === 'form'}

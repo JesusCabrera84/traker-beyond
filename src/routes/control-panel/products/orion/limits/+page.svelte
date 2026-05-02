@@ -1,9 +1,133 @@
 <script>
-	const quotas = [
-		{ label: 'Solicitudes / minuto', used: 142, limit: 300, unit: 'rpm', tier: 'Plan actual' },
-		{ label: 'Solicitudes / día', used: 1284, limit: 10000, unit: 'req', tier: 'Plan actual' },
-		{ label: 'Solicitudes / mes', used: 49642, limit: 250000, unit: 'req', tier: 'Plan actual' },
-		{ label: 'Burst máximo', used: 18, limit: 50, unit: 'rpm', tier: 'Plan actual' }
+	import { onMount } from 'svelte';
+
+	const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
+	const API_PLATFORM_USAGE_LIMITS_ENDPOINT = '/api/v1/api-platform/usage/limits';
+
+	let limitsData = null;
+	let limitsLoading = true;
+	let limitsError = null;
+
+	onMount(() => {
+		loadLimits();
+	});
+
+	function getAuthToken() {
+		return sessionStorage.getItem('geminis_id_token') || sessionStorage.getItem('geminis_access_token');
+	}
+
+	async function loadLimits() {
+		limitsLoading = true;
+		limitsError = null;
+		try {
+			const token = getAuthToken();
+			if (!token) throw new Error('No hay sesión activa');
+			const res = await fetch(`${API_BASE_URL}${API_PLATFORM_USAGE_LIMITS_ENDPOINT}`, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+					Accept: 'application/json'
+				}
+			});
+			if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
+			limitsData = await res.json();
+		} catch (e) {
+			limitsError = e.message;
+		} finally {
+			limitsLoading = false;
+		}
+	}
+
+	function hasLimit(limit) {
+		return typeof limit === 'number' && Number.isFinite(limit) && limit > 0;
+	}
+
+	function pct(used, limit) {
+		if (!hasLimit(limit)) return 0;
+		return Math.min(100, Math.round((used / limit) * 100));
+	}
+
+	function color(p, limit) {
+		if (!hasLimit(limit)) return '#818cf8';
+		return p >= 90 ? '#f87171' : p >= 70 ? '#fbbf24' : '#4ade80';
+	}
+
+	function fmt(n) {
+		if (typeof n !== 'number' || !Number.isFinite(n)) return '—';
+		return n.toLocaleString('es-MX');
+	}
+
+	function fmtQuota(used, limit, unit) {
+		if (!hasLimit(limit)) return `${fmt(used)} / sin límite`;
+		return `${fmt(used)} / ${fmt(limit)} ${unit}`;
+	}
+
+	function fmtPct(used, limit) {
+		if (!hasLimit(limit)) return 'Sin límite configurado';
+		return `${pct(used, limit)}% utilizado`;
+	}
+
+	$: quotas = [
+		{
+			label: 'Solicitudes / minuto',
+			used: limitsData?.rpm_current ?? 0,
+			limit: limitsData?.rpm_limit ?? null,
+			unit: 'rpm',
+			tier: 'Plan actual'
+		},
+		{
+			label: 'Solicitudes / día',
+			used: limitsData?.daily_current ?? 0,
+			limit: limitsData?.daily_limit ?? null,
+			unit: 'req',
+			tier: 'Plan actual'
+		},
+		{
+			label: 'Solicitudes / mes',
+			used: limitsData?.monthly_current ?? 0,
+			limit: limitsData?.monthly_limit ?? null,
+			unit: 'req',
+			tier: 'Plan actual'
+		},
+		{
+			label: 'Burst máximo',
+			used: limitsData?.burst_current ?? 0,
+			limit: limitsData?.burst_limit ?? null,
+			unit: 'rpm',
+			tier: 'Plan actual'
+		}
+	];
+
+	$: kpis = [
+		{
+			label: 'Límite por minuto',
+			value: hasLimit(limitsData?.rpm_limit)
+				? `${fmt(limitsData?.rpm_current ?? 0)} / ${fmt(limitsData?.rpm_limit)}`
+				: `${fmt(limitsData?.rpm_current ?? 0)} / sin límite`,
+			sub: fmtPct(limitsData?.rpm_current ?? 0, limitsData?.rpm_limit ?? null),
+			color: '#818cf8',
+			border: 'rgba(99,102,241,0.25)',
+			glow: 'rgba(99,102,241,0.08)'
+		},
+		{
+			label: 'Cuota diaria',
+			value: hasLimit(limitsData?.daily_limit)
+				? `${fmt(limitsData?.daily_current ?? 0)} / ${fmt(limitsData?.daily_limit)}`
+				: `${fmt(limitsData?.daily_current ?? 0)} / sin límite`,
+			sub: fmtPct(limitsData?.daily_current ?? 0, limitsData?.daily_limit ?? null),
+			color: '#34d399',
+			border: 'rgba(52,211,153,0.25)',
+			glow: 'rgba(52,211,153,0.06)'
+		},
+		{
+			label: 'Cuota mensual',
+			value: hasLimit(limitsData?.monthly_limit)
+				? `${fmt(limitsData?.monthly_current ?? 0)} / ${fmt(limitsData?.monthly_limit)}`
+				: `${fmt(limitsData?.monthly_current ?? 0)} / sin límite`,
+			sub: fmtPct(limitsData?.monthly_current ?? 0, limitsData?.monthly_limit ?? null),
+			color: '#4ade80',
+			border: 'rgba(74,222,128,0.25)',
+			glow: 'rgba(74,222,128,0.06)'
+		}
 	];
 
 	const history = [
@@ -17,22 +141,39 @@
 	];
 	const maxPeak = Math.max(...history.map((h) => h.peak));
 
-	function pct(used, limit) {
-		return Math.min(100, Math.round((used / limit) * 100));
-	}
-	function color(p) {
-		return p >= 90 ? '#f87171' : p >= 70 ? '#fbbf24' : '#4ade80';
-	}
-	function fmt(n) {
-		return n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n);
-	}
 </script>
 
 <svelte:head><title>Límites — Orion | Geminis Labs</title></svelte:head>
 
 <!-- ───── KPIs ───── -->
+{#if limitsError}
+	<div
+		style="display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:14px 16px;margin-bottom:14px;"
+	>
+		<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#f87171" stroke-width="2"
+			><path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+			/></svg
+		>
+		<span style="font-size:13px;color:#f87171;flex:1;">{limitsError}</span>
+		<button
+			on:click={loadLimits}
+			style="border-radius:8px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);padding:4px 10px;font-size:11px;font-weight:600;color:#f87171;cursor:pointer;"
+			>Reintentar</button
+		>
+	</div>
+{/if}
+
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;">
-	{#each [{ label: 'Plan', value: 'Growth', sub: 'Solicitudes ilimitadas próximamente', color: '#818cf8', border: 'rgba(99,102,241,0.25)', glow: 'rgba(99,102,241,0.08)' }, { label: 'Cuota mensual', value: '49,642 / 250k', sub: '20% consumido', color: '#34d399', border: 'rgba(52,211,153,0.25)', glow: 'rgba(52,211,153,0.06)' }, { label: 'Throttle hoy', value: '0 eventos', sub: 'Sin límites alcanzados', color: '#4ade80', border: 'rgba(74,222,128,0.25)', glow: 'rgba(74,222,128,0.06)' }] as k (k.label)}
+	{#if limitsLoading}
+		<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;padding:24px;color:#475569;font-size:13px;gap:10px;">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;"><path stroke-linecap="round" d="M12 2a10 10 0 0110 10"/></svg>
+			Cargando límites…
+		</div>
+	{:else}
+	{#each kpis as k (k.label)}
 		<div
 			style="position:relative;overflow:hidden;background:rgba(10,16,26,0.75);border:1px solid {k.border};border-radius:16px;padding:22px 20px;"
 		>
@@ -52,6 +193,7 @@
 			<div style="font-size:11px;color:#334155;">{k.sub}</div>
 		</div>
 	{/each}
+	{/if}
 </div>
 
 <!-- ───── Cuotas detalladas ───── -->
@@ -65,9 +207,12 @@
 		</div>
 	</div>
 	<div style="padding:16px;">
+		{#if limitsLoading}
+			<div style="padding:10px 4px;font-size:12px;color:#475569;">Cargando cuotas…</div>
+		{:else}
 		{#each quotas as q (q.label)}
 			{@const p = pct(q.used, q.limit)}
-			{@const c = color(p)}
+			{@const c = color(p, q.limit)}
 			<div style="margin-bottom:20px;">
 				<div
 					style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"
@@ -80,17 +225,18 @@
 						<div
 							style="font-size:13px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;"
 						>
-							{fmt(q.used)}
-							<span style="color:#334155;font-weight:400;">/ {fmt(q.limit)} {q.unit}</span>
+							{fmtQuota(q.used, q.limit, q.unit)}
 						</div>
-						<div style="font-size:10px;color:{c};font-weight:600;">{p}% utilizado</div>
+						<div style="font-size:10px;color:{c};font-weight:600;">{fmtPct(q.used, q.limit)}</div>
 					</div>
 				</div>
 				<div
 					style="height:6px;background:rgba(255,255,255,0.05);border-radius:99px;overflow:hidden;"
 				>
 					<div
-						style="height:100%;width:{p}%;border-radius:99px;background:{p >= 90
+						style="height:100%;width:{hasLimit(q.limit) ? p : 100}%;border-radius:99px;background:{!hasLimit(q.limit)
+							? 'linear-gradient(90deg,#6366f1,#818cf8)'
+							: p >= 90
 							? 'linear-gradient(90deg,#ef4444,#f87171)'
 							: p >= 70
 								? 'linear-gradient(90deg,#f59e0b,#fbbf24)'
@@ -101,6 +247,7 @@
 				</div>
 			</div>
 		{/each}
+		{/if}
 	</div>
 </div>
 
