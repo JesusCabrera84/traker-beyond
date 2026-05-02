@@ -35,14 +35,14 @@
 	{#if isAuthenticated}
 		<!-- Estado 2: Usuario con sesión activa -->
 		<div
-			class="authenticated-menu bg-gray-800/80 backdrop-blur-md shadow-lg border
-					rounded-xl overflow-hidden min-w-56 animate-in slide-in-from-top-2 duration-150"
+			class="authenticated-menu animate-in slide-in-from-top-2 min-w-56 overflow-hidden
+					rounded-xl border bg-gray-800/80 shadow-lg backdrop-blur-md duration-150"
 		>
 			<!-- Header del usuario -->
-			<div class="user-header p-3 border-b border-gray-700/40">
+			<div class="user-header border-b border-gray-700/40 p-3">
 				<div class="flex items-center gap-3">
-					<div class="user-info flex-1 min-w-0">
-						<p class="user-name text-white font-medium text-sm truncate text-center">
+					<div class="user-info min-w-0 flex-1">
+						<p class="user-name truncate text-center text-sm font-medium text-white">
 							{user?.full_name || 'Usuario'}
 						</p>
 					</div>
@@ -50,17 +50,17 @@
 			</div>
 
 			<!-- Opciones del menú autenticado: alineadas a la izquierda -->
-			<div class="menu-options menu-options-auth py-2 flex flex-col gap-2 items-stretch">
+			<div class="menu-options menu-options-auth flex flex-col items-stretch gap-2 py-2">
 				<button
 					type="button"
-					class="menu-item menu-item-centered w-full text-left text-white hover:bg-gray-700/50
-						   transition-[background-color,box-shadow] duration-200 flex items-center justify-start
-						   text-sm group rounded-xl"
+					class="menu-item menu-item-centered group flex w-full items-center
+						   justify-start rounded-xl text-left text-sm text-white
+						   transition-[background-color,box-shadow] duration-200 hover:bg-gray-700/50"
 					on:click={handleProfile}
 				>
 					<span class="menu-item-row flex w-full min-w-0 items-center justify-start gap-4">
 						<svg
-							class="menu-item-icon w-4.5 h-4.5 shrink-0 text-gray-400 group-hover:text-white transition-colors"
+							class="menu-item-icon h-4.5 w-4.5 shrink-0 text-gray-400 transition-colors group-hover:text-white"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -78,14 +78,14 @@
 
 				<button
 					type="button"
-					class="menu-item menu-item-centered w-full text-left text-white hover:bg-gray-700/50
-						   transition-[background-color,box-shadow] duration-200 flex items-center justify-start
-						   text-sm group rounded-xl"
+					class="menu-item menu-item-centered group flex w-full items-center
+						   justify-start rounded-xl text-left text-sm text-white
+						   transition-[background-color,box-shadow] duration-200 hover:bg-gray-700/50"
 					on:click={handleControlPanel}
 				>
 					<span class="menu-item-row flex w-full min-w-0 items-center justify-start gap-4">
 						<svg
-							class="menu-item-icon w-4.5 h-4.5 shrink-0 text-gray-400 group-hover:text-white transition-colors"
+							class="menu-item-icon h-4.5 w-4.5 shrink-0 text-gray-400 transition-colors group-hover:text-white"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -101,19 +101,19 @@
 					</span>
 				</button>
 
-				<hr class="menu-separator border-gray-700/40 w-full shrink-0" />
+				<hr class="menu-separator w-full shrink-0 border-gray-700/40" />
 
 				<button
 					type="button"
-					class="menu-item menu-item-centered menu-item-danger w-full text-left text-red-300
-						   hover:bg-red-500/15 hover:text-red-200
-						   transition-[background-color,box-shadow] duration-200 flex items-center justify-start
-						   text-sm group rounded-xl"
+					class="menu-item menu-item-centered menu-item-danger group flex w-full
+						   items-center justify-start
+						   rounded-xl text-left text-sm text-red-300 transition-[background-color,box-shadow]
+						   duration-200 hover:bg-red-500/15 hover:text-red-200"
 					on:click={handleLogout}
 				>
 					<span class="menu-item-row flex w-full min-w-0 items-center justify-start gap-4">
 						<svg
-							class="menu-item-icon w-4.5 h-4.5 shrink-0 group-hover:text-red-200 transition-colors"
+							class="menu-item-icon h-4.5 w-4.5 shrink-0 transition-colors group-hover:text-red-200"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -133,22 +133,22 @@
 	{:else}
 		<!-- Estado 1: Usuario sin sesión -->
 		<div
-			class="unauthenticated-menu bg-gray-800/80 backdrop-blur-md
-					rounded-xl overflow-hidden min-w-60 w-max max-w-[min(100vw-2rem,20rem)]
-					animate-in slide-in-from-top-2 duration-150"
+			class="unauthenticated-menu animate-in slide-in-from-top-2
+					w-max max-w-[min(100vw-2rem,20rem)] min-w-60 overflow-hidden rounded-xl
+					bg-gray-800/80 backdrop-blur-md duration-150"
 		>
 			<!-- Opciones del menú no autenticado -->
-			<div class="menu-options menu-options-guest py-2 flex flex-col gap-2 items-stretch">
+			<div class="menu-options menu-options-guest flex flex-col items-stretch gap-2 py-2">
 				<button
 					type="button"
-					class="menu-item menu-item-centered w-full text-left text-white hover:bg-gray-700/50
-						   transition-[background-color,box-shadow] duration-200 flex items-center justify-start
-						   text-sm group rounded-xl"
+					class="menu-item menu-item-centered group flex w-full items-center
+						   justify-start rounded-xl text-left text-sm text-white
+						   transition-[background-color,box-shadow] duration-200 hover:bg-gray-700/50"
 					on:click={handleLogin}
 				>
 					<span class="menu-item-row flex w-full min-w-0 items-center justify-start gap-4">
 						<svg
-							class="menu-item-icon w-4.5 h-4.5 shrink-0 text-gray-400 group-hover:text-white transition-colors"
+							class="menu-item-icon h-4.5 w-4.5 shrink-0 text-gray-400 transition-colors group-hover:text-white"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -166,14 +166,14 @@
 
 				<button
 					type="button"
-					class="menu-item menu-item-centered w-full text-left text-white hover:bg-gray-700/50
-						   transition-[background-color,box-shadow] duration-200 flex items-center justify-start
-						   text-sm group rounded-xl"
+					class="menu-item menu-item-centered group flex w-full items-center
+						   justify-start rounded-xl text-left text-sm text-white
+						   transition-[background-color,box-shadow] duration-200 hover:bg-gray-700/50"
 					on:click={handleRegister}
 				>
 					<span class="menu-item-row flex w-full min-w-0 items-center justify-start gap-4">
 						<svg
-							class="menu-item-icon w-4.5 h-4.5 shrink-0 text-gray-400 group-hover:text-white transition-colors"
+							class="menu-item-icon h-4.5 w-4.5 shrink-0 text-gray-400 transition-colors group-hover:text-white"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"

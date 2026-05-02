@@ -116,12 +116,12 @@
 			<!-- Placeholder cuando no hay API key -->
 			<div class="map-placeholder">
 				<div class="map-placeholder-content">
-					<div class="text-6xl mb-4">🗺️</div>
+					<div class="mb-4 text-6xl">🗺️</div>
 					<h1 class="text-lg-bold mb-2">Google Maps no configurado</h1>
-					<p class="text-gray-300 mb-4">
+					<p class="mb-4 text-gray-300">
 						Necesitas configurar VITE_GOOGLE_MAPS_API_KEY en tu archivo .env
 					</p>
-					<div class="bg-gray-800 p-4 rounded-lg text-left text-sm">
+					<div class="rounded-lg bg-gray-800 p-4 text-left text-sm">
 						<code class="text-green-400">VITE_GOOGLE_MAPS_API_KEY=tu_api_key_aqui</code>
 					</div>
 				</div>
@@ -148,7 +148,7 @@
 		<div class="loading-overlay">
 			<div class="error-container">
 				<div class="flex-items-center flex-space-x-2">
-					<span class="text-white text-sm">⚠️ Error: {error}</span>
+					<span class="text-sm text-white">⚠️ Error: {error}</span>
 				</div>
 			</div>
 		</div>

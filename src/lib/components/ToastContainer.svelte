@@ -4,7 +4,7 @@
 </script>
 
 <!-- Contenedor de notificaciones -->
-<div class="toast-container-wrapper fixed top-0 right-0 z-50 p-4 pointer-events-none">
+<div class="toast-container-wrapper pointer-events-none fixed top-0 right-0 z-50 p-4">
 	{#each $toastStore as toast (toast.id)}
 		<div class="mb-3">
 			<Toast

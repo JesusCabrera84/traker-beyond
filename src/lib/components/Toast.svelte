@@ -64,17 +64,17 @@
 	<div class="toast-container fixed top-4 right-4 z-50" transition:fly={{ x: 300, duration: 300 }}>
 		<div
 			class="toast-content {typeStyles.bg} {typeStyles.border} {typeStyles.text} 
-				   border rounded-lg p-4 shadow-lg backdrop-blur-md min-w-80 max-w-96"
+				   max-w-96 min-w-80 rounded-lg border p-4 shadow-lg backdrop-blur-md"
 		>
 			<div class="flex items-start gap-3">
-				<div class="toast-icon text-xl font-bold flex-shrink-0">
+				<div class="toast-icon flex-shrink-0 text-xl font-bold">
 					{typeStyles.icon}
 				</div>
 				<div class="toast-message flex-1 text-sm leading-relaxed">
 					{message}
 				</div>
 				<button
-					class="toast-close text-lg leading-none opacity-70 hover:opacity-100 transition-opacity flex-shrink-0"
+					class="toast-close flex-shrink-0 text-lg leading-none opacity-70 transition-opacity hover:opacity-100"
 					on:click={close}
 					aria-label="Cerrar notificación"
 				>

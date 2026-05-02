@@ -142,14 +142,14 @@
 <div class="gradient-overlay"></div>
 
 <!-- Contenido principal -->
-<div class="invitation-container min-h-screen flex items-center justify-center p-4 relative z-10">
+<div class="invitation-container relative z-10 flex min-h-screen items-center justify-center p-4">
 	<div class="invitation-card w-full max-w-md">
 		{#if success}
 			<!-- Estado de éxito -->
 			<div class="success-state text-center">
 				<div class="success-icon mb-6">
 					<svg
-						class="w-16 h-16 text-green-400 mx-auto"
+						class="mx-auto h-16 w-16 text-green-400"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -163,24 +163,24 @@
 					</svg>
 				</div>
 
-				<h1 class="text-2xl font-bold text-white mb-4">¡Invitación Aceptada!</h1>
-				<p class="text-gray-300 mb-2">{message}</p>
+				<h1 class="mb-4 text-2xl font-bold text-white">¡Invitación Aceptada!</h1>
+				<p class="mb-2 text-gray-300">{message}</p>
 				{#if email}
-					<p class="text-sm text-gray-400 mb-6">Email: {email}</p>
+					<p class="mb-6 text-sm text-gray-400">Email: {email}</p>
 				{/if}
 
-				<div class="countdown-text text-sm text-gray-400 mb-6">
+				<div class="countdown-text mb-6 text-sm text-gray-400">
 					Serás redirigido al login en unos segundos...
 				</div>
 
 				<div class="action-buttons space-y-3">
 					<button
-						class="btn-primary w-full py-3 px-4 bg-gradient-to-r from-brand-green to-brand-green-light
-							   text-white font-medium rounded-lg hover:from-brand-green-light hover:to-brand-green
-							   transition-all duration-200 flex items-center justify-center gap-2"
+						class="btn-primary from-brand-green to-brand-green-light hover:from-brand-green-light hover:to-brand-green flex w-full
+							   items-center justify-center gap-2 rounded-lg bg-gradient-to-r
+							   px-4 py-3 font-medium text-white transition-all duration-200"
 						on:click={goToLogin}
 					>
-						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -197,7 +197,7 @@
 			<div class="error-state text-center">
 				<div class="error-icon mb-6">
 					<svg
-						class="w-16 h-16 text-red-400 mx-auto"
+						class="mx-auto h-16 w-16 text-red-400"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -211,13 +211,13 @@
 					</svg>
 				</div>
 
-				<h1 class="text-2xl font-bold text-white mb-4">Error de Invitación</h1>
-				<p class="text-gray-300 mb-6">{error}</p>
+				<h1 class="mb-4 text-2xl font-bold text-white">Error de Invitación</h1>
+				<p class="mb-6 text-gray-300">{error}</p>
 
 				<div class="action-buttons space-y-3">
 					<button
-						class="btn-link w-full py-2 text-cyan-400 hover:text-cyan-300
-							   transition-colors duration-200 text-sm"
+						class="btn-link w-full py-2 text-sm text-cyan-400
+							   transition-colors duration-200 hover:text-cyan-300"
 						on:click={goHome}
 					>
 						Volver al Inicio
@@ -227,10 +227,10 @@
 		{:else}
 			<!-- Formulario para crear contraseña -->
 			<div class="form-state">
-				<div class="text-center mb-8">
+				<div class="mb-8 text-center">
 					<div class="icon-container mb-4">
 						<svg
-							class="w-16 h-16 text-cyan-400 mx-auto"
+							class="mx-auto h-16 w-16 text-cyan-400"
 							fill="none"
 							stroke="currentColor"
 							viewBox="0 0 24 24"
@@ -243,14 +243,14 @@
 							/>
 						</svg>
 					</div>
-					<h1 class="text-2xl font-bold text-white mb-2">Aceptar Invitación</h1>
-					<p class="text-gray-300 text-sm">Crea tu contraseña para activar tu cuenta</p>
+					<h1 class="mb-2 text-2xl font-bold text-white">Aceptar Invitación</h1>
+					<p class="text-sm text-gray-300">Crea tu contraseña para activar tu cuenta</p>
 				</div>
 
 				<form on:submit|preventDefault={handleSubmit} class="space-y-6">
 					<!-- Campo de contraseña -->
 					<div class="form-group">
-						<label for="password" class="block text-sm font-medium text-gray-300 mb-2">
+						<label for="password" class="mb-2 block text-sm font-medium text-gray-300">
 							Nueva Contraseña
 						</label>
 						<div class="relative">
@@ -260,21 +260,21 @@
 								bind:value={password}
 								on:blur={validatePassword}
 								placeholder="Ingresa tu contraseña"
-								class="form-input w-full px-4 py-3 bg-gray-800/50 border border-gray-700
-									   text-white rounded-lg focus:outline-none focus:border-cyan-400
-									   transition-colors duration-200"
+								class="form-input w-full rounded-lg border border-gray-700 bg-gray-800/50 px-4
+									   py-3 text-white transition-colors duration-200
+									   focus:border-cyan-400 focus:outline-none"
 								disabled={loading}
 								required
 							/>
 							<button
 								type="button"
-								class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400
-									   hover:text-white transition-colors"
+								class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400
+									   transition-colors hover:text-white"
 								on:click={() => (showPassword = !showPassword)}
 								tabindex="-1"
 							>
 								{#if showPassword}
-									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -289,7 +289,7 @@
 										/>
 									</svg>
 								{:else}
-									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -301,9 +301,9 @@
 							</button>
 						</div>
 						{#if passwordError}
-							<p class="text-red-400 text-xs mt-1">{passwordError}</p>
+							<p class="mt-1 text-xs text-red-400">{passwordError}</p>
 						{/if}
-						<p class="text-xs text-gray-400 mt-2">
+						<p class="mt-2 text-xs text-gray-400">
 							Debe tener mínimo 8 caracteres, incluir mayúsculas, minúsculas, números y caracteres
 							especiales
 						</p>
@@ -311,7 +311,7 @@
 
 					<!-- Campo de confirmar contraseña -->
 					<div class="form-group">
-						<label for="confirm-password" class="block text-sm font-medium text-gray-300 mb-2">
+						<label for="confirm-password" class="mb-2 block text-sm font-medium text-gray-300">
 							Confirmar Contraseña
 						</label>
 						<div class="relative">
@@ -321,21 +321,21 @@
 								bind:value={confirmPassword}
 								on:blur={validateConfirmPassword}
 								placeholder="Confirma tu contraseña"
-								class="form-input w-full px-4 py-3 bg-gray-800/50 border border-gray-700
-									   text-white rounded-lg focus:outline-none focus:border-cyan-400
-									   transition-colors duration-200"
+								class="form-input w-full rounded-lg border border-gray-700 bg-gray-800/50 px-4
+									   py-3 text-white transition-colors duration-200
+									   focus:border-cyan-400 focus:outline-none"
 								disabled={loading}
 								required
 							/>
 							<button
 								type="button"
-								class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400
-									   hover:text-white transition-colors"
+								class="absolute top-1/2 right-3 -translate-y-1/2 text-gray-400
+									   transition-colors hover:text-white"
 								on:click={() => (showConfirmPassword = !showConfirmPassword)}
 								tabindex="-1"
 							>
 								{#if showConfirmPassword}
-									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -350,7 +350,7 @@
 										/>
 									</svg>
 								{:else}
-									<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 										<path
 											stroke-linecap="round"
 											stroke-linejoin="round"
@@ -362,29 +362,29 @@
 							</button>
 						</div>
 						{#if confirmPasswordError}
-							<p class="text-red-400 text-xs mt-1">{confirmPasswordError}</p>
+							<p class="mt-1 text-xs text-red-400">{confirmPasswordError}</p>
 						{/if}
 					</div>
 
 					<!-- Mensaje de error -->
 					{#if error}
-						<div class="error-message p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-							<p class="text-red-400 text-sm">{error}</p>
+						<div class="error-message rounded-lg border border-red-500/30 bg-red-500/10 p-3">
+							<p class="text-sm text-red-400">{error}</p>
 						</div>
 					{/if}
 
 					<!-- Botón de envío -->
 					<button
 						type="submit"
-						class="btn-submit w-full py-3 px-4 bg-gradient-to-r from-brand-green to-brand-green-light
-							   text-white font-medium rounded-lg hover:from-brand-green-light hover:to-brand-green
-							   transition-all duration-200 flex items-center justify-center gap-2
-							   disabled:opacity-50 disabled:cursor-not-allowed"
+						class="btn-submit from-brand-green to-brand-green-light hover:from-brand-green-light hover:to-brand-green flex w-full
+							   items-center justify-center gap-2 rounded-lg bg-gradient-to-r
+							   px-4 py-3 font-medium text-white transition-all duration-200
+							   disabled:cursor-not-allowed disabled:opacity-50"
 						disabled={loading}
 					>
 						{#if loading}
 							<svg
-								class="animate-spin h-5 w-5 text-white"
+								class="h-5 w-5 animate-spin text-white"
 								xmlns="http://www.w3.org/2000/svg"
 								fill="none"
 								viewBox="0 0 24 24"
@@ -405,7 +405,7 @@
 							</svg>
 							Procesando...
 						{:else}
-							<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -421,7 +421,7 @@
 					<div class="text-center">
 						<button
 							type="button"
-							class="text-sm text-cyan-400 hover:text-cyan-300 transition-colors"
+							class="text-sm text-cyan-400 transition-colors hover:text-cyan-300"
 							on:click={goToLogin}
 						>
 							¿Ya tienes cuenta? Iniciar sesión

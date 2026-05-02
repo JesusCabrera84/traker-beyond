@@ -99,7 +99,7 @@
 	}
 </script>
 
-<div bind:this={mapContainer} class="w-full h-full"></div>
+<div bind:this={mapContainer} class="h-full w-full"></div>
 
 <style>
 	div {

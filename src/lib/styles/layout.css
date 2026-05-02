@@ -4,7 +4,7 @@
 }
 
 .centered-absolute {
-	@apply absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 transform;
+	@apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transform;
 }
 
 .overlay-container {
@@ -39,9 +39,9 @@
 
 /* Position utilities */
 .absolute-top-right {
-	@apply absolute right-4 top-4;
+	@apply absolute top-4 right-4;
 }
 
 .absolute-bottom-right {
-	@apply absolute bottom-4 right-4;
+	@apply absolute right-4 bottom-4;
 }

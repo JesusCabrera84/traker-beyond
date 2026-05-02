@@ -1,10 +1,10 @@
 /* Header Component Styles */
 .header-container {
-	@apply fixed left-1/2 top-0 z-50 -translate-x-1/2 transform;
+	@apply fixed top-0 left-1/2 z-50 -translate-x-1/2 transform;
 }
 
 .header-nav {
-	@apply rounded-4xl flex border-2 border-white/10 bg-white/10 shadow-lg backdrop-blur-xl;
+	@apply flex rounded-4xl border-2 border-white/10 bg-white/10 shadow-lg backdrop-blur-xl;
 }
 
 .header-button {
@@ -25,7 +25,7 @@
 }
 
 .login-form-container {
-	@apply w-full max-w-md space-y-8 p-8 mb-8;
+	@apply mb-8 w-full max-w-md space-y-8 p-8;
 }
 
 .login-logo {
@@ -41,11 +41,11 @@
 }
 
 .login-input {
-	@apply w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-blue-300 transition-all duration-200 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500;
+	@apply w-full rounded-lg border border-white/20 bg-white/10 px-4 py-3 text-white placeholder-blue-300 transition-all duration-200 focus:border-transparent focus:ring-2 focus:ring-blue-500 focus:outline-none;
 }
 
 .login-button {
-	@apply flex w-full justify-center rounded-lg border border-transparent bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+	@apply flex w-full justify-center rounded-lg border border-transparent bg-blue-600 px-4 py-3 text-sm font-medium text-white shadow-sm transition-all duration-200 hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50;
 }
 
 .login-error {
@@ -79,7 +79,7 @@
 
 /* Loading and Error States */
 .loading-overlay {
-	@apply absolute left-1/2 top-20 z-40 -translate-x-1/2 transform;
+	@apply absolute top-20 left-1/2 z-40 -translate-x-1/2 transform;
 }
 
 .loading-container {
@@ -92,7 +92,7 @@
 
 /* Device Counter */
 .device-counter {
-	@apply absolute bottom-4 right-4 z-40;
+	@apply absolute right-4 bottom-4 z-40;
 }
 
 .device-counter-container {

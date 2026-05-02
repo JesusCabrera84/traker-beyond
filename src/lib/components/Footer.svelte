@@ -11,7 +11,7 @@
 </script>
 
 <footer class="footer">
-	<div class="container container-padding">
+	<div class="container-padding container">
 		<div class="footer-content">
 			<div class="footer-section">
 				<h3>Geminis Labs</h3>

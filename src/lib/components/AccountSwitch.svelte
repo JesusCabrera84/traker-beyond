@@ -67,9 +67,9 @@
 <div class="relative" bind:this={switchRef}>
 	<!-- Switch principal -->
 	<button
-		class="account-switch w-10 h-10 rounded-full flex items-center justify-center
-			   transition-all duration-300 ease-in-out shadow-md hover:shadow-lg
-			   border-2 relative"
+		class="account-switch relative flex h-10 w-10 items-center justify-center
+			   rounded-full border-2 shadow-md transition-all duration-300
+			   ease-in-out hover:shadow-lg"
 		class:authenticated={$isAuthenticated}
 		class:unauthenticated={!$isAuthenticated}
 		on:click={toggleMenu}
@@ -79,7 +79,7 @@
 		<div class="relative flex items-center justify-center">
 			<!-- Ícono siempre centrado con color forzado -->
 			<svg
-				class="w-5 h-5 relative z-10 user-icon"
+				class="user-icon relative z-10 h-5 w-5"
 				fill="none"
 				stroke="currentColor"
 				viewBox="0 0 24 24"

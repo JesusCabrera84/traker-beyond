@@ -355,7 +355,7 @@
 									on:click={() => (showOldPassword = !showOldPassword)}
 								>
 									{#if showOldPassword}
-										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -364,7 +364,7 @@
 											/>
 										</svg>
 									{:else}
-										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -404,7 +404,7 @@
 									on:click={() => (showNewPassword = !showNewPassword)}
 								>
 									{#if showNewPassword}
-										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -413,7 +413,7 @@
 											/>
 										</svg>
 									{:else}
-										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -453,7 +453,7 @@
 									on:click={() => (showConfirmPassword = !showConfirmPassword)}
 								>
 									{#if showConfirmPassword}
-										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"
@@ -462,7 +462,7 @@
 											/>
 										</svg>
 									{:else}
-										<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 											<path
 												stroke-linecap="round"
 												stroke-linejoin="round"

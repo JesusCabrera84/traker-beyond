@@ -67,13 +67,13 @@
 <div class="gradient-overlay"></div>
 
 <!-- Contenido principal -->
-<div class="verify-container min-h-screen flex items-center justify-center p-4 relative z-10">
+<div class="verify-container relative z-10 flex min-h-screen items-center justify-center p-4">
 	<div class="verify-card w-full max-w-md text-center">
 		{#if loading}
 			<!-- Estado de carga -->
 			<div class="loading-state">
 				<div class="spinner mb-6"></div>
-				<h1 class="text-2xl font-bold text-white mb-4">Verificando tu email...</h1>
+				<h1 class="mb-4 text-2xl font-bold text-white">Verificando tu email...</h1>
 				<p class="text-gray-300">Por favor espera mientras confirmamos tu cuenta.</p>
 			</div>
 		{:else if success}
@@ -81,7 +81,7 @@
 			<div class="success-state">
 				<div class="success-icon mb-6">
 					<svg
-						class="w-16 h-16 text-green-400 mx-auto"
+						class="mx-auto h-16 w-16 text-green-400"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -95,21 +95,21 @@
 					</svg>
 				</div>
 
-				<h1 class="text-2xl font-bold text-white mb-4">¡Email Verificado!</h1>
-				<p class="text-gray-300 mb-6">{message}</p>
+				<h1 class="mb-4 text-2xl font-bold text-white">¡Email Verificado!</h1>
+				<p class="mb-6 text-gray-300">{message}</p>
 
-				<div class="countdown-text text-sm text-gray-400 mb-6">
+				<div class="countdown-text mb-6 text-sm text-gray-400">
 					Serás redirigido al login en unos segundos...
 				</div>
 
 				<div class="action-buttons space-y-3">
 					<button
-						class="btn-primary w-full py-3 px-4 bg-gradient-to-r from-brand-green to-brand-green-light
-							   text-white font-medium rounded-lg hover:from-brand-green-light hover:to-brand-green
-							   transition-all duration-200 flex items-center justify-center gap-2"
+						class="btn-primary from-brand-green to-brand-green-light hover:from-brand-green-light hover:to-brand-green flex w-full
+							   items-center justify-center gap-2 rounded-lg bg-gradient-to-r
+							   px-4 py-3 font-medium text-white transition-all duration-200"
 						on:click={goToLogin}
 					>
-						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -126,7 +126,7 @@
 			<div class="error-state">
 				<div class="error-icon mb-6">
 					<svg
-						class="w-16 h-16 text-red-400 mx-auto"
+						class="mx-auto h-16 w-16 text-red-400"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24"
@@ -140,17 +140,17 @@
 					</svg>
 				</div>
 
-				<h1 class="text-2xl font-bold text-white mb-4">Error de Verificación</h1>
-				<p class="text-gray-300 mb-6">{error}</p>
+				<h1 class="mb-4 text-2xl font-bold text-white">Error de Verificación</h1>
+				<p class="mb-6 text-gray-300">{error}</p>
 
 				<div class="action-buttons space-y-3">
 					<button
-						class="btn-secondary w-full py-3 px-4 bg-gray-700 hover:bg-gray-600
-							   text-white font-medium rounded-lg transition-all duration-200
-							   flex items-center justify-center gap-2"
+						class="btn-secondary flex w-full items-center justify-center gap-2
+							   rounded-lg bg-gray-700 px-4 py-3 font-medium
+							   text-white transition-all duration-200 hover:bg-gray-600"
 						on:click={goToLogin}
 					>
-						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path
 								stroke-linecap="round"
 								stroke-linejoin="round"
@@ -162,8 +162,8 @@
 					</button>
 
 					<button
-						class="btn-link w-full py-2 text-cyan-400 hover:text-cyan-300
-							   transition-colors duration-200 text-sm"
+						class="btn-link w-full py-2 text-sm text-cyan-400
+							   transition-colors duration-200 hover:text-cyan-300"
 						on:click={goHome}
 					>
 						Volver al Inicio
