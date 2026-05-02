@@ -766,8 +766,8 @@
 				/></svg
 			>
 			<span style="font-size:12px;color:#64748b;">
-				Plan <strong style="color:#818cf8;">Gratis</strong> — 100 req/día · límite 1 req/seg · burst
-				de 2 req
+				Plan <strong style="color:#818cf8;">Gratis</strong> — 100 req/día · límite 1 req/seg · burst de
+				2 req
 			</span>
 		</div>
 

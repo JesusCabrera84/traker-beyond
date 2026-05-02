@@ -134,8 +134,8 @@
 				/></svg
 			>
 			<p style="margin:0;font-size:13px;color:#c4b5fd;line-height:1.5;">
-				<strong>Datos de demostración.</strong> Cuando el backend conecte el histórico, este listado
-				mostrará tus CFDI reales.
+				<strong>Datos de demostración.</strong> Cuando el backend conecte el histórico, este listado mostrará
+				tus CFDI reales.
 			</p>
 		</div>
 	{/if}
