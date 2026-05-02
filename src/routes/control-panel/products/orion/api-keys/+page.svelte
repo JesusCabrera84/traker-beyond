@@ -1,5 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
 	const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 	const API_PLATFORM_KEYS_ENDPOINT = '/api/v1/api-platform/keys';
@@ -22,18 +23,15 @@
 		try {
 			const token = getAuthToken();
 			if (!token) throw new Error('No hay sesión activa');
-			const params = new URLSearchParams({ product_code: ORION_PRODUCT_CODE });
+			const params = new SvelteURLSearchParams({ product_code: ORION_PRODUCT_CODE });
 			if (keyStatusFilter === 'active') params.set('status', 'ACTIVE');
 			if (keyStatusFilter === 'revoked') params.set('status', 'REVOKED');
-			const res = await fetch(
-				`${API_BASE_URL}${API_PLATFORM_KEYS_ENDPOINT}?${params.toString()}`,
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-						Accept: 'application/json'
-					}
+			const res = await fetch(`${API_BASE_URL}${API_PLATFORM_KEYS_ENDPOINT}?${params.toString()}`, {
+				headers: {
+					Authorization: `Bearer ${token}`,
+					Accept: 'application/json'
 				}
-			);
+			});
 			if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
 			keys = await res.json();
 		} catch (e) {
@@ -130,7 +128,9 @@
 	let confirmingRevoke = null;
 
 	function getAuthToken() {
-		return sessionStorage.getItem('geminis_id_token') || sessionStorage.getItem('geminis_access_token');
+		return (
+			sessionStorage.getItem('geminis_id_token') || sessionStorage.getItem('geminis_access_token')
+		);
 	}
 
 	function setKeyStatusFilter(status) {
@@ -146,16 +146,13 @@
 		try {
 			const token = getAuthToken();
 			if (!token) throw new Error('No hay sesión activa');
-			const res = await fetch(
-				`${API_BASE_URL}${API_PLATFORM_KEYS_ENDPOINT}/${keyId}/revoke`,
-				{
-					method: 'POST',
-					headers: {
-						Authorization: `Bearer ${token}`,
-						Accept: 'application/json'
-					}
+			const res = await fetch(`${API_BASE_URL}${API_PLATFORM_KEYS_ENDPOINT}/${keyId}/revoke`, {
+				method: 'POST',
+				headers: {
+					Authorization: `Bearer ${token}`,
+					Accept: 'application/json'
 				}
-			);
+			});
 			if (!res.ok) {
 				const err = await res.json().catch(() => ({}));
 				throw new Error(err.detail || `Error ${res.status}: ${res.statusText}`);
@@ -202,7 +199,7 @@
 			const data = await res.json();
 			newApiKey = data.full_key;
 			if (!newApiKey) throw new Error('La API no devolvió full_key');
-				view = 'reveal';
+			view = 'reveal';
 			await loadKeys();
 			await loadUsageSummary();
 		} catch (e) {
@@ -296,7 +293,8 @@
 <!-- ───── Header + botón ───── -->
 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
 	<div style="font-size:14px;font-weight:600;color:#e2e8f0;">
-		{#if view === 'table'}Claves de acceso{:else if view === 'form'}Nueva API Key{:else}Tu nueva API Key{/if}
+		{#if view === 'table'}Claves de acceso{:else if view === 'form'}Nueva API Key{:else}Tu nueva API
+			Key{/if}
 	</div>
 	{#if view === 'table'}
 		<button
@@ -324,7 +322,8 @@
 				fill="none"
 				viewBox="0 0 24 24"
 				stroke="currentColor"
-				stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg
+				stroke-width="2"
+				><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" /></svg
 			>
 			Volver
 		</button>
@@ -358,114 +357,171 @@
 <!-- ───── Vista: Tabla ───── -->
 {#if view === 'table'}
 	{#if keysLoading}
-		<div style="display:flex;align-items:center;justify-content:center;padding:48px;color:#475569;font-size:13px;gap:10px;">
-			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;"><path stroke-linecap="round" d="M12 2a10 10 0 0110 10"/></svg>
+		<div
+			style="display:flex;align-items:center;justify-content:center;padding:48px;color:#475569;font-size:13px;gap:10px;"
+		>
+			<svg
+				width="16"
+				height="16"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				style="animation:spin 1s linear infinite;"
+				><path stroke-linecap="round" d="M12 2a10 10 0 0110 10" /></svg
+			>
 			Cargando claves…
 		</div>
 	{:else if keysError}
-		<div style="display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:14px 16px;margin-bottom:14px;">
-			<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#f87171" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+		<div
+			style="display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:14px 16px;margin-bottom:14px;"
+		>
+			<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#f87171" stroke-width="2"
+				><path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+				/></svg
+			>
 			<span style="font-size:13px;color:#f87171;flex:1;">{keysError}</span>
-			<button on:click={loadKeys} style="border-radius:8px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);padding:4px 10px;font-size:11px;font-weight:600;color:#f87171;cursor:pointer;">Reintentar</button>
+			<button
+				on:click={loadKeys}
+				style="border-radius:8px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);padding:4px 10px;font-size:11px;font-weight:600;color:#f87171;cursor:pointer;"
+				>Reintentar</button
+			>
 		</div>
 	{:else if revokeError}
-		<div style="display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;">
-			<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#f87171" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+		<div
+			style="display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;"
+		>
+			<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#f87171" stroke-width="2"
+				><path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+				/></svg
+			>
 			<span style="font-size:13px;color:#f87171;flex:1;">Error al revocar: {revokeError}</span>
-			<button on:click={() => (revokeError = null)} style="border-radius:8px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);padding:4px 10px;font-size:11px;font-weight:600;color:#f87171;cursor:pointer;">Cerrar</button>
+			<button
+				on:click={() => (revokeError = null)}
+				style="border-radius:8px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);padding:4px 10px;font-size:11px;font-weight:600;color:#f87171;cursor:pointer;"
+				>Cerrar</button
+			>
 		</div>
 	{:else}
-	<div
-		style="background:rgba(10,16,26,0.75);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden;margin-bottom:14px;"
-	>
-		<div style="overflow-x:auto;">
-			<table style="width:100%;min-width:600px;border-collapse:collapse;font-size:13px;">
-				<thead>
-					<tr style="background:rgba(0,0,0,0.3);">
-						{#each ['Nombre', 'Entorno', 'Creada', 'Último uso', 'Estado', ''] as col (col)}
-							<th
-								style="padding:11px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#334155;border-bottom:1px solid rgba(255,255,255,0.05);white-space:nowrap;"
-								>{col}</th
-							>
-						{/each}
-					</tr>
-				</thead>
-				<tbody>
-					{#if keys.length === 0}
-						<tr>
-							<td colspan="7" style="padding:32px 16px;text-align:center;font-size:13px;color:#475569;">No hay claves creadas aún.</td>
+		<div
+			style="background:rgba(10,16,26,0.75);border:1px solid rgba(255,255,255,0.07);border-radius:16px;overflow:hidden;margin-bottom:14px;"
+		>
+			<div style="overflow-x:auto;">
+				<table style="width:100%;min-width:600px;border-collapse:collapse;font-size:13px;">
+					<thead>
+						<tr style="background:rgba(0,0,0,0.3);">
+							{#each ['Nombre', 'Entorno', 'Creada', 'Último uso', 'Estado', ''] as col (col)}
+								<th
+									style="padding:11px 16px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#334155;border-bottom:1px solid rgba(255,255,255,0.05);white-space:nowrap;"
+									>{col}</th
+								>
+							{/each}
 						</tr>
-					{:else}
-						{#each keys as k (k.id)}
-							{@const env = envMeta(k.prefix)}
-							<tr
-								style="border-bottom:1px solid rgba(255,255,255,0.03);{k.status !== 'ACTIVE'
-									? 'opacity:.6;'
-									: ''}"
-							>
-								<td style="padding:14px 16px;font-size:13px;font-weight:500;color:#e2e8f0;">{k.name}</td>
-								<td style="padding:14px 16px;">
-									<span
-										style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid {env.border};background:{env.bg};padding:3px 8px;font-size:10px;font-weight:700;color:{env.color};"
-										>{env.label}</span
-									>
-								</td>
-								<td style="padding:14px 16px;font-size:12px;color:#475569;white-space:nowrap;">{formatDate(k.created_at)}</td>
-								<td style="padding:14px 16px;font-size:12px;color:#475569;white-space:nowrap;">{formatDate(k.last_used_at)}</td>
-								<td style="padding:14px 16px;">
-									{#if k.status === 'ACTIVE'}
-										<span
-											style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid rgba(74,222,128,0.2);background:rgba(74,222,128,0.08);padding:3px 8px;font-size:10px;font-weight:600;color:#4ade80;"
-										>
-											<span style="width:5px;height:5px;border-radius:50%;background:#4ade80;"></span>Activa
-										</span>
-									{:else if k.status === 'REVOKED'}
-										<span
-											style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.07);padding:3px 8px;font-size:10px;font-weight:600;color:#f87171;"
-										>Revocada</span
-										>
-									{:else}
-										<span
-											style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid rgba(100,116,139,0.2);background:rgba(100,116,139,0.08);padding:3px 8px;font-size:10px;font-weight:600;color:#64748b;"
-										>Expirada</span
-										>
-									{/if}
-								</td>
-								<td style="padding:14px 16px;text-align:right;">
-									{#if k.status === 'ACTIVE'}
-										{#if confirmingRevoke === k.id}
-											<div style="display:flex;align-items:center;gap:6px;justify-content:flex-end;">
-												<span style="font-size:11px;color:#94a3b8;white-space:nowrap;">¿Confirmar? Esta acción es irreversible.</span>
-												<button
-													on:click={() => (confirmingRevoke = null)}
-													style="border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);padding:5px 10px;font-size:11px;font-weight:600;color:#64748b;cursor:pointer;white-space:nowrap;"
-												>Cancelar</button>
-												<button
-													on:click={() => revokeKey(k.id)}
-													disabled={revoking === k.id}
-													style="border-radius:8px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.12);padding:5px 10px;font-size:11px;font-weight:700;color:#f87171;cursor:{revoking === k.id ? 'not-allowed' : 'pointer'};opacity:{revoking === k.id ? 0.6 : 1};white-space:nowrap;"
-												>
-													{revoking === k.id ? 'Revocando…' : 'Sí, revocar'}
-												</button>
-											</div>
-										{:else}
-											<button
-												on:click={() => (confirmingRevoke = k.id)}
-												style="border-radius:8px;border:1px solid rgba(239,68,68,0.15);background:rgba(239,68,68,0.06);padding:5px 10px;font-size:11px;font-weight:600;color:rgba(248,113,113,0.7);cursor:pointer;white-space:nowrap;"
-											>Revocar</button>
-										{/if}
-									{/if}
-								</td>
+					</thead>
+					<tbody>
+						{#if keys.length === 0}
+							<tr>
+								<td
+									colspan="7"
+									style="padding:32px 16px;text-align:center;font-size:13px;color:#475569;"
+									>No hay claves creadas aún.</td
+								>
 							</tr>
-						{/each}
-					{/if}
-				</tbody>
-			</table>
+						{:else}
+							{#each keys as k (k.id)}
+								{@const env = envMeta(k.prefix)}
+								<tr
+									style="border-bottom:1px solid rgba(255,255,255,0.03);{k.status !== 'ACTIVE'
+										? 'opacity:.6;'
+										: ''}"
+								>
+									<td style="padding:14px 16px;font-size:13px;font-weight:500;color:#e2e8f0;"
+										>{k.name}</td
+									>
+									<td style="padding:14px 16px;">
+										<span
+											style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid {env.border};background:{env.bg};padding:3px 8px;font-size:10px;font-weight:700;color:{env.color};"
+											>{env.label}</span
+										>
+									</td>
+									<td style="padding:14px 16px;font-size:12px;color:#475569;white-space:nowrap;"
+										>{formatDate(k.created_at)}</td
+									>
+									<td style="padding:14px 16px;font-size:12px;color:#475569;white-space:nowrap;"
+										>{formatDate(k.last_used_at)}</td
+									>
+									<td style="padding:14px 16px;">
+										{#if k.status === 'ACTIVE'}
+											<span
+												style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid rgba(74,222,128,0.2);background:rgba(74,222,128,0.08);padding:3px 8px;font-size:10px;font-weight:600;color:#4ade80;"
+											>
+												<span style="width:5px;height:5px;border-radius:50%;background:#4ade80;"
+												></span>Activa
+											</span>
+										{:else if k.status === 'REVOKED'}
+											<span
+												style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.07);padding:3px 8px;font-size:10px;font-weight:600;color:#f87171;"
+												>Revocada</span
+											>
+										{:else}
+											<span
+												style="display:inline-flex;align-items:center;gap:4px;border-radius:99px;border:1px solid rgba(100,116,139,0.2);background:rgba(100,116,139,0.08);padding:3px 8px;font-size:10px;font-weight:600;color:#64748b;"
+												>Expirada</span
+											>
+										{/if}
+									</td>
+									<td style="padding:14px 16px;text-align:right;">
+										{#if k.status === 'ACTIVE'}
+											{#if confirmingRevoke === k.id}
+												<div
+													style="display:flex;align-items:center;gap:6px;justify-content:flex-end;"
+												>
+													<span style="font-size:11px;color:#94a3b8;white-space:nowrap;"
+														>¿Confirmar? Esta acción es irreversible.</span
+													>
+													<button
+														on:click={() => (confirmingRevoke = null)}
+														style="border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);padding:5px 10px;font-size:11px;font-weight:600;color:#64748b;cursor:pointer;white-space:nowrap;"
+														>Cancelar</button
+													>
+													<button
+														on:click={() => revokeKey(k.id)}
+														disabled={revoking === k.id}
+														style="border-radius:8px;border:1px solid rgba(239,68,68,0.3);background:rgba(239,68,68,0.12);padding:5px 10px;font-size:11px;font-weight:700;color:#f87171;cursor:{revoking ===
+														k.id
+															? 'not-allowed'
+															: 'pointer'};opacity:{revoking === k.id
+															? 0.6
+															: 1};white-space:nowrap;"
+													>
+														{revoking === k.id ? 'Revocando…' : 'Sí, revocar'}
+													</button>
+												</div>
+											{:else}
+												<button
+													on:click={() => (confirmingRevoke = k.id)}
+													style="border-radius:8px;border:1px solid rgba(239,68,68,0.15);background:rgba(239,68,68,0.06);padding:5px 10px;font-size:11px;font-weight:600;color:rgba(248,113,113,0.7);cursor:pointer;white-space:nowrap;"
+													>Revocar</button
+												>
+											{/if}
+										{/if}
+									</td>
+								</tr>
+							{/each}
+						{/if}
+					</tbody>
+				</table>
+			</div>
 		</div>
-	</div>
 	{/if}
 
-<!-- ───── Vista: Formulario creación ───── -->
+	<!-- ───── Vista: Formulario creación ───── -->
 {:else if view === 'form'}
 	<div
 		style="background:rgba(10,16,26,0.75);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:28px;"
@@ -482,10 +538,8 @@
 				bind:value={keyName}
 				placeholder="Ej. Producción — ERP"
 				style="width:100%;box-sizing:border-box;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 14px;font-size:14px;color:#e2e8f0;outline:none;"
-				on:focus={(e) =>
-					(e.currentTarget.style.borderColor = 'rgba(99,102,241,0.5)')}
-				on:blur={(e) =>
-					(e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
+				on:focus={(e) => (e.currentTarget.style.borderColor = 'rgba(99,102,241,0.5)')}
+				on:blur={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)')}
 			/>
 		</div>
 
@@ -493,7 +547,9 @@
 		<div style="margin-bottom:28px;">
 			<div
 				style="display:block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#64748b;margin-bottom:12px;"
-			>Plan</div>
+			>
+				Plan
+			</div>
 			<div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;">
 				{#each plans as plan (plan.id)}
 					<button
@@ -594,10 +650,7 @@
 						stroke="currentColor"
 						stroke-width="2"
 						style="animation:spin 1s linear infinite;"
-						><path
-							stroke-linecap="round"
-							d="M12 2a10 10 0 0110 10"
-						/></svg
+						><path stroke-linecap="round" d="M12 2a10 10 0 0110 10" /></svg
 					>
 					Creando…
 				{:else}
@@ -615,7 +668,7 @@
 		</div>
 	</div>
 
-<!-- ───── Vista: Revelación de la key ───── -->
+	<!-- ───── Vista: Revelación de la key ───── -->
 {:else if view === 'reveal'}
 	<!-- Advertencia -->
 	<div
@@ -639,7 +692,7 @@
 			<p style="margin:0 0 2px;font-size:13px;font-weight:700;color:#fbbf24;">
 				Guarda esta clave ahora — no la volverás a ver
 			</p>
-			<p style="margin:0;font-size:12px;color:#92400e;color:#d97706;line-height:1.5;">
+			<p style="margin:0;font-size:12px;color:#d97706;line-height:1.5;">
 				Por seguridad, la clave completa se muestra <strong>una única vez</strong>. Una vez que
 				cierres esta pantalla no podrás recuperarla.
 			</p>
@@ -705,13 +758,7 @@
 		<div
 			style="display:flex;align-items:center;gap:8px;background:rgba(99,102,241,0.05);border:1px solid rgba(99,102,241,0.12);border-radius:10px;padding:10px 14px;margin-bottom:24px;"
 		>
-			<svg
-				width="13"
-				height="13"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="#818cf8"
-				stroke-width="2"
+			<svg width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="#818cf8" stroke-width="2"
 				><path
 					stroke-linecap="round"
 					stroke-linejoin="round"
@@ -719,8 +766,8 @@
 				/></svg
 			>
 			<span style="font-size:12px;color:#64748b;">
-				Plan <strong style="color:#818cf8;">Gratis</strong> — 100 req/día · límite 1 req/seg · burst de
-				2 req
+				Plan <strong style="color:#818cf8;">Gratis</strong> — 100 req/día · límite 1 req/seg · burst
+				de 2 req
 			</span>
 		</div>
 

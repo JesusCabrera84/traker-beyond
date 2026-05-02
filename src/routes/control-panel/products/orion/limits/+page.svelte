@@ -13,7 +13,9 @@
 	});
 
 	function getAuthToken() {
-		return sessionStorage.getItem('geminis_id_token') || sessionStorage.getItem('geminis_access_token');
+		return (
+			sessionStorage.getItem('geminis_id_token') || sessionStorage.getItem('geminis_access_token')
+		);
 	}
 
 	async function loadLimits() {
@@ -140,7 +142,6 @@
 		{ date: '2026-04-16', peak: 134, avg: 33 }
 	];
 	const maxPeak = Math.max(...history.map((h) => h.peak));
-
 </script>
 
 <svelte:head><title>Límites — Orion | Geminis Labs</title></svelte:head>
@@ -168,31 +169,42 @@
 
 <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;">
 	{#if limitsLoading}
-		<div style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;padding:24px;color:#475569;font-size:13px;gap:10px;">
-			<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="animation:spin 1s linear infinite;"><path stroke-linecap="round" d="M12 2a10 10 0 0110 10"/></svg>
+		<div
+			style="grid-column:1/-1;display:flex;align-items:center;justify-content:center;padding:24px;color:#475569;font-size:13px;gap:10px;"
+		>
+			<svg
+				width="16"
+				height="16"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				style="animation:spin 1s linear infinite;"
+				><path stroke-linecap="round" d="M12 2a10 10 0 0110 10" /></svg
+			>
 			Cargando límites…
 		</div>
 	{:else}
-	{#each kpis as k (k.label)}
-		<div
-			style="position:relative;overflow:hidden;background:rgba(10,16,26,0.75);border:1px solid {k.border};border-radius:16px;padding:22px 20px;"
-		>
+		{#each kpis as k (k.label)}
 			<div
-				style="position:absolute;top:-20px;right:-20px;width:70px;height:70px;border-radius:50%;background:{k.glow};pointer-events:none;"
-			></div>
-			<div
-				style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:{k.color};margin-bottom:10px;"
+				style="position:relative;overflow:hidden;background:rgba(10,16,26,0.75);border:1px solid {k.border};border-radius:16px;padding:22px 20px;"
 			>
-				{k.label}
+				<div
+					style="position:absolute;top:-20px;right:-20px;width:70px;height:70px;border-radius:50%;background:{k.glow};pointer-events:none;"
+				></div>
+				<div
+					style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:{k.color};margin-bottom:10px;"
+				>
+					{k.label}
+				</div>
+				<div
+					style="font-size:24px;font-weight:800;color:#fff;margin-bottom:4px;font-variant-numeric:tabular-nums;"
+				>
+					{k.value}
+				</div>
+				<div style="font-size:11px;color:#334155;">{k.sub}</div>
 			</div>
-			<div
-				style="font-size:24px;font-weight:800;color:#fff;margin-bottom:4px;font-variant-numeric:tabular-nums;"
-			>
-				{k.value}
-			</div>
-			<div style="font-size:11px;color:#334155;">{k.sub}</div>
-		</div>
-	{/each}
+		{/each}
 	{/if}
 </div>
 
@@ -210,43 +222,45 @@
 		{#if limitsLoading}
 			<div style="padding:10px 4px;font-size:12px;color:#475569;">Cargando cuotas…</div>
 		{:else}
-		{#each quotas as q (q.label)}
-			{@const p = pct(q.used, q.limit)}
-			{@const c = color(p, q.limit)}
-			<div style="margin-bottom:20px;">
-				<div
-					style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"
-				>
-					<div>
-						<div style="font-size:13px;font-weight:500;color:#e2e8f0;">{q.label}</div>
-						<div style="font-size:10px;color:#475569;margin-top:1px;">{q.tier}</div>
-					</div>
-					<div style="text-align:right;">
-						<div
-							style="font-size:13px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;"
-						>
-							{fmtQuota(q.used, q.limit, q.unit)}
-						</div>
-						<div style="font-size:10px;color:{c};font-weight:600;">{fmtPct(q.used, q.limit)}</div>
-					</div>
-				</div>
-				<div
-					style="height:6px;background:rgba(255,255,255,0.05);border-radius:99px;overflow:hidden;"
-				>
+			{#each quotas as q (q.label)}
+				{@const p = pct(q.used, q.limit)}
+				{@const c = color(p, q.limit)}
+				<div style="margin-bottom:20px;">
 					<div
-						style="height:100%;width:{hasLimit(q.limit) ? p : 100}%;border-radius:99px;background:{!hasLimit(q.limit)
-							? 'linear-gradient(90deg,#6366f1,#818cf8)'
-							: p >= 90
-							? 'linear-gradient(90deg,#ef4444,#f87171)'
-							: p >= 70
-								? 'linear-gradient(90deg,#f59e0b,#fbbf24)'
-								: 'linear-gradient(90deg,#10b981,#34d399)'};box-shadow:{p >= 70
-							? '0 0 8px ' + c
-							: 'none'};transition:width .4s ease;"
-					></div>
+						style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"
+					>
+						<div>
+							<div style="font-size:13px;font-weight:500;color:#e2e8f0;">{q.label}</div>
+							<div style="font-size:10px;color:#475569;margin-top:1px;">{q.tier}</div>
+						</div>
+						<div style="text-align:right;">
+							<div
+								style="font-size:13px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums;"
+							>
+								{fmtQuota(q.used, q.limit, q.unit)}
+							</div>
+							<div style="font-size:10px;color:{c};font-weight:600;">{fmtPct(q.used, q.limit)}</div>
+						</div>
+					</div>
+					<div
+						style="height:6px;background:rgba(255,255,255,0.05);border-radius:99px;overflow:hidden;"
+					>
+						<div
+							style="height:100%;width:{hasLimit(q.limit)
+								? p
+								: 100}%;border-radius:99px;background:{!hasLimit(q.limit)
+								? 'linear-gradient(90deg,#6366f1,#818cf8)'
+								: p >= 90
+									? 'linear-gradient(90deg,#ef4444,#f87171)'
+									: p >= 70
+										? 'linear-gradient(90deg,#f59e0b,#fbbf24)'
+										: 'linear-gradient(90deg,#10b981,#34d399)'};box-shadow:{p >= 70
+								? '0 0 8px ' + c
+								: 'none'};transition:width .4s ease;"
+						></div>
+					</div>
 				</div>
-			</div>
-		{/each}
+			{/each}
 		{/if}
 	</div>
 </div>

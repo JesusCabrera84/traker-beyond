@@ -1,5 +1,6 @@
 <script>
 	import { onMount } from 'svelte';
+	import { SvelteURLSearchParams } from 'svelte/reactivity';
 
 	const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '';
 	const API_PLATFORM_LOGS_ENDPOINT = '/api/v1/api-platform/logs';
@@ -19,7 +20,7 @@
 	let didMount = false;
 	let searchDebounceId;
 	let logsQueryTrigger = '';
- 	let filteredLogs = [];
+	let filteredLogs = [];
 
 	onMount(async () => {
 		didMount = true;
@@ -47,11 +48,13 @@
 	}
 
 	function getAuthToken() {
-		return sessionStorage.getItem('geminis_id_token') || sessionStorage.getItem('geminis_access_token');
+		return (
+			sessionStorage.getItem('geminis_id_token') || sessionStorage.getItem('geminis_access_token')
+		);
 	}
 
 	function buildLogsQuery({ cursor = null } = {}) {
-		const params = new URLSearchParams();
+		const params = new SvelteURLSearchParams();
 		params.set('limit', String(DEFAULT_LIMIT));
 		if (cursor) params.set('cursor', cursor);
 		if (filterMethod !== 'all') params.set('method', filterMethod);
@@ -175,9 +178,17 @@
 </div>
 
 {#if statsError}
-	<div style="display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;">
-		<span style="font-size:12px;color:#f87171;flex:1;">No se pudieron cargar las estadísticas: {statsError}</span>
-		<button on:click={loadStats} style="border-radius:8px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);padding:4px 10px;font-size:11px;font-weight:600;color:#f87171;cursor:pointer;">Reintentar</button>
+	<div
+		style="display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 14px;margin-bottom:14px;"
+	>
+		<span style="font-size:12px;color:#f87171;flex:1;"
+			>No se pudieron cargar las estadísticas: {statsError}</span
+		>
+		<button
+			on:click={loadStats}
+			style="border-radius:8px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);padding:4px 10px;font-size:11px;font-weight:600;color:#f87171;cursor:pointer;"
+			>Reintentar</button
+		>
 	</div>
 {/if}
 
@@ -253,63 +264,67 @@
 			<tbody>
 				{#if logsLoading}
 					<tr>
-						<td colspan="8" style="padding:24px;text-align:center;color:#334155;font-size:13px;">Cargando logs…</td>
+						<td colspan="8" style="padding:24px;text-align:center;color:#334155;font-size:13px;"
+							>Cargando logs…</td
+						>
 					</tr>
 				{:else}
-				{#each filteredLogs as l (l.id)}
-					{@const st = statusMeta(l.status_code)}
-					<tr
-						style="border-bottom:1px solid rgba(255,255,255,0.025);{l.status_code >= 500
-							? 'background:rgba(248,113,113,0.03);'
-							: l.status_code >= 400
-								? 'background:rgba(251,191,36,0.02);'
-								: ''}"
-					>
-						<td
-							style="padding:11px 14px;font-family:monospace;font-size:11px;color:#475569;white-space:nowrap;"
-							>{formatTime(l.created_at)}</td
+					{#each filteredLogs as l (l.id)}
+						{@const st = statusMeta(l.status_code)}
+						<tr
+							style="border-bottom:1px solid rgba(255,255,255,0.025);{l.status_code >= 500
+								? 'background:rgba(248,113,113,0.03);'
+								: l.status_code >= 400
+									? 'background:rgba(251,191,36,0.02);'
+									: ''}"
 						>
-						<td style="padding:11px 14px;">
-							<code
-								style="border-radius:5px;background:rgba({l.method === 'GET'
-									? '56,189,248'
-									: '167,139,250'},0.1);padding:2px 6px;font-size:10px;font-weight:700;color:{methodColor(
-									l.method
-								)};">{l.method}</code
+							<td
+								style="padding:11px 14px;font-family:monospace;font-size:11px;color:#475569;white-space:nowrap;"
+								>{formatTime(l.created_at)}</td
 							>
-						</td>
-						<td
-							style="padding:11px 14px;font-family:monospace;font-size:11px;color:#94a3b8;white-space:nowrap;"
-							>{l.endpoint}</td
-						>
-						<td style="padding:11px 14px;">
-							<span
-								style="display:inline-flex;align-items:center;gap:3px;border-radius:99px;border:1px solid {st.border};background:{st.bg};padding:2px 7px;font-size:10px;font-weight:700;color:{st.color};"
-								>{l.status_code}</span
+							<td style="padding:11px 14px;">
+								<code
+									style="border-radius:5px;background:rgba({l.method === 'GET'
+										? '56,189,248'
+										: '167,139,250'},0.1);padding:2px 6px;font-size:10px;font-weight:700;color:{methodColor(
+										l.method
+									)};">{l.method}</code
+								>
+							</td>
+							<td
+								style="padding:11px 14px;font-family:monospace;font-size:11px;color:#94a3b8;white-space:nowrap;"
+								>{l.endpoint}</td
 							>
-						</td>
-						<td
-							style="padding:11px 14px;font-family:monospace;font-size:11px;font-weight:600;color:{latencyColor(
-								l.latency_ms
-							)};font-variant-numeric:tabular-nums;white-space:nowrap;"
-							>{l.latency_ms >= 1000 ? (l.latency_ms / 1000).toFixed(1) + 's' : l.latency_ms + 'ms'}</td
-						>
-						<td
-							style="padding:11px 14px;font-family:monospace;font-size:10px;color:#475569;white-space:nowrap;"
-							>{l.api_key_id?.slice(0, 8)}…</td
-						>
-						<td
-							style="padding:11px 14px;font-family:monospace;font-size:10px;color:#334155;white-space:nowrap;"
-							>{l.ip}</td
-						>
-						<td style="padding:11px 14px;">
-							<button
-								style="border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);padding:3px 8px;font-size:10px;color:#475569;cursor:pointer;"
-								>Ver</button
+							<td style="padding:11px 14px;">
+								<span
+									style="display:inline-flex;align-items:center;gap:3px;border-radius:99px;border:1px solid {st.border};background:{st.bg};padding:2px 7px;font-size:10px;font-weight:700;color:{st.color};"
+									>{l.status_code}</span
+								>
+							</td>
+							<td
+								style="padding:11px 14px;font-family:monospace;font-size:11px;font-weight:600;color:{latencyColor(
+									l.latency_ms
+								)};font-variant-numeric:tabular-nums;white-space:nowrap;"
+								>{l.latency_ms >= 1000
+									? (l.latency_ms / 1000).toFixed(1) + 's'
+									: l.latency_ms + 'ms'}</td
 							>
-						</td>
-					</tr>
-				{/each}
+							<td
+								style="padding:11px 14px;font-family:monospace;font-size:10px;color:#475569;white-space:nowrap;"
+								>{l.api_key_id?.slice(0, 8)}…</td
+							>
+							<td
+								style="padding:11px 14px;font-family:monospace;font-size:10px;color:#334155;white-space:nowrap;"
+								>{l.ip}</td
+							>
+							<td style="padding:11px 14px;">
+								<button
+									style="border-radius:6px;border:1px solid rgba(255,255,255,0.06);background:rgba(255,255,255,0.03);padding:3px 8px;font-size:10px;color:#475569;cursor:pointer;"
+									>Ver</button
+								>
+							</td>
+						</tr>
+					{/each}
 				{/if}
 				{#if !logsLoading && filteredLogs.length === 0}
 					<tr
@@ -326,9 +341,20 @@
 	>
 		<span style="font-size:11px;color:#334155;">{filteredLogs.length} registros visibles</span>
 		{#if logsError}
-			<button on:click={() => loadLogs({ reset: true })} style="border-radius:8px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);padding:4px 10px;font-size:11px;font-weight:600;color:#f87171;cursor:pointer;">Reintentar</button>
+			<button
+				on:click={() => loadLogs({ reset: true })}
+				style="border-radius:8px;border:1px solid rgba(239,68,68,0.2);background:rgba(239,68,68,0.08);padding:4px 10px;font-size:11px;font-weight:600;color:#f87171;cursor:pointer;"
+				>Reintentar</button
+			>
 		{:else if nextCursor}
-			<button on:click={loadMore} disabled={loadingMore} style="border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);padding:4px 10px;font-size:11px;font-weight:600;color:#94a3b8;cursor:{loadingMore ? 'not-allowed' : 'pointer'};opacity:{loadingMore ? 0.7 : 1};">{loadingMore ? 'Cargando…' : 'Cargar más'}</button>
+			<button
+				on:click={loadMore}
+				disabled={loadingMore}
+				style="border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);padding:4px 10px;font-size:11px;font-weight:600;color:#94a3b8;cursor:{loadingMore
+					? 'not-allowed'
+					: 'pointer'};opacity:{loadingMore ? 0.7 : 1};"
+				>{loadingMore ? 'Cargando…' : 'Cargar más'}</button
+			>
 		{:else}
 			<span style="font-size:11px;color:#334155;">No hay más registros</span>
 		{/if}

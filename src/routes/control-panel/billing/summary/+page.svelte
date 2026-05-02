@@ -69,7 +69,8 @@
 				/></svg
 			>
 			<p style="margin:0;font-size:13px;color:#fbbf24;line-height:1.5;">
-				<strong>Datos de demostración.</strong> Cuando tu suscripción esté activa verás los importes reales.
+				<strong>Datos de demostración.</strong> Cuando tu suscripción esté activa verás los importes
+				reales.
 			</p>
 		</div>
 	{/if}
