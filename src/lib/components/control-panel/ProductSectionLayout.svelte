@@ -234,7 +234,7 @@
 							/></svg
 						>
 					{/if}
-					{item.label}
+					<span class="tab-label">{item.label}</span>
 				</a>
 			{/each}
 		</nav>
@@ -343,13 +343,20 @@
 		margin-bottom: 22px;
 		width: fit-content;
 		max-width: 100%;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none;
+	}
+
+	.products-nav::-webkit-scrollbar {
+		display: none;
 	}
 
 	.products-tab {
 		display: inline-flex;
 		align-items: center;
 		gap: 7px;
-		padding: 8px 16px;
+		padding: 9px 16px;
 		border-radius: 9px;
 		font-size: 13px;
 		font-weight: 500;
@@ -359,6 +366,11 @@
 			color 0.15s,
 			background 0.15s;
 		white-space: nowrap;
+		flex-shrink: 0;
+	}
+
+	.tab-label {
+		/* Visible en desktop */
 	}
 
 	.products-tab:hover {
@@ -391,29 +403,94 @@
 	/* ── Responsive ── */
 	@media (max-width: 1024px) {
 		.products-main {
-			margin-left: 220px;
-		}
-		.noise-overlay {
-			left: 220px;
-		}
-	}
-
-	@media (max-width: 768px) {
-		.products-main {
-			padding: 1rem;
 			margin-left: 0;
+			padding: 1.25rem;
+			padding-top: calc(70px + 1.25rem);
+			padding-bottom: 5rem;
 		}
+
 		.noise-overlay {
 			left: 0;
 		}
+
+		.products-header {
+			margin-bottom: 18px;
+		}
+
+		.header-title {
+			font-size: 19px;
+		}
+
+		.header-subtitle {
+			font-size: 12px;
+		}
+
 		.products-nav {
 			width: 100%;
-			overflow-x: auto;
 		}
+
 		.products-tab {
 			flex: 1;
 			justify-content: center;
+			padding: 9px 12px;
+			font-size: 12px;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.products-main {
+			padding: 1rem;
+			padding-top: calc(70px + 1rem);
+			padding-bottom: 5.5rem;
+		}
+
+		.products-header {
+			gap: 12px;
+			margin-bottom: 14px;
+		}
+
+		.header-icon {
+			width: 40px;
+			height: 40px;
+			border-radius: 10px;
+		}
+
+		.header-title {
+			font-size: 17px;
+		}
+
+		.header-subtitle {
+			font-size: 11px;
+			display: -webkit-box;
+			-webkit-line-clamp: 1;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
+
+		.products-nav {
+			border-radius: 11px;
+			padding: 4px;
+		}
+
+		.products-tab {
 			padding: 8px 10px;
+			font-size: 11px;
+			gap: 5px;
+		}
+
+		.products-tab svg {
+			width: 15px;
+			height: 15px;
+		}
+	}
+
+	@media (max-width: 380px) {
+		.tab-label {
+			display: none;
+		}
+
+		.products-tab {
+			padding: 10px;
 		}
 	}
 </style>

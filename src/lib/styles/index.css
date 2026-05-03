@@ -7,6 +7,7 @@
 @import './base.css';
 @import './layout.css';
 @import './utilities.css';
+@import './scrollbar.css';
 
 /* ===================================================================
    COMPONENTES GENERALES
@@ -23,3 +24,4 @@
 @import './theme-selector.css';
 @import './account-menu.css';
 @import './profile-starfield.css';
+@import './control-panel-mobile.css';
