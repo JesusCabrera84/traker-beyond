@@ -194,15 +194,39 @@ class AuthService {
 		const validAccessToken = accessToken && accessToken !== 'null' && accessToken.trim() !== '';
 		const validIdToken = idToken && idToken !== 'null' && idToken.trim() !== '';
 
-		const isAuth = !!(validAccessToken && validIdToken);
-
 		// Si hay tokens inválidos, limpiarlos
 		if ((accessToken && !validAccessToken) || (idToken && !validIdToken)) {
 			this.clearTokens();
 			return false;
 		}
 
-		return isAuth;
+		if (!validAccessToken || !validIdToken) {
+			return false;
+		}
+
+		// Verificar expiración del JWT (decodificando el payload sin librería externa)
+		if (!this.isTokenValid(accessToken)) {
+			this.clearTokens();
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
+	 * Verifica si un JWT no ha expirado
+	 */
+	isTokenValid(token) {
+		try {
+			const parts = token.split('.');
+			if (parts.length !== 3) return false;
+			const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+			if (!payload.exp) return true; // Sin claim exp, asumir válido
+			// Dar un margen de 10 segundos para evitar race conditions
+			return Date.now() / 1000 < payload.exp - 10;
+		} catch {
+			return false;
+		}
 	}
 
 	/**
