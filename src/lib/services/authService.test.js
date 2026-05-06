@@ -96,8 +96,16 @@ describe('AuthService', () => {
 
 	describe('isAuthenticated', () => {
 		it('debería retornar true si hay tokens válidos', () => {
-			sessionStorage.setItem('geminis_access_token', 'valid-access-token');
-			sessionStorage.setItem('geminis_id_token', 'valid-id-token');
+			// JWT simulado con expiración futura (exp)
+			const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
+			const payload = btoa(
+				JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 60 }) // expira en 60 segundos
+			);
+			const signature = 'signature';
+			const fakeJwt = `${header}.${payload}.${signature}`;
+
+			sessionStorage.setItem('geminis_access_token', fakeJwt);
+			sessionStorage.setItem('geminis_id_token', fakeJwt);
 
 			const result = authService.isAuthenticated();
 
