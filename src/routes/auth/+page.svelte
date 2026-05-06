@@ -10,6 +10,8 @@
 	let mode = 'login'; // 'login', 'register', 'recover', 'reset'
 
 	$: isCredentialsMode = mode === 'login' || mode === 'register';
+	$: isRecoveryFlow = mode === 'recover' || mode === 'reset';
+	$: isAuthLayoutCompact = isCredentialsMode || isRecoveryFlow;
 	let loading = false;
 	let isTransitioning = false;
 	let _recoveryStep = 'request'; // 'request' o 'reset'
@@ -490,20 +492,20 @@
 {/each}
 
 <!-- Contenido principal -->
-<div class="auth-container relative z-10 flex min-h-screen items-center justify-center p-4">
-	<div class="auth-card w-full max-w-md" class:auth-card-compact={isCredentialsMode}>
+<div class="auth-container min-h-screen flex items-center justify-center p-4 relative z-10">
+	<div class="auth-card w-full max-w-md" class:auth-card-compact={isAuthLayoutCompact}>
 		<!-- Header -->
 		<div
-			class="auth-header justify-center text-center
-				{isCredentialsMode ? 'mb-3 sm:mb-4' : 'mb-5 sm:mb-6'}"
+			class="auth-header text-center justify-center
+				{isAuthLayoutCompact ? 'mb-3 sm:mb-4' : 'mb-5 sm:mb-6'}"
 		>
 			<button
 				class="back-button inline-flex items-center gap-2 text-cyan-400
-					   transition-colors duration-200 hover:text-cyan-300
-					   {isCredentialsMode ? 'mb-2' : 'mb-4'}"
+					   hover:text-cyan-300 transition-colors duration-200
+					   {isAuthLayoutCompact ? 'mb-2' : 'mb-4'}"
 				on:click={goBack}
 			>
-				<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 					<path
 						stroke-linecap="round"
 						stroke-linejoin="round"
@@ -515,20 +517,20 @@
 			</button>
 
 			<div
-				class="logo-container flex items-center justify-center place-self-center self-center
-					{isCredentialsMode ? 'mb-3' : 'mb-6'}"
+				class="logo-container flex justify-center self-center items-center place-self-center
+					{isAuthLayoutCompact ? 'mb-3' : 'mb-6'}"
 			>
 				<img
 					src="/img/geminis-labs-logo-short.png"
 					alt="Geminis Labs"
-					class={isCredentialsMode ? 'h-14 w-14' : 'h-20 w-20'}
+					class={isAuthLayoutCompact ? 'h-14 w-14' : 'h-20 w-20'}
 				/>
 			</div>
 
 			<!-- Toggle de modo - Solo mostrar en login/register -->
 			{#if mode === 'login' || mode === 'register'}
 				<div class="mode-toggle mode-toggle-compact">
-					<div class="toggle-container rounded-lg border border-gray-700/50 bg-gray-800/50 p-1">
+					<div class="toggle-container bg-gray-800/50 p-1 rounded-lg border border-gray-700/50">
 						<button
 							class="toggle-button {mode === 'login' ? 'active' : ''}"
 							on:click={() => switchMode('login')}
@@ -548,13 +550,13 @@
 			{:else}
 				<!-- Título para modos de recuperación -->
 				<div class="recovery-title text-center">
-					<h2 class="mb-2 text-xl font-semibold text-cyan-400">
+					<h2 class="text-lg sm:text-xl font-semibold text-cyan-400 mb-1">
 						{mode === 'recover' ? 'Recuperar Contraseña' : 'Restablecer Contraseña'}
 					</h2>
-					<p class="text-sm text-gray-300">
+					<p class="text-xs sm:text-sm text-gray-300 leading-snug">
 						{mode === 'recover'
-							? 'Te enviaremos un código para restablecer tu contraseña'
-							: 'Ingresa el código que recibiste en tu correo'}
+							? 'Te enviaremos un código por correo'
+							: 'Introduce el código de 6 dígitos y tu nueva contraseña'}
 					</p>
 				</div>
 			{/if}
@@ -562,7 +564,7 @@
 
 		<!-- Formularios -->
 		<div
-			class="form-container {isTransitioning ? 'transitioning' : ''} {isCredentialsMode
+			class="form-container {isTransitioning ? 'transitioning' : ''} {isAuthLayoutCompact
 				? 'form-container--compact'
 				: ''}"
 		>
@@ -607,7 +609,7 @@
 					{#if showEmailNotVerifiedBanner}
 						<div class="email-not-verified-banner">
 							<div class="banner-icon">
-								<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -625,11 +627,11 @@
 					{/if}
 
 					<!-- Link Olvidé mi contraseña -->
-					<div class="forgot-password-container mb-4 text-center">
+					<div class="forgot-password-container text-center mb-4">
 						<button
 							type="button"
-							class="forgot-password-link text-sm text-cyan-400 underline
-							   transition-colors duration-200 hover:text-cyan-300"
+							class="forgot-password-link text-sm text-cyan-400 hover:text-cyan-300
+							   transition-colors duration-200 underline"
 							on:click={handleForgotPassword}
 						>
 							¿Olvidaste tu contraseña?
@@ -638,7 +640,7 @@
 
 					<button type="submit" disabled={loading} class="btn-primary auth-login-cta w-full">
 						{#if loading}
-							<svg class="h-5 w-5 shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+							<svg class="shrink-0 animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
 								<circle
 									class="opacity-25"
 									cx="12"
@@ -656,7 +658,7 @@
 							<span>Iniciando sesión…</span>
 						{:else}
 							<svg
-								class="h-5 w-5 shrink-0"
+								class="shrink-0 w-5 h-5"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -679,13 +681,13 @@
 							type="button"
 							disabled={resendingVerification}
 							on:click={handleResendVerification}
-							class="resend-verification-button flex w-full items-center
-							   justify-center gap-2 rounded-lg
-							   px-4 py-3 font-medium text-white
-							   transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
+							class="resend-verification-button w-full py-3 px-4
+							   text-white font-medium rounded-lg
+							   transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+							   flex items-center justify-center gap-2"
 						>
 							{#if resendingVerification}
-								<svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+								<svg class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
 									<circle
 										class="opacity-25"
 										cx="12"
@@ -702,7 +704,7 @@
 								</svg>
 								Reenviando correo...
 							{:else}
-								<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
@@ -765,7 +767,7 @@
 						{#if errors.password}
 							<p class="error-message">{errors.password}</p>
 						{/if}
-						<p class="password-hint mt-0.5 text-[0.7rem] leading-tight text-gray-400/90 sm:text-xs">
+						<p class="password-hint text-[0.7rem] leading-tight text-gray-400/90 mt-0.5 sm:text-xs">
 							Mayúscula, número y carácter especial (!@#$%…)
 						</p>
 					</div>
@@ -787,7 +789,7 @@
 
 					<button type="submit" disabled={loading} class="btn-primary auth-login-cta w-full">
 						{#if loading}
-							<svg class="h-5 w-5 shrink-0 animate-spin" fill="none" viewBox="0 0 24 24">
+							<svg class="shrink-0 animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
 								<circle
 									class="opacity-25"
 									cx="12"
@@ -805,7 +807,7 @@
 							<span>Creando cuenta…</span>
 						{:else}
 							<svg
-								class="h-5 w-5 shrink-0"
+								class="shrink-0 w-5 h-5"
 								fill="none"
 								stroke="currentColor"
 								viewBox="0 0 24 24"
@@ -830,9 +832,9 @@
 				>
 					{#if successMessage}
 						<div
-							class="success-banner mb-4 rounded-lg border border-green-500/50 bg-green-500/20 p-3"
+							class="success-banner bg-green-500/20 border border-green-500/50 rounded-lg p-3 mb-4"
 						>
-							<p class="text-center text-sm text-green-300">{successMessage}</p>
+							<p class="text-green-300 text-sm text-center">{successMessage}</p>
 						</div>
 					{/if}
 
@@ -851,16 +853,9 @@
 						{/if}
 					</div>
 
-					<button
-						type="submit"
-						disabled={loading}
-						class="auth-button from-brand-green to-brand-green-light hover:from-brand-green-light hover:to-brand-green flex w-full
-							   items-center justify-center gap-2 rounded-lg bg-gradient-to-r
-							   px-4 py-3 font-medium text-white
-							   transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
-					>
+					<button type="submit" disabled={loading} class="btn-primary auth-login-cta w-full">
 						{#if loading}
-							<svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+							<svg class="shrink-0 animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
 								<circle
 									class="opacity-25"
 									cx="12"
@@ -875,9 +870,15 @@
 									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 								></path>
 							</svg>
-							Enviando código...
+							<span>Enviando código…</span>
 						{:else}
-							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg
+								class="shrink-0 w-5 h-5"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								aria-hidden="true"
+							>
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -885,15 +886,15 @@
 									d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
 								/>
 							</svg>
-							Enviar Código
+							<span>Enviar Código</span>
 						{/if}
 					</button>
 
 					<!-- Enlace para volver al login -->
-					<div class="back-to-login mt-4 text-center">
+					<div class="back-to-login text-center mt-2">
 						<button
 							type="button"
-							class="text-sm text-cyan-400 underline transition-colors duration-200 hover:text-cyan-300"
+							class="text-sm text-cyan-400 hover:text-cyan-300 transition-colors duration-200 underline"
 							on:click={() => switchMode('login')}
 						>
 							Volver a iniciar sesión
@@ -904,18 +905,22 @@
 				<!-- Formulario de Restablecimiento de Contraseña -->
 				<form
 					on:submit={handlePasswordReset}
-					class="auth-form space-y-4 {isTransitioning ? 'fade-out' : 'fade-in'}"
+					class="auth-form auth-form-compact space-y-2.5 sm:space-y-3 {isTransitioning
+						? 'fade-out'
+						: 'fade-in'}"
 				>
 					{#if successMessage}
 						<div
-							class="success-banner mb-4 rounded-lg border border-green-500/50 bg-green-500/20 p-3"
+							class="success-banner bg-green-500/20 border border-green-500/50 rounded-lg p-2 mb-2"
 						>
-							<p class="text-center text-sm text-green-300">{successMessage}</p>
+							<p class="text-green-300 text-xs sm:text-sm text-center leading-snug">
+								{successMessage}
+							</p>
 						</div>
 					{/if}
 
 					<div class="form-group">
-						<label for="resetCode" class="form-label">Código de Verificación</label>
+						<label for="resetCode" class="form-label">Código de verificación</label>
 						<input
 							type="text"
 							id="resetCode"
@@ -923,34 +928,41 @@
 							class="form-input {errors.code ? 'error' : ''} text-center tracking-widest"
 							placeholder="000000"
 							maxlength="6"
+							inputmode="numeric"
+							autocomplete="one-time-code"
 							required
 						/>
 						{#if errors.code}
 							<p class="error-message">{errors.code}</p>
 						{/if}
-						<p class="mt-1 text-xs text-gray-400">Código enviado a: {recoveryEmail}</p>
+						<p
+							class="text-[11px] sm:text-xs text-gray-400 mt-0.5 leading-snug truncate"
+							title={recoveryEmail}
+						>
+							Enviado a {recoveryEmail}
+						</p>
 					</div>
 
 					<div class="form-group">
-						<label for="newPassword" class="form-label">Nueva Contraseña</label>
+						<label for="newPassword" class="form-label">Nueva contraseña</label>
 						<input
 							type="password"
 							id="newPassword"
 							bind:value={resetForm.newPassword}
 							class="form-input {errors.newPassword ? 'error' : ''}"
-							placeholder="8-72 caracteres, 1 mayúscula, 1 número, 1 especial"
+							placeholder="Mín. 8 caracteres"
 							required
 						/>
 						{#if errors.newPassword}
 							<p class="error-message">{errors.newPassword}</p>
 						{/if}
-						<p class="mt-1 text-xs text-gray-400">
-							Debe contener: mayúscula, número y carácter especial (!@#$%^&*...)
+						<p class="text-[11px] sm:text-xs text-gray-400 mt-0.5 leading-snug">
+							Mayúscula, número y carácter especial (!@#$…)
 						</p>
 					</div>
 
 					<div class="form-group">
-						<label for="confirmNewPassword" class="form-label">Confirmar Nueva Contraseña</label>
+						<label for="confirmNewPassword" class="form-label">Confirmar contraseña</label>
 						<input
 							type="password"
 							id="confirmNewPassword"
@@ -964,16 +976,9 @@
 						{/if}
 					</div>
 
-					<button
-						type="submit"
-						disabled={loading}
-						class="auth-button from-brand-green to-brand-green-light hover:from-brand-green-light hover:to-brand-green flex w-full
-							   items-center justify-center gap-2 rounded-lg bg-gradient-to-r
-							   px-4 py-3 font-medium text-white
-							   transition-all duration-200 disabled:cursor-not-allowed disabled:opacity-50"
-					>
+					<button type="submit" disabled={loading} class="btn-primary auth-login-cta w-full">
 						{#if loading}
-							<svg class="h-5 w-5 animate-spin" fill="none" viewBox="0 0 24 24">
+							<svg class="shrink-0 animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
 								<circle
 									class="opacity-25"
 									cx="12"
@@ -988,9 +993,15 @@
 									d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
 								></path>
 							</svg>
-							Restableciendo...
+							<span>Restableciendo…</span>
 						{:else}
-							<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<svg
+								class="shrink-0 w-5 h-5"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+								aria-hidden="true"
+							>
 								<path
 									stroke-linecap="round"
 									stroke-linejoin="round"
@@ -998,15 +1009,15 @@
 									d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
 								/>
 							</svg>
-							Restablecer Contraseña
+							<span>Restablecer Contraseña</span>
 						{/if}
 					</button>
 
 					<!-- Enlace para volver al login -->
-					<div class="back-to-login mt-4 text-center">
+					<div class="back-to-login text-center mt-2">
 						<button
 							type="button"
-							class="text-sm text-cyan-400 underline transition-colors duration-200 hover:text-cyan-300"
+							class="text-sm text-cyan-400 hover:text-cyan-300 transition-colors duration-200 underline"
 							on:click={() => switchMode('login')}
 						>
 							Volver a iniciar sesión
@@ -1141,19 +1152,6 @@
 		margin-top: 0.25rem;
 	}
 
-	.auth-button {
-		box-shadow:
-			0 8px 25px rgba(0, 166, 192, 0.3),
-			inset 0 1px 0 rgba(255, 255, 255, 0.2);
-	}
-
-	.auth-button:hover:not(:disabled) {
-		transform: translateY(-2px);
-		box-shadow:
-			0 12px 35px rgba(0, 166, 192, 0.4),
-			inset 0 1px 0 rgba(255, 255, 255, 0.3);
-	}
-
 	/*
 	 * Mismo aspecto que "Enviar Mensaje" (login-page.css → .btn-primary: píldora, sombra, hover).
 	 * Solo se cambia el gradiente a la paleta verde de marca.
@@ -1253,9 +1251,9 @@
 		transform: scale(1.05);
 	}
 
-	/* Estilos para el modo de recuperación */
+	/* Estilos para el modo de recuperación (compacto, alineado con login) */
 	.recovery-title {
-		margin-bottom: 1.5rem;
+		margin-bottom: 0.5rem;
 	}
 
 	.recovery-title h2 {
@@ -1280,11 +1278,16 @@
 		}
 	}
 
-	/* Estilo especial para el campo de código */
+	/* Campo de código de verificación */
 	.form-input.text-center {
 		font-size: 1.25rem;
 		font-weight: 600;
 		letter-spacing: 0.2em;
+	}
+
+	.auth-form-compact .form-input.text-center {
+		font-size: 1.125rem;
+		padding: 0.45rem 0.65rem;
 	}
 
 	/* Enlace de volver al login */

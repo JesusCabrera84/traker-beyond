@@ -52,7 +52,8 @@
 				{@const active = currentPath === item.href}
 				<a
 					href={item.href}
-					class="billing-tab {active ? 'billing-tab--active' : ''}"
+					class="billing-tab"
+					class:billing-tab--active={active}
 					aria-current={active ? 'page' : undefined}
 				>
 					{#if item.icon === 'chart'}
@@ -94,7 +95,7 @@
 							/>
 						</svg>
 					{/if}
-					{item.label}
+					<span class="tab-label">{item.label}</span>
 				</a>
 			{/each}
 		</nav>
@@ -117,20 +118,6 @@
 		margin-left: 260px;
 		box-sizing: border-box;
 		position: relative;
-	}
-
-	.billing-main::after {
-		content: '';
-		position: fixed;
-		top: 0;
-		left: 260px;
-		right: 0;
-		bottom: 0;
-		background-image: url('/img/noise.png');
-		background-repeat: repeat;
-		opacity: 0.03;
-		pointer-events: none;
-		z-index: 1;
 	}
 
 	.billing-content {
@@ -185,13 +172,21 @@
 		padding: 5px;
 		margin-bottom: 24px;
 		width: fit-content;
+		max-width: 100%;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+		scrollbar-width: none;
+	}
+
+	.billing-nav::-webkit-scrollbar {
+		display: none;
 	}
 
 	.billing-tab {
 		display: inline-flex;
 		align-items: center;
 		gap: 7px;
-		padding: 8px 16px;
+		padding: 9px 16px;
 		border-radius: 8px;
 		font-size: 13px;
 		font-weight: 500;
@@ -201,6 +196,7 @@
 			color 0.15s,
 			background 0.15s;
 		white-space: nowrap;
+		flex-shrink: 0;
 	}
 
 	.billing-tab:hover {
@@ -234,28 +230,65 @@
 
 	@media (max-width: 1024px) {
 		.billing-main {
-			margin-left: 220px;
-		}
-		.billing-main::after {
-			left: 220px;
-		}
-	}
-
-	@media (max-width: 768px) {
-		.billing-main {
-			padding: 1rem;
 			margin-left: 0;
+			padding: 1.25rem;
+			padding-top: calc(70px + 1.25rem);
+			padding-bottom: 5rem;
 		}
-		.billing-main::after {
-			left: 0;
-		}
+
 		.billing-nav {
 			width: 100%;
 		}
+
 		.billing-tab {
 			flex: 1;
 			justify-content: center;
-			padding: 8px 10px;
+			padding: 9px 12px;
+			font-size: 12px;
+		}
+
+		.billing-title {
+			font-size: 19px;
+		}
+
+		.billing-subtitle {
+			font-size: 12px;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.billing-main {
+			padding: 1rem;
+			padding-top: calc(70px + 1rem);
+			padding-bottom: 5.5rem;
+		}
+
+		.billing-icon {
+			width: 38px;
+			height: 38px;
+		}
+
+		.billing-title {
+			font-size: 17px;
+		}
+
+		.billing-subtitle {
+			display: none;
+		}
+
+		.billing-tab {
+			padding: 9px 8px;
+			font-size: 11px;
+		}
+	}
+
+	@media (max-width: 380px) {
+		.tab-label {
+			display: none;
+		}
+
+		.billing-tab {
+			padding: 10px;
 		}
 	}
 </style>

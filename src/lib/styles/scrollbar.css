@@ -1,0 +1,55 @@
+::-webkit-scrollbar {
+	width: 5px;
+	height: 5px;
+}
+
+::-webkit-scrollbar-track {
+	background: rgba(8, 14, 24, 0.5);
+	border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb {
+	background: rgba(0, 166, 192, 0.3);
+	border-radius: 99px;
+	transition: background 0.2s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: rgba(0, 166, 192, 0.6);
+}
+
+::-webkit-scrollbar-corner {
+	background: transparent;
+}
+
+html {
+	scrollbar-width: thin;
+	scrollbar-color: rgba(0, 166, 192, 0.3) rgba(8, 14, 24, 0.5);
+}
+
+.sidebar,
+.mobile-drawer,
+.drawer-nav,
+[style*='overflow-x:auto'],
+[style*='overflow-y:auto'],
+[style*='overflow:auto'] {
+	scrollbar-width: thin;
+	scrollbar-color: rgba(0, 166, 192, 0.2) transparent;
+}
+
+.sidebar::-webkit-scrollbar,
+.mobile-drawer::-webkit-scrollbar,
+.drawer-nav::-webkit-scrollbar {
+	width: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb,
+.mobile-drawer::-webkit-scrollbar-thumb,
+.drawer-nav::-webkit-scrollbar-thumb {
+	background: rgba(0, 166, 192, 0.2);
+}
+
+.billing-nav::-webkit-scrollbar,
+.products-nav::-webkit-scrollbar {
+	display: none;
+}
