@@ -1,4 +1,3 @@
-<!-- src/routes/control-panel/billing/invoices/+page.svelte -->
 <script>
 	import { onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
@@ -10,7 +9,6 @@
 
 	let loading = true;
 	let loadingMore = false;
-	let fromDemo = false;
 	let rows = [];
 	let total = 0;
 	let hasMore = false;
@@ -43,7 +41,6 @@
 			total = res.total;
 			hasMore = res.has_more;
 			offset = newOffset + newRows.length;
-			fromDemo = res.fromDemo;
 		} catch {
 			error = 'No se pudieron cargar las facturas.';
 		} finally {
@@ -56,8 +53,6 @@
 		await fetchPage(offset);
 	}
 
-	// ── Field accessors ──────────────────────────────────────────────────────
-
 	function rowDate(inv) {
 		return inv.issued_at ?? inv.paid_at ?? inv.date ?? inv.created_at;
 	}
@@ -65,29 +60,24 @@
 		return inv.paid_at;
 	}
 	function rowTotal(inv) {
-		const t = inv.total_mxn ?? inv.total ?? inv.amount_mxn ?? inv.amount;
+		const t = inv.total_mxn ?? inv.total_amount ?? inv.total ?? inv.amount_mxn ?? inv.amount;
 		return t != null ? Number(t) : null;
 	}
 	function rowSub(inv) {
 		const s = inv.subtotal_mxn ?? inv.subtotal;
 		return s != null ? Number(s) : null;
 	}
-	function rowTax(inv) {
-		const t = inv.tax_mxn ?? inv.tax;
-		return t != null ? Number(t) : null;
-	}
 	function rowNumber(inv) {
-		// API returns invoice_number like "INV-2024-0012"
 		if (inv.invoice_number) return inv.invoice_number;
 		if (inv.series && inv.folio) return `${inv.series}-${inv.folio}`;
 		if (inv.folio) return String(inv.folio);
 		return null;
 	}
 	function rowDesc(inv) {
-		return inv.description ?? inv.concepto ?? 'Suscripción Nexus';
+		return inv.description ?? inv.concepto ?? 'Suscripción NEXUS';
 	}
 	function rowUrl(inv) {
-		return inv.invoice_url ?? null;
+		return inv.invoice_url ?? inv.stripe_receipt_url ?? inv.invoice_pdf_url ?? null;
 	}
 	function rowPaymentId(inv) {
 		return inv.payment_id ?? null;
@@ -138,8 +128,6 @@
 		};
 	}
 
-	// ── Filters ──────────────────────────────────────────────────────────────
-
 	$: years = (() => {
 		const y = new SvelteSet();
 		for (const inv of rows) {
@@ -156,7 +144,11 @@
 		}
 		if (statusFilter !== 'all') {
 			const s = (inv.status || '').toUpperCase();
-			if (s !== statusFilter) return false;
+			if (statusFilter === 'PENDING') {
+				if (s !== 'PENDING' && s !== 'OPEN') return false;
+			} else if (s !== statusFilter) {
+				return false;
+			}
 		}
 		return true;
 	});
@@ -170,43 +162,24 @@
 		const s = (inv.status || '').toUpperCase();
 		return s === 'PENDING' || s === 'OPEN';
 	}).length;
+
+	$: invoiceCountKpi =
+		yearFilter === 'all' && statusFilter === 'all'
+			? total > 0
+				? total
+				: rows.length
+			: filtered.length;
+	$: invoiceCountKpiLabel =
+		yearFilter === 'all' && statusFilter === 'all' ? 'Total facturas' : 'En esta vista';
 </script>
 
 <svelte:head><title>Facturas — Facturación | Geminis Labs</title></svelte:head>
 
-<!-- ── Demo banner ────────────────────────────────────────────────────────── -->
-{#if fromDemo && !loading}
-	<div class="alert alert--demo">
-		<svg
-			width="14"
-			height="14"
-			fill="none"
-			viewBox="0 0 24 24"
-			stroke="currentColor"
-			stroke-width="2"
-			style="flex-shrink:0"
-		>
-			<path
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-			/>
-		</svg>
-		<span
-			><strong>Modo demostración.</strong> Cuando el backend conecte el historial, aquí verás tus CFDI
-			reales.</span
-		>
-	</div>
-{/if}
-
-<!-- ── Loading ────────────────────────────────────────────────────────────── -->
 {#if loading}
 	<div class="kpi-row mb-4">
 		{#each [1, 2, 3] as i (i)}<div class="skeleton h-20 rounded-xl"></div>{/each}
 	</div>
 	<div class="skeleton h-96 rounded-2xl"></div>
-
-	<!-- ── Error ──────────────────────────────────────────────────────────────── -->
 {:else if error}
 	<div class="error-card">
 		<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#f87171" stroke-width="1.5">
@@ -220,7 +193,6 @@
 		<button on:click={() => fetchPage(0, true)} class="btn-link">Reintentar</button>
 	</div>
 {:else if rows.length === 0}
-	<!-- ── Estado vacío ───────────────────────────────────────────────────────── -->
 	<div class="empty-state">
 		<div class="empty-state__icon">
 			<svg
@@ -241,7 +213,7 @@
 		<h3 class="empty-state__title">Sin facturas aún</h3>
 		<p class="empty-state__text">
 			Los cobros de tu suscripción aparecerán aquí con número de factura, importes e IVA desglosado.
-			Una vez realizados los primeros pagos, podrás descargar tus comprobantes en PDF y XML.
+			Una vez realizados los primeros pagos, podrás descargar tus comprobantes.
 		</p>
 		<a href="/control-panel/billing/summary" class="btn-secondary">
 			<svg
@@ -258,11 +230,10 @@
 		</a>
 	</div>
 {:else}
-	<!-- ── KPIs ──────────────────────────────────────────────────────────────── -->
 	<div class="kpi-row mb-5">
 		<div class="kpi-mini">
-			<p class="kpi-mini__label">Total facturas</p>
-			<p class="kpi-mini__value" style="color:#e2e8f0;">{total > 0 ? total : filtered.length}</p>
+			<p class="kpi-mini__label">{invoiceCountKpiLabel}</p>
+			<p class="kpi-mini__value" style="color:#e2e8f0;">{invoiceCountKpi}</p>
 		</div>
 		<div class="kpi-sep"></div>
 		<div class="kpi-mini">
@@ -287,7 +258,6 @@
 		</div>
 	</div>
 
-	<!-- ── Filtros ───────────────────────────────────────────────────────────── -->
 	<div class="filters-bar mb-4">
 		<div class="filters-bar__group">
 			<label for="yr" class="filter-label">Período</label>
@@ -334,8 +304,7 @@
 		</div>
 	</div>
 
-	<!-- ── Tabla ─────────────────────────────────────────────────────────────── -->
-	<div class="table-wrap mb-4">
+	<div class="table-wrap app-scrollbar mb-4">
 		<table class="inv-table">
 			<thead>
 				<tr>
@@ -345,7 +314,7 @@
 					<th class="th">Fecha emisión</th>
 					<th class="th">Fecha pago</th>
 					<th class="th th--center">Estado</th>
-					<th class="th th--center">Descargar</th>
+					<th class="th th--center">Comprobante</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -372,13 +341,13 @@
 						</td>
 					</tr>
 				{:else}
-					{#each filtered as inv (inv.id ?? rowNumber(inv) + rowDate(inv))}
+					{#each filtered as inv, invIdx (inv.id ?? `inv-${invIdx}-${rowNumber(inv) ?? ''}-${rowDate(inv) ?? ''}`)}
 						{@const st = statusInfo(inv.status)}
 						{@const num = rowNumber(inv)}
 						{@const url = rowUrl(inv)}
 						{@const sub = rowSub(inv)}
-						{@const tax = rowTax(inv)}
 						{@const tot = rowTotal(inv)}
+						{@const showSubIva = sub != null && tot != null && Number(tot) > Number(sub) + 0.009}
 						<tr class="tbody-row">
 							<td class="td td--num">
 								{#if num}
@@ -395,14 +364,14 @@
 							</td>
 							<td class="td td--right">
 								<span class="inv-amount">{tot != null ? formatMxn(tot) : '—'}</span>
-								{#if sub != null || tax != null}
-									<span class="inv-breakdown">
-										{#if sub != null}{formatMxn(sub)} + IVA{/if}
-									</span>
+								{#if showSubIva}
+									<span class="inv-breakdown">{formatMxn(sub)} · subtotal + IVA</span>
 								{/if}
 							</td>
-							<td class="td td--date">{formatDateLocal(rowDate(inv))}</td>
-							<td class="td td--date">{rowPaidAt(inv) ? formatDateLocal(rowPaidAt(inv)) : '—'}</td>
+							<td class="td td--date">{formatDateLocal(rowDate(inv), '—')}</td>
+							<td class="td td--date"
+								>{rowPaidAt(inv) ? formatDateLocal(rowPaidAt(inv), '—') : '—'}</td
+							>
 							<td class="td td--center">
 								<span
 									class="status-pill"
@@ -472,14 +441,13 @@
 							{yearFilter !== 'all' ? `· ${yearFilter}` : ''}
 						</td>
 						<td class="tfoot-td tfoot-td--total">{formatMxn(totalFiltered)}</td>
-						<td colspan="4"></td>
+						<td colspan="4" class="tfoot-td tfoot-td--spacer"></td>
 					</tr>
 				</tfoot>
 			{/if}
 		</table>
 	</div>
 
-	<!-- ── Load more ─────────────────────────────────────────────────────────── -->
 	{#if hasMore && yearFilter === 'all' && statusFilter === 'all'}
 		<div class="load-more-row mb-5">
 			<button on:click={loadMore} disabled={loadingMore} class="load-more-btn">
@@ -493,7 +461,6 @@
 		</div>
 	{/if}
 
-	<!-- ── Nota fiscal ────────────────────────────────────────────────────────── -->
 	<div class="fiscal-note">
 		<svg
 			width="13"
@@ -520,21 +487,6 @@
 {/if}
 
 <style>
-	/* ── Alert ───────────────────────────────────────────────────────────────── */
-	.alert--demo {
-		display: flex;
-		align-items: flex-start;
-		gap: 10px;
-		background: rgba(139, 92, 246, 0.07);
-		border: 1px solid rgba(139, 92, 246, 0.2);
-		border-radius: 12px;
-		padding: 12px 16px;
-		font-size: 13px;
-		color: #c4b5fd;
-		margin-bottom: 16px;
-	}
-
-	/* ── Error / empty ───────────────────────────────────────────────────────── */
 	.error-card {
 		display: flex;
 		flex-direction: column;
@@ -556,7 +508,6 @@
 		color: #6366f1;
 		text-decoration: underline;
 	}
-
 	.empty-state {
 		display: flex;
 		flex-direction: column;
@@ -612,7 +563,6 @@
 		color: #e2e8f0;
 	}
 
-	/* ── Skeleton ────────────────────────────────────────────────────────────── */
 	.skeleton {
 		background: rgba(255, 255, 255, 0.04);
 		animation: pulse 1.5s infinite;
@@ -633,7 +583,6 @@
 		margin-bottom: 20px;
 	}
 
-	/* ── KPI row ─────────────────────────────────────────────────────────────── */
 	.kpi-row {
 		display: flex;
 		align-items: center;
@@ -671,9 +620,31 @@
 		height: 36px;
 		background: rgba(255, 255, 255, 0.06);
 		margin: 0 20px;
+		flex-shrink: 0;
+	}
+	@media (max-width: 640px) {
+		.kpi-row {
+			justify-content: space-between;
+			gap: 12px 20px;
+		}
+		.kpi-mini--right {
+			flex-basis: 100%;
+			margin-left: 0;
+			margin-top: 12px;
+			padding-top: 12px;
+			border-top: 1px solid rgba(255, 255, 255, 0.06);
+			text-align: left;
+		}
+		.kpi-sep {
+			display: none;
+		}
+		.filters-bar__right {
+			flex-basis: 100%;
+			margin-left: 0;
+			justify-content: flex-start;
+		}
 	}
 
-	/* ── Filters ─────────────────────────────────────────────────────────────── */
 	.filters-bar {
 		display: flex;
 		align-items: flex-end;
@@ -699,10 +670,14 @@
 	}
 	.filter-select {
 		appearance: none;
-		background: rgba(10, 16, 26, 0.7);
+		-webkit-appearance: none;
+		background-color: rgba(10, 16, 26, 0.7);
+		background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M3 5l3 3 3-3'/%3E%3C/svg%3E");
+		background-repeat: no-repeat;
+		background-position: right 10px center;
 		border: 1px solid rgba(255, 255, 255, 0.08);
 		border-radius: 10px;
-		padding: 8px 12px;
+		padding: 8px 32px 8px 12px;
 		font-size: 13px;
 		color: #e2e8f0;
 		outline: none;
@@ -734,12 +709,21 @@
 	.filter-clear:hover {
 		background: rgba(248, 113, 113, 0.07);
 	}
+	.btn-link:focus-visible,
+	.filter-clear:focus-visible,
+	.load-more-btn:focus-visible {
+		outline: 2px solid rgba(99, 102, 241, 0.55);
+		outline-offset: 2px;
+	}
+	.filter-select:focus-visible {
+		outline: 2px solid rgba(99, 102, 241, 0.45);
+		outline-offset: 1px;
+	}
 	.results-count {
 		font-size: 12px;
 		color: #334155;
 	}
 
-	/* ── Table ───────────────────────────────────────────────────────────────── */
 	.table-wrap {
 		overflow-x: auto;
 		border-radius: 16px;
@@ -752,7 +736,6 @@
 		border-collapse: collapse;
 		font-size: 13px;
 	}
-
 	.th {
 		padding: 11px 16px;
 		text-align: left;
@@ -771,7 +754,6 @@
 	.th--center {
 		text-align: center;
 	}
-
 	.tbody-row {
 		border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 		transition: background 0.1s;
@@ -782,7 +764,6 @@
 	.tbody-row:hover {
 		background: rgba(255, 255, 255, 0.015);
 	}
-
 	.td {
 		padding: 13px 16px;
 		vertical-align: middle;
@@ -805,7 +786,6 @@
 	.td--empty {
 		padding: 40px;
 	}
-
 	.inv-number {
 		font-family: 'Courier New', monospace;
 		font-size: 12px;
@@ -823,7 +803,6 @@
 		border: none;
 		font-family: inherit;
 	}
-
 	.inv-desc {
 		display: block;
 		font-weight: 500;
@@ -837,7 +816,6 @@
 		color: #334155;
 		margin-top: 2px;
 	}
-
 	.inv-amount {
 		display: block;
 		font-weight: 700;
@@ -850,7 +828,6 @@
 		color: #475569;
 		margin-top: 2px;
 	}
-
 	.status-pill {
 		display: inline-flex;
 		align-items: center;
@@ -869,7 +846,6 @@
 		flex-shrink: 0;
 	}
 
-	/* ── Download buttons ────────────────────────────────────────────────────── */
 	.dl-btn {
 		display: inline-flex;
 		align-items: center;
@@ -892,6 +868,10 @@
 	.dl-btn--active:hover {
 		filter: brightness(1.25);
 	}
+	.dl-btn--active:focus-visible {
+		outline: 2px solid rgba(129, 140, 248, 0.6);
+		outline-offset: 2px;
+	}
 	.dl-btn--disabled {
 		background: rgba(255, 255, 255, 0.02);
 		border-color: rgba(255, 255, 255, 0.07);
@@ -899,7 +879,6 @@
 		cursor: not-allowed;
 	}
 
-	/* ── Table footer ────────────────────────────────────────────────────────── */
 	.tfoot-row {
 		background: rgba(0, 0, 0, 0.2);
 		border-top: 1px solid rgba(255, 255, 255, 0.07);
@@ -922,8 +901,12 @@
 		color: #fff;
 		font-variant-numeric: tabular-nums;
 	}
+	.tfoot-td--spacer {
+		border: none;
+		padding: 0;
+		background: transparent;
+	}
 
-	/* ── No results ──────────────────────────────────────────────────────────── */
 	.no-results {
 		display: flex;
 		align-items: center;
@@ -934,7 +917,6 @@
 		padding: 24px 0;
 	}
 
-	/* ── Load more ───────────────────────────────────────────────────────────── */
 	.load-more-row {
 		display: flex;
 		align-items: center;
@@ -984,7 +966,6 @@
 		}
 	}
 
-	/* ── Fiscal note ─────────────────────────────────────────────────────────── */
 	.fiscal-note {
 		display: flex;
 		align-items: flex-start;

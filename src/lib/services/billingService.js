@@ -1,6 +1,3 @@
-/**
- * billingService.js — sin mocks, todo de la API real.
- */
 import { get } from 'svelte/store';
 import { authStore } from '$lib/stores/authStore.js';
 import { loadStripe } from '@stripe/stripe-js';
@@ -101,7 +98,6 @@ function stripeAppearance() {
 	};
 }
 
-// ── Billing read-only ─────────────────────────────────────────────────────────
 async function getSummary() {
 	const res = await authFetch('/api/v1/billing/summary');
 	if (!res.ok) {
@@ -120,7 +116,13 @@ async function getPayments({ limit = 20, offset = 0, status = null } = {}) {
 		throw new Error(b.detail ?? `Error ${res.status}`);
 	}
 	const body = await res.json();
-	return { data: body.payments ?? [], total: body.total ?? 0, has_more: body.has_more ?? false };
+	const payments = (body.payments ?? []).map((p) => ({
+		...p,
+		status: p.payment_status ?? p.status ?? null,
+		paid_at: p.succeeded_at ?? p.paid_at ?? null,
+		method: p.payment_method_type ?? p.method ?? 'card'
+	}));
+	return { data: payments, total: body.total ?? 0, has_more: body.has_more ?? false };
 }
 
 async function getInvoices({ limit = 20, offset = 0 } = {}) {
@@ -130,7 +132,13 @@ async function getInvoices({ limit = 20, offset = 0 } = {}) {
 		throw new Error(b.detail ?? `Error ${res.status}`);
 	}
 	const body = await res.json();
-	return { data: body.invoices ?? [], total: body.total ?? 0, has_more: body.has_more ?? false };
+	const invoices = (body.invoices ?? []).map((inv) => ({
+		...inv,
+		total_mxn: inv.total_mxn ?? inv.total_amount ?? inv.amount ?? null,
+		amount: inv.amount ?? inv.total_amount ?? null,
+		invoice_url: inv.invoice_url ?? inv.stripe_receipt_url ?? inv.invoice_pdf_url ?? null
+	}));
+	return { data: invoices, total: body.total ?? 0, has_more: body.has_more ?? false };
 }
 
 async function getPlans() {
@@ -140,7 +148,6 @@ async function getPlans() {
 	return body.plans ?? [];
 }
 
-// ── Payment methods ───────────────────────────────────────────────────────────
 async function getPaymentMethods(gateway = 'stripe') {
 	const res = await authFetch(`/api/v1/stripe/payment-methods?gateway=${gateway}`);
 	if (!res.ok) {
@@ -202,7 +209,7 @@ async function setDefaultPaymentMethod(externalToken, gateway = 'stripe') {
 	return res.json();
 }
 
-async function initSubscriptionPaymentFlow({ planId, billingCycle, gateway = 'stripe' }) {
+async function createPaymentIntent({ planId, billingCycle, gateway = 'stripe' }) {
 	const res = await authFetch('/api/v1/stripe/payment-intent', {
 		method: 'POST',
 		body: JSON.stringify({ plan_id: planId, billing_cycle: billingCycle, gateway })
@@ -210,30 +217,53 @@ async function initSubscriptionPaymentFlow({ planId, billingCycle, gateway = 'st
 	if (!res.ok) {
 		const b = await res.json().catch(() => ({}));
 		if (res.status === 409) throw new Error(b.detail ?? 'Este período ya fue pagado');
+		if (res.status === 403) throw new Error(b.detail ?? 'Sin permiso para gestionar pagos');
 		throw new Error(b.detail ?? 'Error al inicializar el pago');
 	}
-	const { client_token, amount_mxn, amount_with_iva, plan_name, plan_code } = await res.json();
-	if (gateway === 'stripe') {
-		const stripe = await getSDK('stripe');
-		const elements = stripe.elements({
-			clientSecret: client_token,
-			appearance: stripeAppearance(),
-			locale: 'es'
-		});
-		return {
-			gateway,
-			paymentInfo: { amount_mxn, amount_with_iva, plan_name, plan_code },
-			elements,
-			async confirmPayment(returnUrl) {
-				return stripe.confirmPayment({
-					elements,
-					confirmParams: { return_url: returnUrl },
-					redirect: 'if_required'
-				});
-			}
-		};
-	}
-	throw new Error(`Flujo de pago no implementado para '${gateway}'`);
+	return res.json();
+}
+
+async function mountCardForm({ mountId, amountMxn, gateway = 'stripe' }) {
+	if (gateway !== 'stripe') throw new Error(`Gateway '${gateway}' no soportado`);
+
+	const stripe = await getSDK('stripe');
+	const amountCents = Math.round(Number(amountMxn) * 100);
+
+	const elements = stripe.elements({
+		mode: 'payment',
+		amount: amountCents,
+		currency: 'mxn',
+		setupFutureUsage: 'off_session',
+		appearance: stripeAppearance(),
+		locale: 'es'
+	});
+
+	const el = document.getElementById(mountId);
+	if (!el) throw new Error(`Elemento #${mountId} no encontrado en el DOM`);
+	elements.create('payment').mount(el);
+
+	return {
+		async submit() {
+			const { error } = await elements.submit();
+			return { error };
+		},
+		async confirmPayment(clientSecret, returnUrl) {
+			return stripe.confirmPayment({
+				elements,
+				clientSecret,
+				confirmParams: { return_url: returnUrl },
+				redirect: 'if_required'
+			});
+		}
+	};
+}
+
+async function confirmWithSavedPM({ clientSecret, paymentMethodToken, gateway = 'stripe' }) {
+	if (gateway !== 'stripe') throw new Error(`Gateway '${gateway}' no soportado`);
+	const stripe = await getSDK('stripe');
+	return stripe.confirmCardPayment(clientSecret, {
+		payment_method: paymentMethodToken
+	});
 }
 
 export const billingService = {
@@ -247,5 +277,7 @@ export const billingService = {
 	initAddPaymentMethodFlow,
 	deletePaymentMethod,
 	setDefaultPaymentMethod,
-	initSubscriptionPaymentFlow
+	createPaymentIntent,
+	mountCardForm,
+	confirmWithSavedPM
 };

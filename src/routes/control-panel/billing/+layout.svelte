@@ -48,7 +48,7 @@
 			</div>
 		</div>
 
-		<nav class="billing-nav" aria-label="Sección de facturación">
+		<nav class="billing-nav app-scrollbar" aria-label="Sección de facturación">
 			{#each nav as item (item.href)}
 				{@const active = currentPath === item.href}
 				<a

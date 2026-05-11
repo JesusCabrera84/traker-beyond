@@ -1,9 +1,9 @@
-<!-- src/routes/control-panel/billing/summary/+page.svelte -->
 <script>
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
 	import { billingService } from '$lib/services/billingService.js';
 	import CheckoutModal from '$lib/components/CheckoutModal.svelte';
+	import { goto } from '$app/navigation';
 
 	let loading = true;
 	let summary = null;
@@ -17,20 +17,35 @@
 	let savedMethods = [];
 	let checkoutSuccess = false;
 
+	let dismissedPending = false;
+
 	onMount(async () => {
-		if ($page.url.searchParams.get('checkout') === 'success') {
+		const fromCheckout = $page.url.searchParams.get('checkout') === 'success';
+
+		if (fromCheckout) {
 			checkoutSuccess = true;
 			const next = new URL($page.url.href);
 			next.searchParams.delete('checkout');
 			const qs = next.searchParams.toString();
 			history.replaceState({}, '', `${next.pathname}${qs ? `?${qs}` : ''}${next.hash}`);
 		}
+
 		await loadData();
+
+		if (fromCheckout && !summary?.has_active_subscription) {
+			await new Promise((r) => setTimeout(r, 3000));
+			await loadData();
+		}
+		if (fromCheckout && !summary?.has_active_subscription) {
+			await new Promise((r) => setTimeout(r, 4000));
+			await loadData();
+		}
 	});
 
 	async function loadData() {
 		loading = true;
 		error = null;
+		dismissedPending = false;
 		try {
 			const [s, m, p] = await Promise.all([
 				billingService.getSummary(),
@@ -40,7 +55,6 @@
 					.catch(() => ({ data: [], total: 0, has_more: false }))
 			]);
 			summary = s;
-			// getPaymentMethods devuelve array directo
 			savedMethods = Array.isArray(m) ? m : [];
 			payments = p.data ?? [];
 			paymentsTotal = p.total ?? 0;
@@ -53,10 +67,14 @@
 	}
 
 	async function openCheckout() {
-		if (!summary?.current_plan) return;
-		const plans = await billingService.getPlans().catch(() => []);
-		checkoutPlan = plans.find((p) => p.id === summary.current_plan.plan_id) ?? null;
-		if (checkoutPlan) showCheckout = true;
+		if (summary?.current_plan) {
+			const plans = await billingService.getPlans().catch(() => []);
+			checkoutPlan = plans.find((p) => p.id === summary.current_plan.plan_id) ?? null;
+			if (checkoutPlan) showCheckout = true;
+			return;
+		}
+
+		goto('/control-panel/billing/plans');
 	}
 
 	function onPaymentSuccess() {
@@ -153,7 +171,6 @@
 
 <svelte:head><title>Resumen — Facturación | Geminis Labs</title></svelte:head>
 
-<!-- ── Éxito pago ─────────────────────────────────────────────────────────── -->
 {#if checkoutSuccess}
 	<div class="alert alert--success" role="status">
 		<svg
@@ -184,8 +201,7 @@
 	</div>
 {/if}
 
-<!-- ── Monto pendiente ────────────────────────────────────────────────────── -->
-{#if !loading && pendingAmount > 0}
+{#if !loading && pendingAmount > 0 && !dismissedPending}
 	<div class="alert alert--warning" role="alert">
 		<svg
 			width="16"
@@ -199,20 +215,30 @@
 			<path
 				stroke-linecap="round"
 				stroke-linejoin="round"
-				d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"
+				d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
 			/>
 		</svg>
 		<div class="flex-1">
-			<strong>Pago pendiente de {fmtMxn(pendingAmount)}</strong>
+			<strong>Pago iniciado pero no completado</strong>
 			<p class="alert__sub">
-				Tienes un monto pendiente en tu cuenta. Revisa tu historial de pagos o contacta a soporte.
+				Cerraste el proceso antes de confirmar. Puedes retomarlo ahora — no se te cobra nada hasta
+				que confirmes.
 			</p>
 		</div>
-		<a href="/control-panel/billing/invoices" class="alert__cta">Ver facturas</a>
+		<div class="alert__actions">
+			<button type="button" class="alert__cta" on:click={openCheckout}> Completar pago </button>
+			<button
+				type="button"
+				class="alert__dismiss"
+				on:click={() => (dismissedPending = true)}
+				aria-label="Ignorar"
+			>
+				✕
+			</button>
+		</div>
 	</div>
 {/if}
 
-<!-- ── Error ──────────────────────────────────────────────────────────────── -->
 {#if error}
 	<div class="error-card">
 		<svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#f87171" stroke-width="1.5">
@@ -226,16 +252,13 @@
 		<button on:click={loadData} class="btn-link">Reintentar</button>
 	</div>
 {:else if loading}
-	<!-- ── Skeleton ─────────────────────────────────────────────────────────── -->
 	<div class="kpi-grid mb-4">
 		{#each [1, 2, 3] as i (i)}<div class="skeleton h-28 rounded-2xl"></div>{/each}
 	</div>
 	<div class="skeleton h-64 rounded-2xl mb-4"></div>
 	<div class="skeleton h-48 rounded-2xl"></div>
 {:else}
-	<!-- ── KPIs ──────────────────────────────────────────────────────────────── -->
 	<div class="kpi-grid mb-5">
-		<!-- Próximo cobro -->
 		<div class="kpi-card">
 			<div
 				class="kpi-icon"
@@ -276,7 +299,6 @@
 			{/if}
 		</div>
 
-		<!-- A cobrar -->
 		<div class="kpi-card">
 			<div
 				class="kpi-icon"
@@ -309,7 +331,6 @@
 			</div>
 		</div>
 
-		<!-- Total pagado -->
 		<div class="kpi-card">
 			<div
 				class="kpi-icon"
@@ -341,7 +362,6 @@
 		</div>
 	</div>
 
-	<!-- ── Plan actual ───────────────────────────────────────────────────────── -->
 	<div class="section-card mb-4">
 		<div class="section-card__head">
 			<div>
@@ -406,9 +426,9 @@
 				</div>
 				<div class="plan-row">
 					<span class="plan-row__label">Ciclo de facturación</span>
-					<span class="plan-row__value">
-						{plan.billing_cycle === 'YEARLY' ? 'Anual (12 meses)' : 'Mensual'}
-					</span>
+					<span class="plan-row__value"
+						>{plan.billing_cycle === 'YEARLY' ? 'Anual (12 meses)' : 'Mensual'}</span
+					>
 				</div>
 				<div class="plan-row">
 					<span class="plan-row__label">Precio sin IVA</span>
@@ -505,7 +525,6 @@
 		{/if}
 	</div>
 
-	<!-- ── Historial de pagos recientes ─────────────────────────────────────── -->
 	<div class="section-card mb-4">
 		<div class="payments-head">
 			<div>
@@ -518,7 +537,6 @@
 		</div>
 
 		{#if payments.length === 0 && (stats?.payments_count ?? 0) > 0}
-			<!-- API /billing/payments no disponible pero summary/stats sí tiene datos -->
 			<div class="stats-fallback">
 				<div class="stats-fallback__row">
 					<div class="stats-fallback__item">
@@ -632,7 +650,6 @@
 		{/if}
 	</div>
 
-	<!-- ── Accesos rápidos ──────────────────────────────────────────────────── -->
 	<div class="quick-links">
 		{#each [{ href: '/control-panel/billing/payment-methods', icon: 'M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z', label: 'Métodos de pago', sub: savedMethods.length > 0 ? `${savedMethods.length} tarjeta${savedMethods.length !== 1 ? 's' : ''} guardada${savedMethods.length !== 1 ? 's' : ''}` : 'Agrega una tarjeta', accent: '#818cf8' }, { href: '/control-panel/billing/invoices', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', label: 'Facturas y comprobantes', sub: paymentsTotal > 0 ? `${paymentsTotal} documento${paymentsTotal !== 1 ? 's' : ''} disponible${paymentsTotal !== 1 ? 's' : ''}` : 'Sin facturas aún', accent: '#34d399' }] as link (link.href)}
 			<a href={link.href} class="quick-link-card">
@@ -670,7 +687,6 @@
 	</div>
 {/if}
 
-<!-- ── Modal de checkout ───────────────────────────────────────────────────── -->
 {#if showCheckout && checkoutPlan}
 	<CheckoutModal
 		plan={checkoutPlan}
@@ -682,7 +698,6 @@
 {/if}
 
 <style>
-	/* ── Alerts ──────────────────────────────────────────────────────────────── */
 	.alert {
 		display: flex;
 		align-items: flex-start;
@@ -704,8 +719,59 @@
 		border-color: rgba(251, 191, 36, 0.2);
 		color: #fbbf24;
 	}
+	.alert__close {
+		margin-left: auto;
+		background: none;
+		border: none;
+		cursor: pointer;
+		color: #475569;
+		font-size: 14px;
+		line-height: 1;
+		padding: 0;
+	}
+	.alert__sub {
+		font-size: 12px;
+		margin: 3px 0 0;
+		opacity: 0.8;
+	}
+	.alert__actions {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		margin-left: auto;
+		flex-shrink: 0;
+		align-self: center;
+	}
+	.alert__cta {
+		white-space: nowrap;
+		font-size: 12px;
+		font-weight: 700;
+		color: #0d1117;
+		background: #fbbf24;
+		border: none;
+		border-radius: 8px;
+		padding: 6px 12px;
+		cursor: pointer;
+		transition: filter 0.15s;
+		line-height: 1;
+	}
+	.alert__cta:hover {
+		filter: brightness(1.08);
+	}
+	.alert__dismiss {
+		background: none;
+		border: none;
+		cursor: pointer;
+		color: rgba(251, 191, 36, 0.45);
+		font-size: 14px;
+		padding: 4px;
+		line-height: 1;
+		transition: color 0.15s;
+	}
+	.alert__dismiss:hover {
+		color: rgba(251, 191, 36, 0.75);
+	}
 
-	/* ── Stats fallback (when /billing/payments returns empty but stats has data) */
 	.stats-fallback {
 		padding: 4px 0 8px;
 	}
@@ -735,30 +801,7 @@
 		color: #e2e8f0;
 		font-variant-numeric: tabular-nums;
 	}
-	.alert__close {
-		margin-left: auto;
-		background: none;
-		border: none;
-		cursor: pointer;
-		color: #475569;
-		font-size: 14px;
-	}
-	.alert__sub {
-		font-size: 12px;
-		margin: 3px 0 0;
-		opacity: 0.8;
-	}
-	.alert__cta {
-		margin-left: auto;
-		white-space: nowrap;
-		align-self: center;
-		font-size: 12px;
-		font-weight: 600;
-		color: #fbbf24;
-		text-decoration: underline;
-	}
 
-	/* ── Error ───────────────────────────────────────────────────────────────── */
 	.error-card {
 		display: flex;
 		flex-direction: column;
@@ -773,7 +816,6 @@
 		font-size: 13px;
 	}
 
-	/* ── Skeleton ────────────────────────────────────────────────────────────── */
 	.skeleton {
 		background: rgba(255, 255, 255, 0.04);
 		animation: pulse 1.5s infinite;
@@ -794,7 +836,6 @@
 		margin-bottom: 20px;
 	}
 
-	/* ── KPI grid ────────────────────────────────────────────────────────────── */
 	.kpi-grid {
 		display: grid;
 		grid-template-columns: repeat(3, 1fr);
@@ -859,7 +900,6 @@
 		padding: 2px 8px;
 	}
 
-	/* ── Section card ────────────────────────────────────────────────────────── */
 	.section-card {
 		background: rgba(10, 16, 26, 0.6);
 		border: 1px solid rgba(255, 255, 255, 0.07);
@@ -898,7 +938,6 @@
 		gap: 5px;
 	}
 
-	/* ── Status badges ───────────────────────────────────────────────────────── */
 	.status-badge {
 		display: inline-flex;
 		align-items: center;
@@ -925,7 +964,6 @@
 		height: 6px;
 		border-radius: 50%;
 	}
-
 	.meta-chip {
 		display: inline-flex;
 		align-items: center;
@@ -938,7 +976,6 @@
 		color: #64748b;
 	}
 
-	/* ── Plan details ────────────────────────────────────────────────────────── */
 	.plan-details {
 		background: rgba(255, 255, 255, 0.02);
 		border: 1px solid rgba(255, 255, 255, 0.05);
@@ -977,7 +1014,6 @@
 		font-weight: 800;
 		color: #f1f5f9;
 	}
-
 	.default-card-info {
 		display: flex;
 		align-items: center;
@@ -1004,14 +1040,12 @@
 		color: #818cf8;
 	}
 
-	/* ── Plan actions ────────────────────────────────────────────────────────── */
 	.plan-actions {
 		display: flex;
 		align-items: center;
 		gap: 12px;
 		flex-wrap: wrap;
 	}
-
 	.btn-primary {
 		display: inline-flex;
 		align-items: center;
@@ -1031,7 +1065,6 @@
 	.btn-primary:hover {
 		filter: brightness(1.1);
 	}
-
 	.btn-ghost {
 		display: inline-flex;
 		align-items: center;
@@ -1045,7 +1078,6 @@
 	.btn-ghost:hover {
 		color: #a5b4fc;
 	}
-
 	.btn-link {
 		font-size: 12px;
 		color: #6366f1;
@@ -1053,9 +1085,6 @@
 		cursor: pointer;
 		background: none;
 		border: none;
-	}
-
-	.no-plan {
 	}
 	.no-plan__text {
 		font-size: 13px;
@@ -1065,7 +1094,6 @@
 		max-width: 52ch;
 	}
 
-	/* ── Payments list ───────────────────────────────────────────────────────── */
 	.payments-head {
 		display: flex;
 		align-items: flex-start;
@@ -1176,7 +1204,6 @@
 	.link-more:hover {
 		color: #818cf8;
 	}
-
 	.empty-state {
 		display: flex;
 		flex-direction: column;
@@ -1203,7 +1230,6 @@
 		margin: 0;
 	}
 
-	/* ── Quick links ─────────────────────────────────────────────────────────── */
 	.quick-links {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
@@ -1251,7 +1277,6 @@
 		margin: 0;
 	}
 
-	/* ── Flex helpers ────────────────────────────────────────────────────────── */
 	.flex-1 {
 		flex: 1;
 	}
@@ -1270,8 +1295,10 @@
 	.justify-end {
 		justify-content: flex-end;
 	}
+	.shrink-0 {
+		flex-shrink: 0;
+	}
 
-	/* ── Responsive ──────────────────────────────────────────────────────────── */
 	@media (max-width: 900px) {
 		.kpi-grid {
 			grid-template-columns: 1fr 1fr;
@@ -1293,6 +1320,13 @@
 		}
 		.kpi-card {
 			padding: 14px;
+		}
+		.alert {
+			flex-wrap: wrap;
+		}
+		.alert__actions {
+			margin-left: 0;
+			margin-top: 8px;
 		}
 	}
 </style>

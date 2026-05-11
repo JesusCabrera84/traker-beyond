@@ -1,6 +1,6 @@
-<!-- src/routes/control-panel/billing/plans/+page.svelte -->
 <script>
 	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
 	import { billingService } from '$lib/services/billingService.js';
 	import CheckoutModal from '$lib/components/CheckoutModal.svelte';
 
@@ -10,7 +10,7 @@
 	let savedMethods = [];
 	let error = null;
 
-	let cycle = 'MONTHLY'; // 'MONTHLY' | 'YEARLY'
+	let cycle = 'MONTHLY';
 	let showCheckout = false;
 	let selectedPlan = null;
 
@@ -40,7 +40,6 @@
 	}
 
 	function yearlyMonthly(plan) {
-		// Precio mensual equivalente cuando se paga anual
 		return Number(plan.pricing?.yearly ?? plan.price_yearly ?? 0) / 12;
 	}
 
@@ -69,23 +68,24 @@
 		return caps[key] ?? null;
 	}
 
+	function highlightList(plan) {
+		return plan.highlighted_features ?? plan.features?.highlighted ?? [];
+	}
+
 	function openCheckout(plan) {
 		selectedPlan = plan;
 		showCheckout = true;
 	}
 
-	/** @param {unknown} feat */
 	function featureText(feat) {
 		if (feat == null) return '—';
 		if (typeof feat === 'string' || typeof feat === 'number') return String(feat);
 		if (typeof feat === 'object') {
-			const o = /** @type {{ label?: string; text?: string }} */ (feat);
-			return o.label ?? o.text ?? '—';
+			return feat.label ?? feat.text ?? '—';
 		}
 		return '—';
 	}
 
-	// Capabilities a comparar en la tabla
 	const capRows = [
 		{ key: 'max_devices', label: 'Dispositivos GPS', type: 'int' },
 		{ key: 'max_units', label: 'Unidades / Vehículos', type: 'int' },
@@ -104,7 +104,7 @@
 	function displayCap(plan, row) {
 		const v = capVal(plan, row.key);
 		if (v === null || v === undefined) return '—';
-		if (row.type === 'bool') return v ? '✓' : null; // null = X
+		if (row.type === 'bool') return v ? '✓' : null;
 		if (row.type === 'days') return `${v} días`;
 		if (row.type === 'int') return v >= 999 ? 'Ilimitado' : `${v}`;
 		return String(v);
@@ -134,7 +134,6 @@
 		<p>No hay planes disponibles en este momento. Contacta a soporte.</p>
 	</div>
 {:else}
-	<!-- ── Intro ─────────────────────────────────────────────────────────────── -->
 	<div class="plans-intro">
 		<div>
 			<p class="plans-intro__eyebrow">Planes NEXUS</p>
@@ -145,7 +144,6 @@
 		</div>
 	</div>
 
-	<!-- ── Toggle ciclo ──────────────────────────────────────────────────────── -->
 	<div class="cycle-toggle-wrap">
 		<div class="cycle-toggle">
 			<button
@@ -166,95 +164,90 @@
 		</div>
 	</div>
 
-	<!-- ── Cards de planes ───────────────────────────────────────────────────── -->
-	<div class="plan-cards" style="--count:{plans.length}">
+	<div class="plan-mini-grid">
 		{#each plans as plan (plan.id)}
 			{@const popular = isPopular(plan)}
 			{@const current = isCurrent(plan)}
 			{@const price = currentPrice(plan)}
 			{@const savePct = savings(plan)}
-
-			<div class="plan-card" class:plan-card--popular={popular} class:plan-card--current={current}>
-				{#if popular && !current}
-					<div class="plan-badge plan-badge--popular">Más popular</div>
-				{/if}
-				{#if current}
-					<div class="plan-badge plan-badge--current">
-						<span class="dot dot--green"></span>Tu plan actual
-					</div>
-				{/if}
-
-				<div class="plan-card__head">
-					<h3 class="plan-card__name">{plan.name}</h3>
-					{#if plan.description}
-						<p class="plan-card__desc">{plan.description}</p>
-					{/if}
-				</div>
-
-				<div class="plan-card__price">
-					<span class="plan-card__amount">{fmtMxn(price)}</span>
-					<span class="plan-card__period">/mes</span>
-					{#if cycle === 'YEARLY'}
-						<div class="plan-card__yearly-note">
-							{fmtMxn(Number(plan.pricing?.yearly ?? plan.price_yearly ?? 0))} facturado anualmente
-							{#if savePct > 0}
-								<span class="plan-card__save">–{savePct}%</span>
+			<div class="plan-mini" class:plan-mini--popular={popular} class:plan-mini--current={current}>
+				<div class="plan-mini__main">
+					<div class="plan-mini__front">
+						<div class="plan-mini__tags">
+							{#if popular && !current}
+								<span class="plan-mini__tag plan-mini__tag--popular">Popular</span>
+							{/if}
+							{#if current}
+								<span class="plan-mini__tag plan-mini__tag--current">Tu plan</span>
 							{/if}
 						</div>
+						<p class="plan-mini__name">{plan.name}</p>
+						<div class="plan-mini__price-block">
+							<p class="plan-mini__price">
+								{fmtMxn(price)}<span class="plan-mini__period">/mes</span>
+							</p>
+							{#if cycle === 'YEARLY'}
+								<p class="plan-mini__yearly">
+									{fmtMxn(Number(plan.pricing?.yearly ?? plan.price_yearly ?? 0))} / año
+									{#if savePct > 0}
+										<span class="plan-mini__save">−{savePct}%</span>
+									{/if}
+								</p>
+							{/if}
+						</div>
+					</div>
+					<div class="plan-mini__peek app-scrollbar">
+						<p class="plan-mini__peek-label">Qué ofrece</p>
+						{#if plan.description}
+							<p class="plan-mini__desc">{plan.description}</p>
+						{/if}
+						{#if highlightList(plan).length > 0}
+							<ul class="plan-mini__feature-list">
+								{#each highlightList(plan) as feat, i (i)}
+									<li>
+										<svg
+											width="12"
+											height="12"
+											fill="none"
+											viewBox="0 0 24 24"
+											stroke="currentColor"
+											stroke-width="2.5"
+											aria-hidden="true"
+										>
+											<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+										</svg>
+										{featureText(feat)}
+									</li>
+								{/each}
+							</ul>
+						{:else}
+							<p class="plan-mini__empty">
+								Consulta la comparativa de abajo para límites y funciones.
+							</p>
+						{/if}
+					</div>
+				</div>
+				<div class="plan-mini__footer">
+					{#if current}
+						<span class="plan-mini__cta plan-mini__cta--current">Plan activo</span>
+					{:else}
+						<button
+							type="button"
+							class="plan-mini__cta"
+							class:plan-mini__cta--popular={popular}
+							on:click={() => openCheckout(plan)}
+						>
+							{currentPlanCode ? 'Cambiar plan' : 'Contratar'}
+						</button>
 					{/if}
 				</div>
-
-				{#if plan.highlighted_features || plan.features?.highlighted}
-					<ul class="plan-card__features">
-						{#each plan.highlighted_features ?? plan.features?.highlighted ?? [] as feat, i (i)}
-							<li>
-								<svg
-									width="13"
-									height="13"
-									fill="none"
-									viewBox="0 0 24 24"
-									stroke="currentColor"
-									stroke-width="2.5"
-									aria-hidden="true"
-								>
-									<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-								</svg>
-								{featureText(feat)}
-							</li>
-						{/each}
-					</ul>
-				{/if}
-
-				{#if current}
-					<div class="plan-card__cta plan-card__cta--current">Plan activo</div>
-				{:else}
-					<button
-						type="button"
-						on:click={() => openCheckout(plan)}
-						class="plan-card__cta"
-						class:plan-card__cta--popular={popular}
-					>
-						{currentPlanCode ? 'Cambiar a este plan' : 'Contratar plan'}
-						<svg
-							width="13"
-							height="13"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							stroke-width="2.5"
-						>
-							<path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-						</svg>
-					</button>
-				{/if}
 			</div>
 		{/each}
 	</div>
 
-	<!-- ── Tabla comparativa ─────────────────────────────────────────────────── -->
 	<div class="compare-wrap">
 		<p class="compare-title">Comparativa completa</p>
-		<div class="compare-scroll">
+		<div class="compare-scroll app-scrollbar">
 			<table class="compare-table">
 				<thead>
 					<tr>
@@ -271,10 +264,8 @@
 					{#each capRows as row (row.key)}
 						<tr class="compare-row">
 							<td class="compare-td compare-td--label">{row.label}</td>
-
 							{#each plans as plan (plan.id)}
 								{@const val = displayCap(plan, row)}
-
 								<td class="compare-td compare-td--val" class:compare-td--popular={isPopular(plan)}>
 									<div class="cell-center">
 										{#if row.type === 'bool'}
@@ -300,7 +291,6 @@
 		</div>
 	</div>
 
-	<!-- ── FAQ / nota ────────────────────────────────────────────────────────── -->
 	<div class="plans-note">
 		<svg
 			width="13"
@@ -326,7 +316,6 @@
 	</div>
 {/if}
 
-<!-- ── Checkout modal ──────────────────────────────────────────────────────── -->
 {#if showCheckout && selectedPlan}
 	<CheckoutModal
 		plan={selectedPlan}
@@ -339,12 +328,12 @@
 		on:success={() => {
 			showCheckout = false;
 			selectedPlan = null;
+			goto('/control-panel/billing/summary?checkout=success');
 		}}
 	/>
 {/if}
 
 <style>
-	/* ── Loading / error ─────────────────────────────────────────────────────── */
 	.plans-loading {
 		display: flex;
 		flex-direction: column;
@@ -387,7 +376,6 @@
 		color: #475569;
 	}
 
-	/* ── Intro ───────────────────────────────────────────────────────────────── */
 	.plans-intro {
 		margin-bottom: 24px;
 	}
@@ -412,7 +400,6 @@
 		margin: 0;
 	}
 
-	/* ── Cycle toggle ────────────────────────────────────────────────────────── */
 	.cycle-toggle-wrap {
 		display: flex;
 		margin-bottom: 24px;
@@ -455,183 +442,269 @@
 		font-weight: 700;
 	}
 
-	/* ── Plan cards ──────────────────────────────────────────────────────────── */
-	.plan-cards {
+	.plan-mini-grid {
 		display: grid;
-		grid-template-columns: repeat(var(--count, 3), 1fr);
+		grid-template-columns: 1fr;
 		gap: 16px;
-		margin-bottom: 32px;
-		align-items: start;
+		align-items: stretch;
+		margin-bottom: 20px;
 	}
-	.plan-card {
-		position: relative;
-		border-radius: 20px;
-		padding: 24px;
-		background: rgba(10, 16, 26, 0.6);
-		border: 1px solid rgba(255, 255, 255, 0.07);
-		transition:
-			border-color 0.2s,
-			transform 0.2s;
+	@media (min-width: 640px) {
+		.plan-mini-grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
 	}
-	.plan-card:hover {
-		border-color: rgba(255, 255, 255, 0.12);
-		transform: translateY(-2px);
-	}
-	.plan-card--popular {
-		border-color: rgba(99, 102, 241, 0.4);
-		box-shadow:
-			0 0 0 1px rgba(99, 102, 241, 0.1),
-			0 12px 40px rgba(0, 0, 0, 0.3);
-		background: rgba(15, 20, 35, 0.8);
-	}
-	.plan-card--current {
-		border-color: rgba(52, 211, 153, 0.3);
+	@media (min-width: 1024px) {
+		.plan-mini-grid {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+		}
 	}
 
-	.plan-badge {
-		position: absolute;
-		top: -12px;
-		left: 50%;
-		transform: translateX(-50%);
-		border-radius: 99px;
-		padding: 4px 14px;
-		font-size: 11px;
-		font-weight: 700;
-		white-space: nowrap;
+	.plan-mini {
 		display: flex;
-		align-items: center;
-		gap: 5px;
+		flex-direction: column;
+		min-height: 280px;
+		border-radius: 16px;
+		background: rgba(10, 16, 26, 0.65);
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		overflow: hidden;
+		transition:
+			border-color 0.2s,
+			box-shadow 0.2s;
 	}
-	.plan-badge--popular {
+	.plan-mini--popular {
+		border-color: rgba(99, 102, 241, 0.45);
+		box-shadow:
+			0 0 0 1px rgba(99, 102, 241, 0.08),
+			0 10px 36px rgba(0, 0, 0, 0.35);
+		background: rgba(14, 18, 32, 0.85);
+	}
+	.plan-mini--current {
+		border-color: rgba(52, 211, 153, 0.35);
+		background: rgba(10, 26, 22, 0.45);
+	}
+	@media (hover: hover) {
+		.plan-mini:hover {
+			border-color: rgba(255, 255, 255, 0.14);
+		}
+		.plan-mini--popular:hover {
+			border-color: rgba(99, 102, 241, 0.55);
+		}
+	}
+
+	.plan-mini__main {
+		flex: 1;
+		position: relative;
+		min-height: 200px;
+	}
+	.plan-mini__front {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+		padding: 18px 14px;
+		transition: opacity 0.22s ease;
+		z-index: 1;
+	}
+	.plan-mini__tags {
+		min-height: 22px;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 6px;
+		justify-content: center;
+		margin-bottom: 10px;
+	}
+	.plan-mini__tag {
+		font-size: 9px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		border-radius: 99px;
+		padding: 3px 9px;
+	}
+	.plan-mini__tag--popular {
 		background: linear-gradient(135deg, #6366f1, #7c3aed);
 		color: #fff;
 	}
-	.plan-badge--current {
+	.plan-mini__tag--current {
 		background: rgba(52, 211, 153, 0.12);
-		border: 1px solid rgba(52, 211, 153, 0.3);
+		border: 1px solid rgba(52, 211, 153, 0.28);
 		color: #34d399;
 	}
-
-	.dot {
-		width: 6px;
-		height: 6px;
-		border-radius: 50%;
-	}
-	.dot--green {
-		background: #4ade80;
-	}
-
-	.plan-card__head {
-		margin-bottom: 16px;
-		padding-top: 8px;
-	}
-	.plan-card__name {
-		font-size: 17px;
-		font-weight: 700;
+	.plan-mini__name {
+		margin: 0 0 12px;
+		font-size: 15px;
+		font-weight: 800;
 		color: #f1f5f9;
-		margin: 0 0 6px;
+		line-height: 1.3;
+		letter-spacing: -0.02em;
 	}
-	.plan-card__desc {
-		font-size: 12px;
-		color: #475569;
-		line-height: 1.6;
+	.plan-mini__price-block {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+	}
+	.plan-mini__price {
 		margin: 0;
-	}
-
-	.plan-card__price {
-		margin-bottom: 20px;
-	}
-	.plan-card__amount {
-		font-size: 32px;
+		font-size: 22px;
 		font-weight: 900;
 		color: #fff;
-		letter-spacing: -0.04em;
 		font-variant-numeric: tabular-nums;
+		letter-spacing: -0.04em;
 	}
-	.plan-card__period {
-		font-size: 14px;
-		color: #475569;
-		margin-left: 2px;
+	.plan-mini__period {
+		font-size: 13px;
+		font-weight: 500;
+		color: #64748b;
 	}
-	.plan-card__yearly-note {
-		font-size: 11px;
+	.plan-mini__yearly {
+		margin: 0;
+		font-size: 10px;
 		color: #475569;
-		margin-top: 5px;
 		display: flex;
 		align-items: center;
 		gap: 6px;
+		flex-wrap: wrap;
+		justify-content: center;
 	}
-	.plan-card__save {
+	.plan-mini__save {
 		background: rgba(52, 211, 153, 0.12);
-		border: 1px solid rgba(52, 211, 153, 0.25);
+		border: 1px solid rgba(52, 211, 153, 0.22);
 		color: #34d399;
-		border-radius: 6px;
-		padding: 1px 6px;
-		font-size: 10px;
+		border-radius: 5px;
+		padding: 1px 5px;
+		font-size: 9px;
 		font-weight: 700;
 	}
 
-	.plan-card__features {
+	.plan-mini__peek {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		padding: 12px 12px 10px;
+		overflow-y: auto;
+		overflow-x: hidden;
+		background: rgba(11, 16, 26, 0.96);
+		backdrop-filter: blur(8px);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+		opacity: 0;
+		visibility: hidden;
+		transition:
+			opacity 0.22s ease,
+			visibility 0.22s ease;
+		pointer-events: none;
+		text-align: left;
+	}
+	.plan-mini__peek-label {
+		font-size: 10px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: #6366f1;
+		margin: 0 0 8px;
+	}
+	.plan-mini__desc {
+		font-size: 11px;
+		color: #64748b;
+		line-height: 1.5;
+		margin: 0 0 10px;
+	}
+	.plan-mini__feature-list {
 		list-style: none;
 		padding: 0;
-		margin: 0 0 20px;
+		margin: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 8px;
+		gap: 7px;
 	}
-	.plan-card__features li {
+	.plan-mini__feature-list li {
 		display: flex;
 		align-items: flex-start;
-		gap: 8px;
-		font-size: 12px;
-		color: #94a3b8;
+		gap: 7px;
+		font-size: 11px;
+		color: #cbd5e1;
+		line-height: 1.35;
 	}
-	.plan-card__features svg {
+	.plan-mini__feature-list svg {
 		flex-shrink: 0;
 		margin-top: 1px;
 		color: #4ade80;
 	}
+	.plan-mini__empty {
+		font-size: 11px;
+		color: #475569;
+		line-height: 1.45;
+		margin: 0;
+	}
 
-	.plan-card__cta {
+	@media (hover: hover) {
+		.plan-mini:hover .plan-mini__peek {
+			opacity: 1;
+			visibility: visible;
+			pointer-events: auto;
+		}
+		.plan-mini:hover .plan-mini__front {
+			opacity: 0;
+			pointer-events: none;
+		}
+	}
+
+	.plan-mini__footer {
+		flex-shrink: 0;
+		padding: 12px 14px 14px;
+		border-top: 1px solid rgba(255, 255, 255, 0.06);
+		background: rgba(0, 0, 0, 0.15);
+	}
+	.plan-mini__cta {
 		width: 100%;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		gap: 7px;
-		border-radius: 12px;
-		padding: 12px;
-		font-size: 13px;
+		padding: 10px 14px;
+		border-radius: 11px;
+		font-size: 12px;
 		font-weight: 700;
 		border: 1px solid rgba(255, 255, 255, 0.1);
-		background: rgba(255, 255, 255, 0.05);
+		background: rgba(255, 255, 255, 0.06);
 		color: #94a3b8;
 		cursor: pointer;
-		text-decoration: none;
 		transition: all 0.15s;
 	}
-	.plan-card__cta:hover {
-		background: rgba(255, 255, 255, 0.08);
+	.plan-mini__cta:hover {
+		background: rgba(255, 255, 255, 0.09);
 		color: #e2e8f0;
 	}
-	.plan-card__cta--popular {
+	.plan-mini__cta:focus-visible {
+		outline: 2px solid rgba(99, 102, 241, 0.5);
+		outline-offset: 2px;
+	}
+	.plan-mini__cta--popular {
 		background: linear-gradient(135deg, #6366f1, #7c3aed);
 		color: #fff;
 		border: none;
-		box-shadow: 0 2px 12px rgba(99, 102, 241, 0.3);
+		box-shadow: 0 2px 12px rgba(99, 102, 241, 0.28);
 	}
-	.plan-card__cta--popular:hover {
-		filter: brightness(1.1);
+	.plan-mini__cta--popular:hover {
+		filter: brightness(1.07);
 	}
-	.plan-card__cta--current {
-		background: rgba(52, 211, 153, 0.06);
-		border-color: rgba(52, 211, 153, 0.2);
+	.plan-mini__cta--current {
+		background: rgba(52, 211, 153, 0.08);
+		border-color: rgba(52, 211, 153, 0.22);
 		color: #4ade80;
 		cursor: default;
 	}
 
-	/* ── Compare table ───────────────────────────────────────────────────────── */
 	.compare-wrap {
 		margin-bottom: 20px;
+		padding-left: clamp(12px, 3vw, 28px);
+		padding-right: clamp(12px, 3vw, 28px);
+		box-sizing: border-box;
+		width: 100%;
+		max-width: 100%;
 	}
 	.compare-title {
 		font-size: 12px;
@@ -643,15 +716,21 @@
 	}
 	.compare-scroll {
 		overflow-x: auto;
+		overflow-y: hidden;
+		-webkit-overflow-scrolling: touch;
+		overscroll-behavior-x: contain;
 		border-radius: 16px;
 		border: 1px solid rgba(255, 255, 255, 0.07);
 		background: rgba(10, 16, 26, 0.5);
+		width: 100%;
+		max-width: 100%;
 	}
 	.compare-table {
-		width: 100%;
+		width: max-content;
+		min-width: 100%;
 		border-collapse: collapse;
 		font-size: 13px;
-		table-layout: fixed;
+		table-layout: auto;
 	}
 	.compare-th {
 		padding: 12px 16px;
@@ -696,7 +775,8 @@
 		background: rgba(255, 255, 255, 0.01);
 	}
 	.compare-td {
-		padding: 11px 16px;
+		padding: 0;
+		height: 44px;
 		text-align: center;
 		vertical-align: middle;
 	}
@@ -704,23 +784,43 @@
 		text-align: left;
 		font-size: 12px;
 		color: #64748b;
-
-		padding: 0 16px 0 24px; /* 👈 más aire a la izquierda */
+		padding: 0 16px 0 24px;
 		line-height: 1.4;
-
-		white-space: normal; /* 👈 permite respirar si es largo */
-		min-width: 220px; /* 👈 columna más cómoda */
+		white-space: normal;
+		min-width: 220px;
 	}
 	.compare-td--popular {
 		background: rgba(99, 102, 241, 0.03);
+	}
+	.cell-center {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+		height: 100%;
+	}
+	.icon-check,
+	.icon-x {
+		width: 18px;
+		height: 18px;
+		stroke-width: 2.5;
+		fill: none;
+		display: block;
+	}
+	.icon-check {
+		stroke: #4ade80;
+	}
+	.icon-x {
+		stroke: #334155;
+		opacity: 0.7;
 	}
 	.cap-val {
 		font-size: 13px;
 		font-weight: 600;
 		color: #cbd5e1;
+		display: block;
 	}
 
-	/* ── Note ────────────────────────────────────────────────────────────────── */
 	.plans-note {
 		display: flex;
 		align-items: flex-start;
@@ -745,57 +845,5 @@
 	}
 	.note-link:hover {
 		text-decoration: underline;
-	}
-
-	.compare-td {
-		padding: 0; /* importante para centrar perfecto */
-		height: 44px; /* altura uniforme */
-	}
-
-	.cell-center {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 100%;
-		height: 100%;
-	}
-
-	/* Íconos */
-	.icon-check,
-	.icon-x {
-		width: 18px;
-		height: 18px;
-		stroke-width: 2.5;
-		fill: none;
-		display: block; /* 🔥 elimina problemas de baseline */
-	}
-
-	.icon-check {
-		stroke: #4ade80;
-	}
-
-	.icon-x {
-		stroke: #334155;
-		opacity: 0.7;
-	}
-
-	/* Texto centrado igual que iconos */
-	.cap-val {
-		font-size: 13px;
-		font-weight: 600;
-		color: #cbd5e1;
-		display: block;
-	}
-
-	/* ── Responsive ──────────────────────────────────────────────────────────── */
-	@media (max-width: 900px) {
-		.plan-cards {
-			grid-template-columns: 1fr 1fr;
-		}
-	}
-	@media (max-width: 580px) {
-		.plan-cards {
-			grid-template-columns: 1fr;
-		}
 	}
 </style>
