@@ -20,6 +20,7 @@ class AuthService {
 	async register(userData) {
 		try {
 			const requestData = {
+				account_name: userData.accountName,
 				name: userData.fullName, // API espera 'name', no 'nombre_completo'
 				email: userData.email,
 				password: userData.password

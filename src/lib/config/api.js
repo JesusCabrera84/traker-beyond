@@ -13,7 +13,7 @@ export const API_CONFIG = {
 		CHANGE_PASSWORD: '/api/v1/auth/password',
 
 		// Clientes
-		REGISTER: '/api/v1/clients',
+		REGISTER: '/api/v1/auth/register',
 		GET_CLIENT: '/api/v1/clients',
 		CONFIRM_EMAIL: '/api/v1/auth/verify-email',
 		RESEND_VERIFICATION: '/api/v1/auth/resend-verification',

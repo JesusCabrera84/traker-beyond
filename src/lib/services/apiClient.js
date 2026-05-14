@@ -182,7 +182,7 @@ export class ApiError extends Error {
 	 * Verifica si es un error de validación
 	 */
 	isValidationError() {
-		return this.status === 400 || this.status === 422;
+		return this.status === 400 || this.status === 409 || this.status === 422;
 	}
 
 	/**

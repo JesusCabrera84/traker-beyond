@@ -28,6 +28,7 @@
 	};
 
 	let registerForm = {
+		accountName: '',
 		fullName: '',
 		email: '',
 		password: '',
@@ -203,6 +204,10 @@
 	function validateRegisterForm() {
 		errors = {};
 
+		if (!registerForm.accountName.trim()) {
+			errors.accountName = 'El nombre de la empresa es requerido';
+		}
+
 		if (!registerForm.fullName.trim()) {
 			errors.fullName = 'El nombre completo es requerido';
 		}
@@ -287,6 +292,7 @@
 
 		try {
 			const result = await authStore.register({
+				accountName: registerForm.accountName.trim(),
 				fullName: registerForm.fullName.trim(),
 				email: registerForm.email.trim(),
 				password: registerForm.password
@@ -296,6 +302,7 @@
 				toastStore.success(result.message);
 				// Limpiar formulario
 				registerForm = {
+					accountName: '',
 					fullName: '',
 					email: '',
 					password: '',
@@ -722,6 +729,21 @@
 					class="auth-form auth-form-compact space-y-2.5 sm:space-y-3
 						{isTransitioning ? 'fade-out' : 'fade-in'}"
 				>
+					<div class="form-group">
+						<label for="accountName" class="form-label">Nombre de la Empresa o Cuenta</label>
+						<input
+							type="text"
+							id="accountName"
+							bind:value={registerForm.accountName}
+							class="form-input {errors.accountName ? 'error' : ''}"
+							placeholder="Mi Empresa S.A."
+							required
+						/>
+						{#if errors.accountName}
+							<p class="error-message">{errors.accountName}</p>
+						{/if}
+					</div>
+
 					<div class="form-group">
 						<label for="fullName" class="form-label">Nombre Completo</label>
 						<input
