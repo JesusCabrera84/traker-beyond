@@ -12,6 +12,7 @@
 
 	const nav = [
 		{ href: '/control-panel/billing/summary', label: 'Resumen', icon: 'chart' },
+		{ href: '/control-panel/billing/plans', label: 'Planes', icon: 'layers' },
 		{ href: '/control-panel/billing/payment-methods', label: 'Métodos de pago', icon: 'card' },
 		{ href: '/control-panel/billing/invoices', label: 'Facturas', icon: 'file' }
 	];
@@ -43,11 +44,11 @@
 			</div>
 			<div>
 				<h1 class="billing-title">Facturación</h1>
-				<p class="billing-subtitle">Gestiona tu suscripción, métodos de pago y facturas</p>
+				<p class="billing-subtitle">Gestiona tu suscripción, planes, métodos de pago y facturas</p>
 			</div>
 		</div>
 
-		<nav class="billing-nav" aria-label="Sección de facturación">
+		<nav class="billing-nav app-scrollbar" aria-label="Sección de facturación">
 			{#each nav as item (item.href)}
 				{@const active = currentPath === item.href}
 				<a
@@ -66,6 +67,21 @@
 							stroke-width="2"
 						>
 							<path stroke-linecap="round" d="M4 20V10M12 20V4M20 20v-6" />
+						</svg>
+					{:else if item.icon === 'layers'}
+						<svg
+							width="15"
+							height="15"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+							/>
 						</svg>
 					{:else if item.icon === 'card'}
 						<svg
@@ -119,22 +135,31 @@
 		box-sizing: border-box;
 		position: relative;
 	}
-
+	.billing-main::after {
+		content: '';
+		position: fixed;
+		top: 0;
+		left: 260px;
+		right: 0;
+		bottom: 0;
+		background-image: url('/img/noise.png');
+		background-repeat: repeat;
+		opacity: 0.03;
+		pointer-events: none;
+		z-index: 1;
+	}
 	.billing-content {
 		max-width: 1200px;
 		margin: 0 auto;
 		position: relative;
 		z-index: 2;
 	}
-
-	/* Header */
 	.billing-header {
 		display: flex;
 		align-items: center;
 		gap: 14px;
 		margin-bottom: 24px;
 	}
-
 	.billing-icon {
 		width: 44px;
 		height: 44px;
@@ -146,7 +171,6 @@
 		justify-content: center;
 		flex-shrink: 0;
 	}
-
 	.billing-title {
 		font-size: 22px;
 		font-weight: 700;
@@ -155,14 +179,11 @@
 		line-height: 1.2;
 		letter-spacing: -0.02em;
 	}
-
 	.billing-subtitle {
 		font-size: 13px;
 		color: #475569;
 		margin: 0;
 	}
-
-	/* Nav */
 	.billing-nav {
 		display: flex;
 		gap: 4px;
@@ -172,16 +193,7 @@
 		padding: 5px;
 		margin-bottom: 24px;
 		width: fit-content;
-		max-width: 100%;
-		overflow-x: auto;
-		-webkit-overflow-scrolling: touch;
-		scrollbar-width: none;
 	}
-
-	.billing-nav::-webkit-scrollbar {
-		display: none;
-	}
-
 	.billing-tab {
 		display: inline-flex;
 		align-items: center;
@@ -198,24 +210,19 @@
 		white-space: nowrap;
 		flex-shrink: 0;
 	}
-
 	.billing-tab:hover {
 		color: #cbd5e1;
 		background: rgba(255, 255, 255, 0.05);
 	}
-
 	.billing-tab--active {
 		background: linear-gradient(135deg, #6366f1, #7c3aed);
 		color: #fff;
 		box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
 	}
-
 	.billing-tab--active:hover {
 		color: #fff;
 		background: linear-gradient(135deg, #6366f1, #7c3aed);
 	}
-
-	/* Divider */
 	.billing-divider {
 		height: 1px;
 		background: linear-gradient(
@@ -227,9 +234,17 @@
 		);
 		margin-bottom: 24px;
 	}
-
 	@media (max-width: 1024px) {
 		.billing-main {
+			margin-left: 220px;
+		}
+		.billing-main::after {
+			left: 220px;
+		}
+	}
+	@media (max-width: 768px) {
+		.billing-main {
+			padding: 1rem;
 			margin-left: 0;
 			padding: 1.25rem;
 			padding-top: calc(70px + 1.25rem);
@@ -238,57 +253,14 @@
 
 		.billing-nav {
 			width: 100%;
+			overflow-x: auto;
 		}
 
 		.billing-tab {
 			flex: 1;
 			justify-content: center;
-			padding: 9px 12px;
+			padding: 8px 10px;
 			font-size: 12px;
-		}
-
-		.billing-title {
-			font-size: 19px;
-		}
-
-		.billing-subtitle {
-			font-size: 12px;
-		}
-	}
-
-	@media (max-width: 640px) {
-		.billing-main {
-			padding: 1rem;
-			padding-top: calc(70px + 1rem);
-			padding-bottom: 5.5rem;
-		}
-
-		.billing-icon {
-			width: 38px;
-			height: 38px;
-		}
-
-		.billing-title {
-			font-size: 17px;
-		}
-
-		.billing-subtitle {
-			display: none;
-		}
-
-		.billing-tab {
-			padding: 9px 8px;
-			font-size: 11px;
-		}
-	}
-
-	@media (max-width: 380px) {
-		.tab-label {
-			display: none;
-		}
-
-		.billing-tab {
-			padding: 10px;
 		}
 	}
 </style>
