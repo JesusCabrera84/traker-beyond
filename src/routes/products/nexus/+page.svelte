@@ -7,7 +7,7 @@
 	// SEO
 	const pageTitle = 'Nexus by Geminis Labs - Inteligencia Vehicular en Tiempo Real';
 	const pageDescription =
-		'Plataforma avanzada de rastreo GPS, telemetría y control de flotas. TrackGo, FleetGuard y Nexus Core by GeminisLabs';
+		'Plataforma avanzada de rastreo GPS, telemetría y control de flotas para familias, flotillas y partners TaaS. Nexus by GeminisLabs.';
 
 	let scrollY = $state(0);
 	let isImageLoaded = $state(false);
@@ -17,9 +17,10 @@
 	let hudData = $state({
 		lat: '19.4326',
 		lon: '-99.1332',
-		alt: '2240m',
-		speed: '0 km/h',
-		status: 'ONLINE'
+		unit: 'MX-0391 Distribución Norte',
+		status: 'EN RUTA',
+		speed: '87 km/h',
+		alert: 'Ninguna'
 	});
 
 	// Sys-Position Logic
@@ -83,232 +84,100 @@
 		return (scrollY / window.innerHeight) * -100;
 	});
 
-	let logoOpacity = $derived.by(() => {
-		if (typeof window === 'undefined') return 0;
-		const ih = window.innerHeight;
-		// SECTION 2 starts at 100vh. It becomes sticky exactly at 100vh.
-		// We start revealing the logo at 120vh (already locked at top)
-		if (scrollY < ih * 1.2) return 0;
-		if (scrollY < ih * 2.0) return Math.min(1, Math.max(0, (scrollY - ih * 1.2) / (ih * 0.8))); // Fade in over 0.8 viewport
-		if (scrollY < ih * 3.5) return 1; // Stay visible
-		if (scrollY < ih * 4.5) return Math.max(0, 1 - (scrollY - ih * 3.5) / (ih * 1.0)); // Fade out smoothly over 1.0 viewport
-		return 0;
-	});
-
 	let themeProgress = $derived.by(() => {
 		if (typeof window === 'undefined') return 0;
 		const ih = window.innerHeight;
-		// Theme shift starts after logo and taglines are well into their sequence
-		if (scrollY < ih * 6.5) return 0;
-		return Math.min(1, (scrollY - ih * 6.5) / (ih * 1.0));
+		if (scrollY < ih * 1.5) return 0;
+		return Math.min(1, (scrollY - ih * 1.5) / (ih * 1.0));
 	});
 
-	// Tagline 1 Logic
-	let tagline1Opacity = $derived.by(() => {
-		if (typeof window === 'undefined') return 0;
-		const ih = window.innerHeight;
-		if (scrollY < ih * 4.2) return 0;
-		if (scrollY < ih * 5.0) return (scrollY - ih * 4.2) / (ih * 0.8);
-		if (scrollY < ih * 6.5) return 1;
-		if (scrollY < ih * 7.5) return Math.max(0, 1 - (scrollY - ih * 6.5) / (ih * 1.0));
-		return 0;
-	});
+	// ── FAQ State ──────────────────────────────────────────────────────────────
+	let faqTab = $state('familias');
 
-	let tagline1TranslateY = $derived.by(() => {
-		if (typeof window === 'undefined') return 20;
-		const ih = window.innerHeight;
-		if (scrollY < ih * 4.2) return 20;
-		if (scrollY < ih * 5.0) return 20 - ((scrollY - ih * 4.2) / (ih * 0.8)) * 20;
-		return 0;
-	});
-
-	// Tagline 2 Logic
-	let tagline2Opacity = $derived.by(() => {
-		if (typeof window === 'undefined') return 0;
-		const ih = window.innerHeight;
-		if (scrollY < ih * 4.8) return 0;
-		if (scrollY < ih * 5.6) return (scrollY - ih * 4.8) / (ih * 0.8);
-		if (scrollY < ih * 6.5) return 1;
-		if (scrollY < ih * 7.5) return Math.max(0, 1 - (scrollY - ih * 6.5) / (ih * 1.0));
-		return 0;
-	});
-
-	let tagline2TranslateY = $derived.by(() => {
-		if (typeof window === 'undefined') return 30;
-		const ih = window.innerHeight;
-		if (scrollY < ih * 4.8) return 30;
-		if (scrollY < ih * 5.6) return 30 - ((scrollY - ih * 4.8) / (ih * 0.8)) * 20;
-		return 0;
-	});
-
-	// Product Verticals Logic
-	let expandedVertical = $state(null);
-	let selectedVariantIndex = $state(0);
-
-	const trackgoVariants = [
-		{
-			id: 'tg-general',
-			name: 'TrackGo® – Público General',
-			price: '199',
-			focus: 'Control y ubicación diaria',
-			target: ['Autos particulares', 'Pequeños negocios (1–5 unidades)'],
-			features: [
-				'GPS en tiempo real 24/7',
-				'Historial de recorridos',
-				'Geocercas básicas',
-				'Acceso App & Web',
-				'Equipo 4G de alta gama'
-			],
-			badge: null
-		},
-		{
-			id: 'tg-moto',
-			name: 'TrackGo® Moto – Apps',
-			price: '159',
-			focus: 'Movilidad constante',
-			target: ['DidiFood', 'Uber Eats', 'Rappi', 'Repartidores'],
-			features: [
-				'GPS en tiempo real',
-				'Historial de rutas',
-				'App & Web optimizados',
-				'Dispositivo 4G compacto',
-				'Eficiencia energética'
-			],
-			badge: '20% OFF'
-		},
-		{
-			id: 'tg-auto',
-			name: 'TrackGo® Auto – Apps',
-			price: '189',
-			focus: 'Respaldo operativo',
-			target: ['Uber', 'Didi', 'Taxis por aplicación'],
-			features: [
-				'GPS 24/7 de alta precisión',
-				'Historial de 12 meses',
-				'Geocercas de trabajo',
-				'App & Web',
-				'Equipo 4G robusto'
-			],
-			badge: '5% OFF'
-		}
-	];
-
-	const fleetguardVariants = [
-		{
-			id: 'fg-logistics',
-			name: 'FleetGuard® Logistics',
-			price: '199',
-			installation: '600',
-			focus: 'Gestión operativa y control de rutas',
-			features: [
-				'Rastreo GPS en tiempo real 24/7',
-				'Historial de rutas',
-				'Geocercas avanzadas',
-				'Plataforma web profesional',
-				'App móvil',
-				'Alertas operativas básicas',
-				'Dispositivo 4G de alta gama',
-				'Soporte avanzado 24/7'
-			],
-			badge: null
-		},
-		{
-			id: 'fg-recovery',
-			name: 'FleetGuard® Recovery',
-			price: '230',
-			installation: '720',
-			focus: 'Recuperación activa de unidades',
-			features: [
-				'Todo lo incluido en Logistics',
-				'Inmovilización remota del motor',
-				'Alertas de movimiento no autorizado',
-				'Eventos de encendido fuera de horario'
-			],
-			badge: 'Popular'
-		},
-		{
-			id: 'fg-secure',
-			name: 'FleetGuard® Secure Max',
-			price: '350',
-			installation: '864',
-			focus: 'Seguridad preventiva y detección de riesgo',
-			features: [
-				'Todo lo incluido en Recovery',
-				'Detección Anti-Jamming',
-				'Sensores de apertura (puertas/cofre)',
-				'Alertas de manipulación'
-			],
-			badge: 'Seguridad'
-		},
-		{
-			id: 'fg-advanced',
-			name: 'FleetGuard® Advanced Core',
-			price: '550',
-			installation: '1036',
-			focus: 'Operación extendida y análisis superior',
-			features: [
-				'Todo lo incluido en Secure Max',
-				'Equipo secundario portátil',
-				'Análisis avanzado de datos',
-				'Reportes inteligentes',
-				'Soporte prioritario'
-			],
-			badge: 'Pro'
-		}
-	];
-
-	let nexusCoreVariants = $state([
-		{
-			id: 'nc-migrate',
-			name: 'Nexus Core® Migrate',
-			price: '65',
-			currency: '$',
-			period: 'unidad / mes',
-			activeTab: 'propuesta',
-			focus: 'Migración de dispositivos (Mín. 20 unidades)',
-			includes: [
-				'Alta y configuración',
-				'Plataforma web y App',
-				'Infraestructura Nexus',
-				'Soporte técnico 24/7'
-			],
-			responsibilities: {
-				nexus: ['Plataforma', 'Infraestructura', 'Acceso App'],
-				client: ['Instalación', 'Mantenimiento', 'SIM / Datos']
+	const faqData = {
+		familias: [
+			{
+				q: '¿Mi familiar va a saber que lo estoy rastreando?',
+				a: 'Nexus te da control total sobre la visibilidad del monitoreo. Puedes configurarlo para que sea visible (transparencia con tu familia) o discreto. La decisión es completamente tuya.'
 			},
-			oneTimePayments: [
-				{ label: 'Licencia', price: '150' },
-				{ label: 'Configuración', price: '400' }
-			],
-			footerNote: 'Cargo único global por ajuste de reporte',
-			badge: 'Migración'
+			{
+				q: '¿Qué pasa si desconectan el dispositivo?',
+				a: 'Nexus genera una alerta automática cuando el dispositivo pierde alimentación de forma inesperada. Recibes la última posición registrada y el momento exacto en que ocurrió.'
+			},
+			{
+				q: '¿Funciona con cualquier marca o modelo de auto?',
+				a: 'Compatible con cualquier vehículo con puerto OBD-II, que incluye prácticamente todos los autos fabricados a partir del año 2000.'
+			},
+			{
+				q: '¿Cuántos vehículos puedo tener en mi cuenta?',
+				a: 'Una cuenta Nexus puede gestionar múltiples vehículos. Ves todos en el mismo mapa, con alertas independientes y control de quién accede a cada uno.'
+			}
+		],
+		flotillas: [
+			{
+				q: '¿Puedo exportar los reportes a Excel o PDF?',
+				a: 'Sí. Los reportes operacionales son exportables en formato Excel y PDF. Puedes programar envíos automáticos o generarlos bajo demanda.'
+			},
+			{
+				q: '¿Cuántos administradores puede tener mi cuenta?',
+				a: 'Sin límite restrictivo. Administrador general, supervisores regionales, operadores con vista limitada — permisos configurables por rol y por vehículo.'
+			},
+			{
+				q: '¿Se integra con nuestro ERP o sistema de gestión?',
+				a: 'Nexus cuenta con API para clientes de flotilla que necesitan conectividad con sistemas externos. Contacta a nuestro equipo para evaluar tu integración específica.'
+			},
+			{
+				q: '¿Qué pasa si un vehículo opera sin señal celular?',
+				a: 'El dispositivo guarda los datos localmente y los sincroniza automáticamente cuando recupera señal. El historial de ruta queda completo, sin huecos.'
+			}
+		],
+		partners: [
+			{
+				q: '¿Qué hardware es compatible con la integración TaaS?',
+				a: 'Cualquier dispositivo que pueda enviar datos en formato JSON con campos de posición (lat, lon, timestamp). Si tu dispositivo puede enviar datos por HTTP o MQTT, la integración es directa.'
+			},
+			{
+				q: '¿Cómo se protegen los datos de mis clientes?',
+				a: 'TLS en tránsito, AES-256 en reposo. Tus clientes son tus clientes — su información no se comparte con terceros. Acuerdo de confidencialidad disponible durante el onboarding.'
+			},
+			{
+				q: '¿Cuánto tiempo toma la integración?',
+				a: 'Un equipo técnico con experiencia básica en APIs completa la integración en 1 a 3 días hábiles. Nuestro equipo de integraciones te acompaña en cada paso.'
+			}
+		]
+	};
+
+	let openFaq = $state({ familias: null, flotillas: null, partners: null });
+
+	function toggleFaq(tab, index) {
+		openFaq[tab] = openFaq[tab] === index ? null : index;
+	}
+
+	// ── Flotillas vertical tab ─────────────────────────────────────────────────
+	let activeVertical = $state(0);
+
+	const flotillaVerticals = [
+		{
+			label: 'Distribución',
+			problem: 'Rutas ineficientes + combustible desperdiciado'
 		},
 		{
-			id: 'nc-partner',
-			name: 'Nexus Partner®',
-			price: '2.5',
-			currency: 'USD',
-			period: 'unidad / mes',
-			activeTab: 'propuesta',
-			focus: 'Para Revendedores de Servicios de Rastreo',
-			features: [
-				'Plataforma Nexus Partner',
-				'Gestión clientes/unidades',
-				'GPS tiempo real',
-				'Roles y permisos'
-			],
-			limitations: ['Historial máx. 6 meses', 'Sin módulos avanzados', 'Expansión con costo extra'],
-			support: 'Soporte 24/7 solo para el Partner',
-			oneTimePayments: [{ label: 'Licencia Partner única', price: '100', currency: 'USD' }],
-			badge: 'Partner'
+			label: 'Paquetería',
+			problem: 'Prueba de entrega automatizada'
+		},
+		{
+			label: 'Construcción',
+			problem: 'Alertas de robo fuera de horario'
+		},
+		{
+			label: 'Seguridad',
+			problem: 'Verificación de rondines con historial'
+		},
+		{
+			label: 'Corporativo',
+			problem: 'Detección de uso no autorizado'
 		}
-	]);
-
-	function toggleVertical(id, event = null) {
-		if (expandedVertical === id && event?.target?.closest('.card-expanded-content')) return;
-		selectedVariantIndex = 0;
-		expandedVertical = expandedVertical === id ? null : id;
-	}
+	];
 
 	onMount(() => {
 		window.scrollTo({ top: 0, behavior: 'instant' });
@@ -329,13 +198,27 @@
 		const interval = setInterval(() => {
 			hudData.lat = (19 + Math.random() * 2).toFixed(4);
 			hudData.lon = (-99 + Math.random() * 2).toFixed(4);
-			hudData.alt = Math.floor(2000 + Math.random() * 500) + 'm';
-			hudData.speed = Math.floor(Math.random() * 120) + ' km/h';
+			hudData.speed = Math.floor(70 + Math.random() * 60) + ' km/h';
 		}, 1000);
+
+		// Scroll reveal for new sections
+		const revealObserver = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						entry.target.classList.add('is-visible');
+						revealObserver.unobserve(entry.target);
+					}
+				});
+			},
+			{ threshold: 0.12, rootMargin: '0px 0px -60px 0px' }
+		);
+		document.querySelectorAll('.reveal-on-scroll').forEach((el) => revealObserver.observe(el));
 
 		return () => {
 			clearInterval(interval);
 			clearInterval(progressInterval);
+			revealObserver.disconnect();
 		};
 	});
 </script>
@@ -407,1000 +290,633 @@
 						<div class="orbital-ring nexus-hero-ring-3"></div>
 					</div>
 					<div class="hud-data top-left">
-						<span class="label">SYS.LAT</span><span class="value">{hudData.lat}</span>
+						<span class="label">UNIDAD</span><span class="value">{hudData.unit}</span>
 					</div>
 					<div class="hud-data top-right">
-						<span class="label">SYS.LON</span><span class="value">{hudData.lon}</span>
+						<span class="label">STATUS</span><span class="value">{hudData.status}</span>
 					</div>
 					<div class="hud-data bottom-left">
-						<span class="label">ALT</span><span class="value">{hudData.alt}</span>
+						<span class="label">VEL</span><span class="value">{hudData.speed}</span>
 					</div>
 					<div class="hud-data bottom-right">
-						<span class="label">SPD</span><span class="value">{hudData.speed}</span>
+						<span class="label">ALERTA</span><span class="value">{hudData.alert}</span>
 					</div>
+				</div>
+
+				<!-- Hero Text Overlay -->
+				<div class="hero-text-overlay" class:hero-text-visible={isImageLoaded}>
+					<div class="hero-status-pill">
+						<span class="hero-status-dot"></span>
+						RASTREO EN VIVO
+					</div>
+					<h1 class="hero-headline">Sabe exactamente<br />dónde están.</h1>
+					<p class="hero-sub">Nexus convierte cada vehículo en inteligencia en tiempo real.</p>
+					<div class="hero-cta-row">
+						<a href="#segmentos" class="btn-hero-primary">Ver para quién es Nexus</a>
+						<a href="#demo-form" class="btn-hero-secondary">Ver una demo</a>
+					</div>
+				</div>
+
+				<!-- Scroll Cue -->
+				<div class="hero-scroll-cue" class:hero-text-visible={isImageLoaded} aria-hidden="true">
+					<div class="scroll-cue-line"></div>
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M6 9l6 6 6-6" />
+					</svg>
 				</div>
 			</div>
 		</section>
 
-		<!-- 2. LOGO SEQUENCE -->
-		<section class="logo-sequence-container">
-			<div class="sticky-wrapper">
-				<div
-					class="nexus-reveal-layer"
-					style="opacity: {logoOpacity}; visibility: {logoOpacity > 0 ? 'visible' : 'hidden'}"
-				>
-					<div class="nexus-logo-large">
-						<span>Nexus</span>
-						<img src="/img/products/logo-nexus.png" alt="Nexus Logo" />
-					</div>
-				</div>
-				<div class="nexus-taglines">
-					<span
-						class="tagline-primary"
-						style="opacity: {tagline1Opacity}; transform: translateY({tagline1TranslateY}px)"
-					>
-						La forma inteligente de cuidar lo que importa
-					</span>
-					<span
-						class="tagline-secondary"
-						style="opacity: {tagline2Opacity}; transform: translateY({tagline2TranslateY}px)"
-					>
-						Inteligencia vehicular en tiempo real para personas, activos y operaciones críticas
-					</span>
+		<!-- 3. VALUE PROPOSITION BANNER -->
+		<section class="value-prop-section" id="inicio">
+			<div class="value-prop-inner reveal-on-scroll">
+				<h2 class="value-prop-headline">Sabe exactamente dónde están.</h2>
+				<p class="value-prop-sub">
+					Nexus convierte cada vehículo en inteligencia en tiempo real — para tu familia, tu
+					flotilla y tu negocio.
+				</p>
+				<div class="value-prop-badges">
+					<span class="vp-badge">Familias</span>
+					<span class="vp-badge-sep" aria-hidden="true">|</span>
+					<span class="vp-badge">Flotillas</span>
+					<span class="vp-badge-sep" aria-hidden="true">|</span>
+					<span class="vp-badge">Partners TaaS</span>
 				</div>
 			</div>
 		</section>
 
-		<!-- 3. EL PROBLEMA -->
-		<section class="problem-section" id="contexto">
+		<!-- 4. THREE SEGMENTS -->
+		<section class="segments-section" id="segmentos">
 			<div class="container">
-				<h2 class="section-title">El Desafío Actual</h2>
-				<p class="section-subtitle">Operar a ciegas ya no es una opción.</p>
-				<div class="problems-grid">
-					<div class="problem-card">
-						<div class="problem-icon">
-							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
-								viewBox="0 0 24 24"
-								stroke="currentColor"
-								><path
+				<div class="segments-grid">
+					<!-- FAMILIAS -->
+					<div class="segment-card familias reveal-on-scroll" id="familias">
+						<div class="segment-eyebrow">Para Familias</div>
+						<h3 class="segment-headline">Protege a quien quieres. Sabe dónde están, siempre.</h3>
+						<p class="segment-desc">
+							Nexus te avisa si alguien sale de su ruta, llega a donde no debe, o si el carro se
+							mueve sin permiso. Control total, sin ser invasivo.
+						</p>
+
+						<ul class="segment-usecases">
+							<li>Tu hijo adolescente maneja solo — sabes si llegó bien y a qué velocidad fue</li>
+							<li>Prestaste el auto a un empleado — confirma que lo usa solo para el trabajo</li>
+							<li>Tus padres adultos mayores salen solos — llegaron sin contratiempos</li>
+							<li>Tu auto de valor está en la calle — cualquier movimiento inesperado te alerta</li>
+						</ul>
+
+						<div class="segment-pain">
+							<span class="pain-icon">
+								<svg
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.5"
 									stroke-linecap="round"
 									stroke-linejoin="round"
-									stroke-width="1.5"
-									d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+									><path
+										d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+									/></svg
+								>
+							</span>
+							<p>
+								En México se roban más de 100,000 vehículos al año. La mayoría de los dueños no
+								saben hasta horas después.
+							</p>
+						</div>
+
+						<div class="segment-resolution">
+							Con Nexus, sabes exactamente dónde está tu vehículo y quién lo mueve, desde tu
+							teléfono, en segundos.
+						</div>
+
+						<a href="#download" class="btn-segment primary">Descargar la App</a>
+					</div>
+
+					<!-- FLOTILLAS -->
+					<div class="segment-card featured flotillas reveal-on-scroll" id="flotillas">
+						<div class="segment-badge">Más popular</div>
+						<div class="segment-eyebrow">Para Flotillas</div>
+						<h3 class="segment-headline">Tu operación no para. Tu visibilidad tampoco.</h3>
+						<p class="segment-desc">
+							Conoce el estado real de cada vehículo: dónde está, cómo se comporta, cuánto consume —
+							ahora mismo. Las flotillas pierden entre el 20 y el 30% de su presupuesto operativo en
+							ineficiencias perfectamente prevenibles.
+						</p>
+
+						<div class="flotilla-verticals">
+							{#each flotillaVerticals as v, i (v.label)}
+								<button
+									class="vertical-chip"
+									class:active={activeVertical === i}
+									onclick={() => (activeVertical = i)}
+								>
+									{v.label}
+								</button>
+							{/each}
+						</div>
+						<div class="vertical-problem">
+							{flotillaVerticals[activeVertical].problem}
+						</div>
+
+						<div class="segment-roi">
+							Una flota de 20 vehículos puede ahorrar entre $192,000 y $270,000 MXN al año solo en
+							combustible.
+						</div>
+
+						<a href="#demo-form" class="btn-segment primary">Agendar una Demo</a>
+					</div>
+
+					<!-- PARTNERS TAAS -->
+					<div class="segment-card partners reveal-on-scroll" id="partners">
+						<div class="segment-eyebrow">Para Partners TaaS</div>
+						<h3 class="segment-headline">Tu hardware ya funciona. Ahora dale la app que merece.</h3>
+						<p class="segment-desc">
+							Conéctate a Nexus enviando JSON desde tus dispositivos y ofrece a tus clientes una
+							plataforma completa — sin escribir una sola línea de front-end.
+						</p>
+
+						<div class="partner-lists">
+							<div class="partner-list-col">
+								<div class="partner-list-label gets">Lo que obtienen</div>
+								<ul class="partner-checklist gets">
+									<li>Apps nativas (iOS, Android, Web)</li>
+									<li>Telemetría en tiempo real</li>
+									<li>Reportes y alertas</li>
+									<li>Control de permisos</li>
+								</ul>
+							</div>
+							<div class="partner-list-col">
+								<div class="partner-list-label noget">Lo que no hacen</div>
+								<ul class="partner-checklist noget">
+									<li>Sin cambio de hardware</li>
+									<li>Sin desarrollo de app</li>
+									<li>Sin infraestructura propia</li>
+								</ul>
+							</div>
+						</div>
+
+						<a href="#partner-contact" class="btn-segment secondary">Contactar al Equipo</a>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- 5. FEATURES -->
+		<section class="features-section" id="features">
+			<div class="container">
+				<h2 class="section-title">Todo lo que necesitas, en una sola plataforma</h2>
+				<p class="section-subtitle">Ocho capacidades clave diseñadas para el mundo real.</p>
+
+				<div class="features-grid">
+					<div class="feature-item reveal-on-scroll">
+						<div class="feature-icon">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><circle cx="12" cy="12" r="3" /><path
+									d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"
 								/></svg
 							>
 						</div>
-						<h3>Riesgo de Seguridad</h3>
+						<h4>Monitoreo en tiempo real</h4>
 						<p>
-							El robo de vehículos y mercancías sigue en aumento. Sin visibilidad en tiempo real, la
-							recuperación es casi imposible.
+							Posición exacta, velocidad y estado del motor de cada vehículo, actualizado al
+							momento.
 						</p>
 					</div>
-					<div class="problem-card">
-						<div class="problem-icon">
+					<div class="feature-item reveal-on-scroll">
+						<div class="feature-icon">
 							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
 								viewBox="0 0 24 24"
+								fill="none"
 								stroke="currentColor"
-								><path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="1.5"
-									d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path
+									d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
 								/></svg
 							>
 						</div>
-						<h3>Desconexión Operativa</h3>
+						<h4>Historial con replay</h4>
 						<p>
-							Conductores, gestores y clientes operan en silos. La falta de comunicación fluida
-							genera retrasos y pérdidas.
+							Reproduce el recorrido completo de cualquier vehículo en cualquier día, con cronología
+							exacta.
 						</p>
 					</div>
-					<div class="problem-card">
-						<div class="problem-icon">
+					<div class="feature-item reveal-on-scroll">
+						<div class="feature-icon">
 							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
 								viewBox="0 0 24 24"
+								fill="none"
 								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0118 0z" /><circle
+									cx="12"
+									cy="10"
+									r="3"
+								/></svg
+							>
+						</div>
+						<h4>Geocercas de precisión</h4>
+						<p>
+							Zonas de operación con tecnología de precisión de siguiente generación — cero falsos
+							positivos.
+						</p>
+					</div>
+					<div class="feature-item reveal-on-scroll">
+						<div class="feature-icon">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" /><path
+									d="M13.73 21a2 2 0 01-3.46 0"
+								/></svg
+							>
+						</div>
+						<h4>Alertas inteligentes</h4>
+						<p>Notificaciones push para encendido, salida de zona, velocidad o pérdida de señal.</p>
+					</div>
+					<div class="feature-item reveal-on-scroll">
+						<div class="feature-icon">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
 								><path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="1.5"
 									d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
 								/></svg
 							>
 						</div>
-						<h3>Datos Sin Valor</h3>
+						<h4>Reportes operacionales</h4>
+						<p>Combustible, km, tiempo y batería — exportables a PDF/Excel.</p>
+					</div>
+					<div class="feature-item reveal-on-scroll">
+						<div class="feature-icon">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle
+									cx="9"
+									cy="7"
+									r="4"
+								/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" /></svg
+							>
+						</div>
+						<h4>Control de permisos</h4>
 						<p>
-							Tener miles de puntos GPS no sirve si no se traducen en decisiones. Las plataformas
-							antiguas solo acumulan ruido.
+							Cada usuario ve solo lo que debe ver. Conductor, supervisor, admin — cada rol, su
+							vista.
 						</p>
 					</div>
-					<div class="problem-card">
-						<div class="problem-icon">
+					<div class="feature-item reveal-on-scroll">
+						<div class="feature-icon">
 							<svg
-								xmlns="http://www.w3.org/2000/svg"
-								fill="none"
 								viewBox="0 0 24 24"
+								fill="none"
 								stroke="currentColor"
-								><path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="1.5"
-									d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><rect x="5" y="2" width="14" height="20" rx="2" ry="2" /><line
+									x1="12"
+									y1="18"
+									x2="12.01"
+									y2="18"
 								/></svg
 							>
 						</div>
-						<h3>Costos Ocultos</h3>
-						<p>
-							Mantenimientos no programados, rutas ineficientes y uso no autorizado consumen hasta
-							el 30% del presupuesto operativo.
-						</p>
+						<h4>Apps nativas</h4>
+						<p>iPhone, Android y Web. Construidas para cada plataforma, no adaptadas.</p>
 					</div>
-				</div>
-			</div>
-		</section>
-
-		<!-- 4. INTRO -->
-		<section class="intro-section" id="intro">
-			<div class="container-split">
-				<div class="intro-text">
-					<h2 class="section-title text-left">El Ecosistema de Control Total</h2>
-					<p class="section-lead">
-						Nexus no es solo un GPS. Es un cerebro digital que centraliza la operación de tu flota,
-						seguridad y activos en una sola interfaz.
-					</p>
-					<ul class="feature-list">
-						<li>
-							<div class="check-icon">✓</div>
-							<div>
-								<strong>Tiempo Real Real</strong>
-								<p>Latencia menor a 1 segundo. Ve tus unidades moverse como en un videojuego.</p>
-							</div>
-						</li>
-						<li>
-							<div class="check-icon">✓</div>
-							<div>
-								<strong>Multi-Plataforma</strong>
-								<p>Accede desde web, iOS o Android con la misma potencia.</p>
-							</div>
-						</li>
-						<li>
-							<div class="check-icon">✓</div>
-							<div>
-								<strong>Alertas Inteligentes</strong>
-								<p>Recibe notificaciones solo de lo que realmente importa.</p>
-							</div>
-						</li>
-					</ul>
-				</div>
-				<div class="intro-visual">
-					<div class="dashboard-placeholder">
-						<div class="dashboard-mockup">
-							<div class="mockup-header">
-								<div class="dots"><span></span><span></span><span></span></div>
-							</div>
-							<div class="mockup-body">
-								<div class="sidebar-view"></div>
-								<div class="map-view"></div>
-								<div class="stats-card card-1"></div>
-								<div class="stats-card card-2"></div>
-							</div>
-							<div class="scan-line"></div>
-						</div>
-						<div class="glow-effect"></div>
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<!-- 5. DEMO WEB -->
-		<section class="demo-section web-demo" id="demo">
-			<div class="container">
-				<div class="demo-split">
-					<div class="demo-content">
-						<span class="eyebrow">Plataforma Web</span>
-						<h2 class="section-title text-left">Control de Misión Completo</h2>
-						<p class="section-desc">
-							Visualiza toda tu operación en un solo mapa inteligente. Filtra por grupos, estados o
-							alertas críticas.
-						</p>
-						<div class="feature-bullets">
-							<div class="bullet-item">
-								<span class="bullet-icon">🗺️</span>
-								<div class="bullet-text">
-									<h4>Rastreo en vivo</h4>
-									<p>Google Maps Enterprise con tráfico en tiempo real y Street View.</p>
-								</div>
-							</div>
-							<div class="bullet-item">
-								<span class="bullet-icon">⚡</span>
-								<div class="bullet-text">
-									<h4>Comandos Remotos</h4>
-									<p>Apagado de motor, apertura de puertas y activación de sirena en un click.</p>
-								</div>
-							</div>
-							<div class="bullet-item">
-								<span class="bullet-icon">📊</span>
-								<div class="bullet-text">
-									<h4>Reportes Históricos</h4>
-									<p>Reproduce rutas de hasta 12 meses atrás con precisión de segundos.</p>
-								</div>
-							</div>
-						</div>
-					</div>
-					<div class="demo-media desktop-frame">
-						<div class="video-container">
-							<div class="play-button">▶</div>
-							<div class="video-overlay">Demo de Plataforma</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<!-- 6. DEMO MÓVIL -->
-		<section class="demo-section mobile-demo">
-			<div class="container">
-				<div class="demo-split reverse">
-					<div class="demo-content">
-						<span class="eyebrow">App Móvil (iOS & Android)</span>
-						<h2 class="section-title text-left">Tu Flota en tu Bolsillo</h2>
-						<p class="section-desc">
-							La potencia de la web, optimizada para tu smartphone. Recibe notificaciones push y
-							mantén el control donde sea.
-						</p>
-						<div class="feature-bullets">
-							<div class="bullet-item">
-								<span class="bullet-icon">📱</span>
-								<div class="bullet-text">
-									<h4>Interfaz Nativa</h4>
-									<p>Experiencia fluida y veloz diseñada para iOS y Android.</p>
-								</div>
-							</div>
-							<div class="bullet-item">
-								<span class="bullet-icon">🔔</span>
-								<div class="bullet-text">
-									<h4>Notificaciones Push</h4>
-									<p>
-										Entérate al instante de encendidos, salidas de geocerca o excesos de velocidad.
-									</p>
-								</div>
-							</div>
-						</div>
-						<div class="app-store-buttons">
-							<button class="store-btn apple">App Store</button>
-							<button class="store-btn google">Google Play</button>
-						</div>
-					</div>
-					<div class="demo-media mobile-frame">
-						<div class="phone-mockup">
-							<div class="notch"></div>
-							<div class="screen">
-								<div class="app-header"></div>
-								<div class="app-map"></div>
-								<div class="app-controls"></div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<!-- 7. CAPACIDADES — overview limpio sin marcas (de v1) -->
-		<section class="verticals-section" id="capacidades">
-			<div class="container">
-				<h2 class="section-title">Una plataforma, muchas formas de operar</h2>
-				<p class="section-subtitle">
-					Nexus concentra rastreo, telemetría y servicios de flota; el alcance concreto se define
-					según tu contrato y tu escala.
-				</p>
-				<div class="problems-grid nexus-pillars">
-					<div class="problem-card">
-						<div class="problem-icon" aria-hidden="true">📍</div>
-						<h3>Visibilidad y rastreo</h3>
-						<p>
-							Ubicación en tiempo real, historial, geocercas y acceso web y móvil para equipos
-							reducidos o de alto recorrido.
-						</p>
-					</div>
-					<div class="problem-card">
-						<div class="problem-icon" aria-hidden="true">🛡️</div>
-						<h3>Operación y seguridad</h3>
-						<p>
-							Alertas, reportes y control operativo de flotillas: incidentes, rutas y cumplimiento
-							en un tablero.
-						</p>
-					</div>
-					<div class="problem-card">
-						<div class="problem-icon" aria-hidden="true">🧩</div>
-						<h3>Integración y partners</h3>
-						<p>
-							Escenarios con migración de equipos, integradores y despliegues empresariales, bajo
-							acuerdo y validación técnica.
-						</p>
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<!-- 8. ELIGE TU POTENCIA — verticales expandibles con variantes (de v2) -->
-		<section class="verticals-section" id="verticals">
-			<div class="container">
-				<h2 class="section-title">Elige Tu Potencia</h2>
-				<p class="section-subtitle">
-					Tres niveles de especialización para cada etapa de tu crecimiento.
-				</p>
-
-				<div class="verticals-grid" class:has-expanded={expandedVertical !== null}>
-					<!-- TrackGo -->
-					<div
-						class="vertical-card trackgo"
-						class:expanded={expandedVertical === 'trackgo'}
-						class:hidden={expandedVertical !== null && expandedVertical !== 'trackgo'}
-						onclick={(e) => toggleVertical('trackgo', e)}
-						onkeydown={(e) => e.key === 'Enter' && toggleVertical('trackgo')}
-						role="button"
-						tabindex="0"
-					>
-						<div class="card-glow"></div>
-						<div class="card-border-glow"></div>
-						<div class="card-technical-grid"></div>
-						<div class="bracket top-left"></div>
-						<div class="bracket top-right"></div>
-						<div class="bracket bottom-left"></div>
-						<div class="bracket bottom-right"></div>
-						<div class="scanning-line"></div>
-
-						<div class="card-overview">
-							<div class="vertical-icon">📍</div>
-							<h3>TrackGo</h3>
-							<span class="vertical-tag">Esencial</span>
-							<p class="vertical-desc">
-								Rastreo GPS puro y duro. Ubicación en tiempo real, historial de rutas y alertas
-								básicas. Ideal para empezar.
-							</p>
-							<ul class="vertical-features">
-								<li>Rastreo cada 60 segundos</li>
-								<li>Historial de 3 meses</li>
-								<li>Alertas de encendido/apagado</li>
-								<li>App Móvil Básica</li>
-							</ul>
-							<button class="btn-vertical">Ver Variantes</button>
-						</div>
-
-						{#if expandedVertical === 'trackgo'}
-							<div class="card-expanded-content">
-								<div class="expanded-header">
-									<button
-										class="btn-back"
-										onclick={(e) => {
-											e.stopPropagation();
-											expandedVertical = null;
-										}}
-										aria-label="Volver"
-									>
-										<svg
-											width="20"
-											height="20"
-											viewBox="0 0 24 24"
-											fill="none"
-											stroke="currentColor"
-											stroke-width="2.5"
-											stroke-linecap="round"
-											stroke-linejoin="round"
-											><line x1="19" y1="12" x2="5" y2="12"></line><polyline
-												points="12 19 5 12 12 5"
-											></polyline></svg
-										>
-									</button>
-									<div class="header-text">
-										<h2>Familia TrackGo®</h2>
-										<p>Tu vehículo, siempre bajo control con tecnología Nexus</p>
-									</div>
-								</div>
-								<div class="variants-slider-viewport">
-									<div
-										class="variants-grid"
-										style="left: 50%; transform: translateX(calc(-210px - {selectedVariantIndex *
-											(420 + 32)}px))"
-									>
-										{#each trackgoVariants as variant, i (variant.id)}
-											<div
-												class="variant-card"
-												class:is-selected={selectedVariantIndex === i}
-												class:is-dimmed={selectedVariantIndex !== i}
-												onclick={() => (selectedVariantIndex = i)}
-												onkeydown={(e) => e.key === 'Enter' && (selectedVariantIndex = i)}
-												role="button"
-												tabindex="0"
-											>
-												{#if variant.badge}<span class="variant-badge">{variant.badge}</span>{/if}
-												<div class="variant-header">
-													<h4>{variant.name}</h4>
-													<div class="variant-price">
-														<span class="currency">$</span><span class="amount"
-															>{variant.price}</span
-														><span class="period">/mo</span>
-													</div>
-												</div>
-												<p class="variant-focus"><strong>Enfoque:</strong> {variant.focus}</p>
-												<div class="variant-features-mini">
-													<ul>
-														{#each variant.features as feature (feature)}<li>{feature}</li>{/each}
-													</ul>
-												</div>
-												<button class="btn-variant-select">Lo quiero</button>
-											</div>
-										{/each}
-									</div>
-								</div>
-								<div class="variant-selector">
-									{#each trackgoVariants as _, i (i)}<button
-											class="selector-dot"
-											class:active={selectedVariantIndex === i}
-											onclick={(e) => {
-												e.stopPropagation();
-												selectedVariantIndex = i;
-											}}
-											aria-label="Ver variante {i + 1}"
-										></button>{/each}
-								</div>
-								<div class="expanded-footer">
-									<p>
-										🔹 <strong>Beneficios TrackGo:</strong> Sin costo de instalación • Equipo 4G diferible
-										• 10% OFF en pago anual
-									</p>
-								</div>
-							</div>
-						{/if}
-					</div>
-
-					<!-- FleetGuard -->
-					<div
-						class="vertical-card fleetguard"
-						class:expanded={expandedVertical === 'fleetguard'}
-						class:hidden={expandedVertical !== null && expandedVertical !== 'fleetguard'}
-						onclick={(e) => toggleVertical('fleetguard', e)}
-						onkeydown={(e) => e.key === 'Enter' && toggleVertical('fleetguard')}
-						role="button"
-						tabindex="0"
-					>
-						<div class="card-glow"></div>
-						<div class="card-border-glow"></div>
-						<div class="card-technical-grid"></div>
-						<div class="bracket top-left"></div>
-						<div class="bracket top-right"></div>
-						<div class="bracket bottom-left"></div>
-						<div class="bracket bottom-right"></div>
-						<div class="scanning-line"></div>
-
-						<div class="card-overview">
-							<div class="vertical-icon">🛡️</div>
-							<h3>FleetGuard</h3>
-							<span class="vertical-tag popular">Recomendado</span>
-							<p class="vertical-desc">
-								Seguridad avanzada y telemetría. Paro de motor, detección de jammer, sensores de
-								combustible y cámara en cabina.
-							</p>
-							<ul class="vertical-features">
-								<li>Rastreo cada 10 segundos</li>
-								<li>Historial de 12 meses</li>
-								<li>Paro de motor remoto</li>
-								<li>Video en vivo (Dashcam)</li>
-							</ul>
-							<button class="btn-vertical primary">Ver Variantes</button>
-						</div>
-
-						{#if expandedVertical === 'fleetguard'}
-							<div class="card-expanded-content">
-								<div class="expanded-header">
-									<button
-										class="btn-back"
-										onclick={(e) => {
-											e.stopPropagation();
-											expandedVertical = null;
-										}}>← Volver a productos</button
-									>
-									<div class="header-text">
-										<h2>Familia FleetGuard®</h2>
-										<p>Telemetría inteligente para operaciones críticas</p>
-									</div>
-								</div>
-								<div class="variants-slider-viewport">
-									<div
-										class="variants-grid"
-										style="left: 50%; transform: translateX(calc(-210px - {selectedVariantIndex *
-											(420 + 32)}px))"
-									>
-										{#each fleetguardVariants as variant, i (variant.id)}
-											<div
-												class="variant-card"
-												class:is-selected={selectedVariantIndex === i}
-												class:is-dimmed={selectedVariantIndex !== i}
-												onclick={() => (selectedVariantIndex = i)}
-												onkeydown={(e) => e.key === 'Enter' && (selectedVariantIndex = i)}
-												role="button"
-												tabindex="0"
-											>
-												{#if variant.badge}<span class="variant-badge">{variant.badge}</span>{/if}
-												<div class="variant-header">
-													<h4>{variant.name}</h4>
-													<div class="variant-price">
-														<span class="currency">$</span><span class="amount"
-															>{variant.price}</span
-														><span class="period">/mo</span>
-													</div>
-													<div class="installation-tag">Instalación: ${variant.installation}</div>
-												</div>
-												<p class="variant-focus"><strong>Enfoque:</strong> {variant.focus}</p>
-												<div class="variant-features-mini">
-													<ul>
-														{#each variant.features as feature (feature)}<li>{feature}</li>{/each}
-													</ul>
-												</div>
-												<button class="btn-variant-select">Lo quiero</button>
-											</div>
-										{/each}
-									</div>
-								</div>
-								<div class="variant-selector">
-									{#each fleetguardVariants as _, i (i)}<button
-											class="selector-dot"
-											class:active={selectedVariantIndex === i}
-											onclick={(e) => {
-												e.stopPropagation();
-												selectedVariantIndex = i;
-											}}
-											aria-label="Ver variante {i + 1}"
-										></button>{/each}
-								</div>
-								<div class="expanded-footer-detailed">
-									<div class="footer-grid">
-										<div class="footer-col">
-											<h5>🛠️ Condiciones de Equipo</h5>
-											<ul>
-												<li>
-													<strong>Plazo forzoso (18 meses):</strong> Dispositivo incluido + 20% OFF en
-													instalación.
-												</li>
-												<li>
-													<strong>Sin plazo forzoso:</strong> Equipo Logistics ($1,200) a Advanced Core
-													($2,073).
-												</li>
-											</ul>
-										</div>
-										<div class="footer-col">
-											<h5>💳 Financiamiento</h5>
-											<p>
-												6, 12, 18 y 24 meses con tarjeta de crédito. 20% OFF en pago de contado del
-												equipo.
-											</p>
-										</div>
-										<div class="footer-col">
-											<h5>📞 Soporte Premium</h5>
-											<p>Atención avanzada 24/7, telefonía especializada y prioridad según plan.</p>
-										</div>
-									</div>
-								</div>
-							</div>
-						{/if}
-					</div>
-
-					<!-- Nexus Core -->
-					<div
-						class="vertical-card nexus-core"
-						class:expanded={expandedVertical === 'nexus-core'}
-						class:hidden={expandedVertical !== null && expandedVertical !== 'nexus-core'}
-						onclick={(e) => toggleVertical('nexus-core', e)}
-						onkeydown={(e) => e.key === 'Enter' && toggleVertical('nexus-core')}
-						role="button"
-						tabindex="0"
-					>
-						<div class="card-glow"></div>
-						<div class="card-border-glow"></div>
-						<div class="card-technical-grid"></div>
-						<div class="bracket top-left"></div>
-						<div class="bracket top-right"></div>
-						<div class="bracket bottom-left"></div>
-						<div class="bracket bottom-right"></div>
-						<div class="scanning-line"></div>
-
-						<div class="card-overview">
-							<div class="vertical-icon">🧠</div>
-							<h3>Nexus Core®</h3>
-							<span class="vertical-tag">Ecosistema</span>
-							<p class="vertical-desc">
-								La plataforma que se adapta a tu operación. Migración de dispositivos, servicios
-								para partners e integraciones empresariales.
-							</p>
-							<ul class="vertical-features">
-								<li>Migración de Flotillas (&gt;20)</li>
-								<li>Modalidad Partner / Reseller</li>
-								<li>Análisis de Datos Avanzado</li>
-								<li>Soporte Técnico 24/7</li>
-							</ul>
-							<button class="btn-vertical">Ver Soluciones</button>
-						</div>
-
-						{#if expandedVertical === 'nexus-core'}
-							<div class="card-expanded-content">
-								<div class="expanded-header">
-									<button
-										class="btn-back"
-										onclick={(e) => {
-											e.stopPropagation();
-											expandedVertical = null;
-										}}>← Volver a productos</button
-									>
-									<div class="header-text">
-										<h2>Nexus Core® y Ecosistema</h2>
-										<p>Tecnología modular para operaciones de alto volumen</p>
-									</div>
-								</div>
-								<div class="variants-slider-viewport">
-									<div
-										class="variants-grid"
-										style="left: 50%; transform: translateX(calc(-210px - {selectedVariantIndex *
-											(420 + 32)}px))"
-									>
-										{#each nexusCoreVariants as variant, i (variant.id)}
-											<div
-												class="variant-card nexus-variant"
-												class:is-selected={selectedVariantIndex === i}
-												class:is-dimmed={selectedVariantIndex !== i}
-												onclick={() => (selectedVariantIndex = i)}
-												onkeydown={(e) => e.key === 'Enter' && (selectedVariantIndex = i)}
-												role="button"
-												tabindex="0"
-											>
-												{#if variant.badge}<span class="variant-badge">{variant.badge}</span>{/if}
-												<div class="variant-header">
-													<h4>{variant.name}</h4>
-													<div class="variant-price">
-														<span class="currency">{variant.currency}</span><span class="amount"
-															>{variant.price}</span
-														><span class="period">/{variant.period}</span>
-													</div>
-												</div>
-												<div class="internal-tabs">
-													<button
-														class="tab-btn"
-														class:active={variant.activeTab === 'propuesta'}
-														onclick={(e) => {
-															e.stopPropagation();
-															variant.activeTab = 'propuesta';
-														}}>Propuesta</button
-													>
-													<button
-														class="tab-btn"
-														class:active={variant.activeTab === 'alcance'}
-														onclick={(e) => {
-															e.stopPropagation();
-															variant.activeTab = 'alcance';
-														}}>Alcance</button
-													>
-												</div>
-												<div class="tab-content-wrapper">
-													{#if variant.activeTab === 'propuesta'}
-														<div class="tab-content fadeIn">
-															<p class="variant-focus">{variant.focus}</p>
-															<div class="features-icon-grid">
-																{#if variant.includes}{#each variant.includes as item (item)}<div
-																			class="icon-feature"
-																		>
-																			<span class="dot"></span><span>{item}</span>
-																		</div>{/each}{/if}
-																{#if variant.features}{#each variant.features as item (item)}<div
-																			class="icon-feature"
-																		>
-																			<span class="dot"></span><span>{item}</span>
-																		</div>{/each}{/if}
-															</div>
-															{#if variant.oneTimePayments}<div class="one-time-tags mini">
-																	{#each variant.oneTimePayments as payment (payment.label)}<div
-																			class="payment-tag"
-																		>
-																			{payment.label}: {payment.currency || '$'}{payment.price}
-																		</div>{/each}
-																</div>{/if}
-														</div>
-													{:else}
-														<div class="tab-content fadeIn">
-															{#if variant.responsibilities}
-																<div class="resp-mini-stack">
-																	<div class="resp-group">
-																		<span class="label">Nexus:</span>
-																		<p>{variant.responsibilities.nexus.join(', ')}</p>
-																	</div>
-																	<div class="resp-group">
-																		<span class="label">Cliente:</span>
-																		<p>{variant.responsibilities.client.join(', ')}</p>
-																	</div>
-																</div>
-															{/if}
-															{#if variant.limitations}<div class="limitations-box">
-																	<p class="mini-title">Limitaciones:</p>
-																	<ul>
-																		{#each variant.limitations as item (item)}<li>{item}</li>{/each}
-																	</ul>
-																</div>{/if}
-															{#if variant.support}<div class="support-tag">
-																	{variant.support}
-																</div>{/if}
-														</div>
-													{/if}
-												</div>
-												{#if variant.footerNote}<p class="variant-footer-note">
-														{variant.footerNote}
-													</p>{/if}
-												<button class="btn-variant-select">Solicitar Información</button>
-											</div>
-										{/each}
-									</div>
-								</div>
-								<div class="variant-selector">
-									{#each nexusCoreVariants as _, i (i)}<button
-											class="selector-dot"
-											class:active={selectedVariantIndex === i}
-											onclick={(e) => {
-												e.stopPropagation();
-												selectedVariantIndex = i;
-											}}
-											aria-label="Ver variante {i + 1}"
-										></button>{/each}
-								</div>
-								<div class="expanded-footer-detailed">
-									<div class="footer-grid">
-										<div class="footer-col addon-highlight">
-											<h5>📊 Add-on Opcional</h5>
-											<div class="addon-content">
-												<strong>Análisis Avanzado de Datos</strong>
-												<p>Métricas operativas mejoradas y reportes más precisos.</p>
-												<div class="addon-price">+$15 MXN por unidad / mes</div>
-											</div>
-										</div>
-										<div class="footer-col">
-											<h5>📝 Notas Técnicas</h5>
-											<ul>
-												<li>Compatibilidad sujeta a validación técnica de equipos.</li>
-												<li>Soporte especializado vía canales directos dedicados.</li>
-												<li>Escalabilidad global bajo demanda.</li>
-											</ul>
-										</div>
-									</div>
-								</div>
-							</div>
-						{/if}
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<!-- 9. TABLAS COMPARATIVAS — las 4 completas (de v2) -->
-		<section class="comparison-tables-section">
-			<div class="container">
-				<h2 class="section-title">Tabla Comparativa de Soluciones</h2>
-				<p class="section-subtitle">Nexus by GeminisLabs</p>
-
-				<!-- TrackGo -->
-				<div class="comparison-table-wrapper">
-					<h3 class="table-title">🔹 TRACKGO® – Rastreo Esencial</h3>
-					<div class="table-responsive">
-						<table class="comparison-table">
-							<thead><tr><th>Característica</th><th>TrackGo®</th></tr></thead>
-							<tbody>
-								<tr><td>Público objetivo</td><td>Usuarios individuales / pequeñas flotillas</td></tr
-								>
-								<tr><td>Rastreo en tiempo real</td><td>✅</td></tr>
-								<tr><td>Geocercas</td><td>✅</td></tr>
-								<tr><td>Alertas básicas</td><td>✅</td></tr>
-								<tr><td>Historial de recorridos</td><td>✅</td></tr>
-								<tr><td>App móvil y plataforma web</td><td>✅</td></tr>
-								<tr><td>Dispositivo</td><td>📡 4G alta gama</td></tr>
-								<tr><td>Instalación</td><td>❌ Sin costo</td></tr>
-								<tr><td>Costo del equipo</td><td>$1,200 MXN (diferible)</td></tr>
-								<tr><td>Pago anual</td><td>10% de descuento</td></tr>
-								<tr><td>Soporte</td><td>☎️ Básico 24/7</td></tr>
-								<tr><td>Integraciones / APIs</td><td>❌ No aplica</td></tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-
-				<!-- FleetGuard -->
-				<div class="comparison-table-wrapper">
-					<h3 class="table-title">🔹 FLEETGUARD® – Control y Seguridad de Flotillas</h3>
-					<div class="table-responsive">
-						<table class="comparison-table fleetguard-table">
-							<thead
-								><tr
-									><th>Característica</th><th>Logistics</th><th>Recovery</th><th>Secure Max</th><th
-										>Advanced Core</th
-									></tr
-								></thead
+					<div class="feature-item reveal-on-scroll">
+						<div class="feature-icon">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg
 							>
-							<tbody>
-								<tr
-									><td>Precio mensual</td><td>$199 MXN</td><td>$230 MXN</td><td>$350 MXN</td><td
-										>$550 MXN</td
-									></tr
-								>
-								<tr
-									><td>Instalación</td><td>$600 MXN</td><td>$720 MXN</td><td>$864 MXN</td><td
-										>$1,036.80 MXN</td
-									></tr
-								>
-								<tr><td>Rastreo en tiempo real</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
-								<tr><td>Geocercas</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
-								<tr
-									><td>Alertas inteligentes</td><td>Básicas</td><td>Avanzadas</td><td>Críticas</td
-									><td>Avanzadas</td></tr
-								>
-								<tr
-									><td>Historial</td><td>Estándar</td><td>Extendido</td><td>Extendido</td><td
-										>Avanzado</td
-									></tr
-								>
-								<tr
-									><td>Reportes</td><td>Básicos</td><td>Intermedios</td><td>Avanzados</td><td
-										>Personalizados</td
-									></tr
-								>
-								<tr><td>Seguridad vehicular</td><td>❌</td><td>✅</td><td>✅</td><td>✅</td></tr>
-								<tr><td>Sensores adicionales</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td></tr>
-								<tr
-									><td>Equipo secundario portátil</td><td>❌</td><td>❌</td><td>✅</td><td>✅</td
-									></tr
-								>
-								<tr
-									><td>Análisis de datos</td><td>❌</td><td>❌</td><td>Intermedio</td><td
-										>🧠 Avanzado</td
-									></tr
-								>
-								<tr><td>Dispositivo</td><td colspan="4">📡 4G alta gama</td></tr>
-								<tr><td>Modalidad sin plazo</td><td>✅</td><td>✅</td><td>✅</td><td>✅</td></tr>
-								<tr><td>Modalidad 18 meses</td><td colspan="4">✅ (equipo incluido)</td></tr>
-								<tr><td>Soporte</td><td colspan="4">🛠️ Avanzado 24/7</td></tr>
-								<tr><td>Integraciones / APIs</td><td colspan="4">⚙️ Según plan</td></tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-
-				<!-- Nexus Core Migrate -->
-				<div class="comparison-table-wrapper">
-					<h3 class="table-title">🔹 NEXUS CORE MIGRATE – Migración de Flotillas</h3>
-					<div class="table-responsive">
-						<table class="comparison-table">
-							<thead><tr><th>Característica</th><th>Nexus Core Migrate</th></tr></thead>
-							<tbody>
-								<tr><td>Público objetivo</td><td>Flotillas con GPS ya instalado</td></tr>
-								<tr><td>Flotilla mínima</td><td>🚛 20 unidades</td></tr>
-								<tr><td>Precio mensual</td><td>$65 MXN por unidad</td></tr>
-								<tr><td>Licencia (única)</td><td>$150 MXN</td></tr>
-								<tr><td>Configuración (única)</td><td>$400 MXN</td></tr>
-								<tr><td>App móvil y plataforma</td><td>✅</td></tr>
-								<tr><td>Rastreo en tiempo real</td><td>✅</td></tr>
-								<tr><td>Configuración de reporteo</td><td>✅</td></tr>
-								<tr><td>Análisis avanzado opcional</td><td>+$15 MXN / unidad</td></tr>
-								<tr><td>Instalación de equipo</td><td>❌ Cliente</td></tr>
-								<tr><td>SIM y datos</td><td>❌ Cliente</td></tr>
-								<tr><td>Mantenimiento</td><td>❌ Cliente</td></tr>
-								<tr><td>Soporte</td><td>☎️ Avanzado 24/7</td></tr>
-								<tr><td>Integraciones</td><td>⚙️ Opcional</td></tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-
-				<!-- Nexus Partner -->
-				<div class="comparison-table-wrapper">
-					<h3 class="table-title">🔹 NEXUS PARTNER – Plataforma para Reventa</h3>
-					<div class="table-responsive">
-						<table class="comparison-table">
-							<thead><tr><th>Característica</th><th>Nexus Partner</th></tr></thead>
-							<tbody>
-								<tr><td>Público objetivo</td><td>Empresas de telemetría</td></tr>
-								<tr><td>Precio mensual</td><td>$2.5 USD por unidad</td></tr>
-								<tr><td>Licencia única</td><td>$100 USD</td></tr>
-								<tr><td>Plataforma de rastreo</td><td>✅</td></tr>
-								<tr><td>Servicios avanzados Nexus</td><td>❌ No incluidos</td></tr>
-								<tr><td>Histórico</td><td>6 meses</td></tr>
-								<tr><td>Expansión de histórico</td><td>💰 Con costo</td></tr>
-								<tr><td>App móvil</td><td>✅</td></tr>
-								<tr><td>Integraciones</td><td>⚙️ Limitadas</td></tr>
-								<tr><td>Soporte a partner</td><td>🛠️ Avanzado</td></tr>
-								<tr><td>Soporte a clientes finales</td><td>❌ A cargo del partner</td></tr>
-							</tbody>
-						</table>
-					</div>
-				</div>
-
-				<div class="comparison-notes">
-					<h3 class="notes-title">🧠 Notas Generales</h3>
-					<ul class="notes-list">
-						<li>Todos los planes utilizan <strong>dispositivos 4G de alta gama</strong></li>
-						<li>
-							Integraciones y desarrollos especiales <strong>requieren evaluación técnica</strong>
-						</li>
-						<li>Los costos pueden variar según volumen y personalización</li>
-						<li>Precios no incluyen IVA</li>
-					</ul>
-				</div>
-			</div>
-		</section>
-
-		<!-- 10. CTA FINAL -->
-		<section class="final-cta">
-			<div class="container">
-				<div class="cta-box">
-					<h2>¿Listo para tomar el control?</h2>
-					<p>Únete a más de 500 empresas que confían en Nexus.</p>
-					<div class="cta-actions">
-						<button class="btn-primary large">Crear Cuenta Gratis</button>
-						<button class="btn-secondary large">Agendar Demo</button>
+						</div>
+						<h4>Integración TaaS via JSON</h4>
+						<p>
+							Conecta tu hardware existente en días. Sin cambiar equipos, sin infraestructura
+							propia.
+						</p>
 					</div>
 				</div>
 			</div>
 		</section>
 
-		<!-- 11. TRUST & SUPPORT -->
-		<section class="trust-section">
+		<!-- 6. DIFFERENTIATORS -->
+		<section class="diff-section" id="diferenciadores">
 			<div class="container">
-				<div class="trust-grid">
-					<div class="trust-item">
-						<h4>Seguridad Blindada</h4>
-						<p>Tus datos viajan encriptados con AES-256. Nadie ve tu ubicación, salvo tú.</p>
-					</div>
-					<div class="trust-item">
-						<h4>Soporte Humano</h4>
-						<p>Nada de robots. Ingenieros expertos listos para ayudarte en español.</p>
-					</div>
-					<div class="trust-item">
-						<h4>Garantía de Servicio</h4>
-						<p>SLA del 99.9%. Si el sistema cae, te reembolsamos el mes.</p>
-					</div>
-				</div>
-				<div class="faq-container">
-					<h3>Preguntas Frecuentes</h3>
-					<div class="faq-grid">
-						<div class="faq-item">
-							<details>
-								<summary>¿Necesito instalar algo en mis vehículos?</summary>
-								<p>
-									Sí, instalamos un dispositivo GPS profesional oculto. La instalación toma 45 min
-									por unidad y vamos a tu domicilio.
-								</p>
-							</details>
-						</div>
-						<div class="faq-item">
-							<details>
-								<summary>¿Qué pasa si no tengo señal?</summary>
-								<p>
-									El dispositivo guarda la ubicación en memoria y la transmite en ráfaga en cuanto
-									recupera la señal. Nunca pierdes el historial.
-								</p>
-							</details>
-						</div>
-						<div class="faq-item">
-							<details>
-								<summary>¿Puedo cancelar en cualquier momento?</summary>
-								<p>Sí, nuestros planes son mensuales. No amarres ni letras chiquitas.</p>
-							</details>
+				<h2 class="section-title">Por qué Nexus y no otro</h2>
+				<p class="section-subtitle">Ventajas reales, no promesas de marketing.</p>
+
+				<div class="diff-list">
+					<div class="diff-item reveal-on-scroll">
+						<div class="diff-number">01</div>
+						<div class="diff-content">
+							<h4>Zonificación de precisión milimétrica</h4>
+							<p>
+								La mayoría de las plataformas GPS usan círculos aproximados. Nexus utiliza
+								tecnología de zonificación de siguiente generación — la misma que usan las
+								plataformas de movilidad más exigentes del mundo — para definir perímetros exactos,
+								formas complejas, sin falsos positivos.
+							</p>
 						</div>
 					</div>
-				</div>
-				<div class="payment-methods">
-					<p>Aceptamos todas las tarjetas y facturamos fiscalmente.</p>
-					<div class="card-icons">
-						<span>VISA</span><span>Mastercard</span><span>Amex</span><span>Stripe</span>
+					<div class="diff-item reveal-on-scroll">
+						<div class="diff-number">02</div>
+						<div class="diff-content">
+							<h4>Telemetría real. No solo un punto en el mapa.</h4>
+							<p>
+								Monitorea batería del vehículo, calidad de señal, consumo de combustible calculado y
+								comportamiento — datos que revelan el estado real de tu activo.
+							</p>
+						</div>
+					</div>
+					<div class="diff-item reveal-on-scroll">
+						<div class="diff-number">03</div>
+						<div class="diff-content">
+							<h4>Privacidad granular por usuario</h4>
+							<p>
+								Control exacto de qué usuario puede ver qué vehículo. Conductor, supervisor
+								regional, administrador global — cada rol tiene su vista, sin configuraciones
+								complicadas.
+							</p>
+						</div>
+					</div>
+					<div class="diff-item reveal-on-scroll">
+						<div class="diff-number">04</div>
+						<div class="diff-content">
+							<h4>App nativa. La diferencia se siente.</h4>
+							<p>
+								Nexus no es un navegador web disfrazado de app. Construida desde cero para iOS y
+								Android — mapas fluidos, notificaciones confiables, sin fricciones cuando más la
+								necesitas.
+							</p>
+						</div>
+					</div>
+					<div class="diff-item reveal-on-scroll">
+						<div class="diff-number">05</div>
+						<div class="diff-content">
+							<h4>TaaS: tu hardware, nuestra plataforma</h4>
+							<p>
+								Si ya tienes dispositivos GPS, Nexus recibe sus datos vía JSON. Sin cambiar
+								hardware, sin desarrollar app. Tu cliente ve todo desde el primer día.
+							</p>
+						</div>
 					</div>
 				</div>
+			</div>
+		</section>
+
+		<!-- 7. SOCIAL PROOF -->
+		<section class="proof-section" id="clientes">
+			<div class="container">
+				<!-- Stats Bar -->
+				<div class="stats-bar">
+					<div class="stat-item reveal-on-scroll">
+						<span class="stat-number">10,000+</span>
+						<span class="stat-label">Vehículos bajo control</span>
+					</div>
+					<div class="stat-divider"></div>
+					<div class="stat-item reveal-on-scroll">
+						<span class="stat-number">500+</span>
+						<span class="stat-label">Clientes activos</span>
+					</div>
+					<div class="stat-divider"></div>
+					<div class="stat-item reveal-on-scroll">
+						<span class="stat-number">4.8<span class="stat-star">★</span></span>
+						<span class="stat-label">Calificación en tiendas</span>
+					</div>
+				</div>
+
+				<!-- Testimonials -->
+				<div class="testimonials-grid">
+					<div class="testimonial-card reveal-on-scroll">
+						<div class="testimonial-quote">"</div>
+						<p>
+							Tengo tres hijos y dos carros que les presto. Ahora sé exactamente dónde están y me
+							avisa si se salen de la ruta. Nexus me devolvió la calma.
+						</p>
+						<div class="testimonial-author">
+							<span class="author-name">Madre de familia</span>
+							<span class="author-role">Monterrey</span>
+						</div>
+					</div>
+					<div class="testimonial-card featured reveal-on-scroll">
+						<div class="testimonial-quote">"</div>
+						<p>
+							En los primeros dos meses bajamos el desperdicio de combustible de 12% a menos del 2%.
+							Los números hablan solos.
+						</p>
+						<div class="testimonial-author">
+							<span class="author-name">Director de Operaciones</span>
+							<span class="author-role">Empresa de distribución</span>
+						</div>
+					</div>
+					<div class="testimonial-card reveal-on-scroll">
+						<div class="testimonial-quote">"</div>
+						<p>
+							Desde que pusimos Nexus, no hemos tenido un solo robo. Las zonas de alerta nos avisan
+							de madrugada si algo se mueve.
+						</p>
+						<div class="testimonial-author">
+							<span class="author-name">Gerente de Proyectos</span>
+							<span class="author-role">Constructora</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- 8. FAQ -->
+		<section class="faq-section" id="faq">
+			<div class="container">
+				<h2 class="section-title">Preguntas frecuentes</h2>
+				<p class="section-subtitle">Respuestas claras, sin rodeos.</p>
+
+				<div class="faq-tabs">
+					<button
+						class="faq-tab-btn"
+						class:active={faqTab === 'familias'}
+						onclick={() => {
+							faqTab = 'familias';
+						}}>Familias</button
+					>
+					<button
+						class="faq-tab-btn"
+						class:active={faqTab === 'flotillas'}
+						onclick={() => {
+							faqTab = 'flotillas';
+						}}>Flotillas</button
+					>
+					<button
+						class="faq-tab-btn"
+						class:active={faqTab === 'partners'}
+						onclick={() => {
+							faqTab = 'partners';
+						}}>Técnico / Partners</button
+					>
+				</div>
+
+				<div class="faq-accordion">
+					{#each faqData[faqTab] as item, i (item.q)}
+						<div class="faq-entry" class:open={openFaq[faqTab] === i}>
+							<button
+								class="faq-question"
+								onclick={() => toggleFaq(faqTab, i)}
+								aria-expanded={openFaq[faqTab] === i}
+							>
+								<span>{item.q}</span>
+								<span class="faq-chevron">{openFaq[faqTab] === i ? '−' : '+'}</span>
+							</button>
+							{#if openFaq[faqTab] === i}
+								<div class="faq-answer">
+									<p>{item.a}</p>
+								</div>
+							{/if}
+						</div>
+					{/each}
+				</div>
+			</div>
+		</section>
+
+		<!-- 9. THREE CTAs -->
+		<section class="cta-section" id="cta">
+			<div class="container">
+				<div class="cta-grid">
+					<!-- Familias CTA -->
+					<div class="cta-card reveal-on-scroll">
+						<div class="cta-icon">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline
+									points="9 22 9 12 15 12 15 22"
+								/></svg
+							>
+						</div>
+						<h3 class="cta-card-title">Para tu familia</h3>
+						<p class="cta-card-sub">
+							Descarga la app y empieza en minutos. Sin contratos forzosos.
+						</p>
+						<div class="cta-card-actions">
+							<a href="#download" class="btn-cta-store">
+								<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"
+									><path
+										d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"
+									/></svg
+								>
+								App Store
+							</a>
+							<a href="#download" class="btn-cta-store">
+								<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"
+									><path
+										d="M3.18 23.76c.3.17.65.18.96.03L16.53 12 12 7.47 3.18 23.76zm16.65-11.4L17.7 11.2 14.94 12l2.76.8 2.13-1.16c.82-.47.82-1.57 0-2.04v.76zM3.34.31c-.3-.15-.65-.14-.96.03L12 12l4.53-4.53L3.34.31zm8.13 12.17L3.18.31C2.36.78 2.36 1.88 2.36 1.88l8.82 10.6z"
+									/></svg
+								>
+								Google Play
+							</a>
+						</div>
+					</div>
+
+					<!-- Flotillas CTA -->
+					<div class="cta-card featured reveal-on-scroll">
+						<div class="cta-icon">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><rect x="1" y="3" width="15" height="13" /><polygon
+									points="16 8 20 8 23 11 23 16 16 16 16 8"
+								/><circle cx="5.5" cy="18.5" r="2.5" /><circle cx="18.5" cy="18.5" r="2.5" /></svg
+							>
+						</div>
+						<div class="cta-badge">Empieza hoy</div>
+						<h3 class="cta-card-title">Para tu flotilla</h3>
+						<p class="cta-card-sub">
+							Te mostramos cómo Nexus se adapta a tu operación — en 30 minutos.
+						</p>
+						<div class="cta-card-actions">
+							<a href="#demo-form" class="btn-cta-primary">Agendar una Demo</a>
+						</div>
+					</div>
+
+					<!-- Partners CTA -->
+					<div class="cta-card reveal-on-scroll">
+						<div class="cta-icon">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /></svg
+							>
+						</div>
+						<h3 class="cta-card-title">Para Partners</h3>
+						<p class="cta-card-sub">
+							Habla con nuestro equipo técnico y pon en marcha tu primera integración esta semana.
+						</p>
+						<div class="cta-card-actions">
+							<a href="#partner-contact" class="btn-cta-secondary">Contactar al Equipo</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- 10. LEGAL / TRANSPARENCY -->
+		<section class="legal-section reveal-on-scroll" id="legal">
+			<div class="container">
+				<h2 class="legal-heading">Transparencia y confianza</h2>
+				<p class="legal-sub">
+					En Nexus tomamos en serio la privacidad de tus datos y los de quienes monitoreas.
+				</p>
+				<nav class="legal-links" aria-label="Documentos legales">
+					<a href="/legal/terminos" class="legal-link">Términos de Uso</a>
+					<span class="legal-sep" aria-hidden="true">|</span>
+					<a href="/legal/privacidad" class="legal-link">Política de Privacidad</a>
+					<span class="legal-sep" aria-hidden="true">|</span>
+					<a href="/legal/aviso" class="legal-link">Aviso Legal</a>
+				</nav>
+				<p class="legal-note">
+					Los precios no incluyen IVA. Disponibilidad sujeta a cobertura de red en tu región. Nexus
+					es una plataforma de Geminis Labs.
+				</p>
 			</div>
 		</section>
 	</main>
