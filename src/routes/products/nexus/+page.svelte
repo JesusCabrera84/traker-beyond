@@ -11,6 +11,18 @@
 
 	let statValues = $state({ vehicles: 0, uptime: 0, rating: 0 });
 
+	let heroVideoEl = $state(null);
+	const VIDEO_LOOP_PAUSE = 4000; // ms pause before replay
+
+	function handleVideoEnd() {
+		setTimeout(() => {
+			if (heroVideoEl) {
+				heroVideoEl.currentTime = 0;
+				heroVideoEl.play();
+			}
+		}, VIDEO_LOOP_PAUSE);
+	}
+
 	let heroOpacity = $derived.by(() => {
 		if (typeof window === 'undefined') return 1;
 		const ih = window.innerHeight;
@@ -153,11 +165,26 @@
 	<main class="nx-page">
 		<!-- HERO -->
 		<section class="nx-hero">
-			<div class="nx-hero-bg" aria-hidden="true"></div>
+			<!-- Video background -->
+			<video
+				bind:this={heroVideoEl}
+				class="nx-hero-video"
+				src="/vid/nexus-animation.mp4"
+				muted
+				playsinline
+				autoplay
+				onended={handleVideoEnd}
+				aria-hidden="true"
+			></video>
+
+			<!-- Dark overlay for text legibility -->
+			<div class="nx-hero-overlay" aria-hidden="true"></div>
+
+			<!-- Subtle coordinate grid on top -->
 			<div class="nx-hero-grid" aria-hidden="true"></div>
 
 			<div class="nx-hero-inner">
-				<!-- LEFT: text block -->
+				<!-- Centered text block -->
 				<div class="nx-hero-content" style="opacity: {heroOpacity}" class:nx-hero-ready={heroReady}>
 					<div class="nx-hero-status">
 						<span class="nx-status-dot"></span>
@@ -174,8 +201,8 @@
 					</div>
 				</div>
 
-				<!-- RIGHT: radar visualization -->
-				<div class="nx-radar-wrap" aria-hidden="true">
+				<!-- radar removed — video background carries the visual -->
+				<div class="nx-radar-wrap" aria-hidden="true" style="display:none">
 					<svg
 						class="nx-radar-svg"
 						viewBox="0 0 560 560"
@@ -636,8 +663,8 @@
 
 						<div class="nx-partner-split">
 							<div class="nx-partner-col">
-								<div class="nx-partner-col-label">Lo que obtienen</div>
-								<ul class="nx-check-list">
+								<div class="nx-partner-col-label gets">Lo que obtienen</div>
+								<ul class="nx-check-list gets">
 									<li>Apps nativas (iOS, Android, Web)</li>
 									<li>Telemetría en tiempo real</li>
 									<li>Geocercas y alertas</li>
@@ -646,8 +673,8 @@
 								</ul>
 							</div>
 							<div class="nx-partner-col">
-								<div class="nx-partner-col-label">Sin necesitar</div>
-								<ul class="nx-check-list">
+								<div class="nx-partner-col-label no">Sin necesitar</div>
+								<ul class="nx-check-list no">
 									<li>Equipo de desarrollo propio</li>
 									<li>Infraestructura de servidores</li>
 									<li>Contratos mínimos anuales</li>
@@ -1018,14 +1045,14 @@
 
 				<div class="nx-faq-list">
 					{#each faqData[faqTab] as item, i (item.q)}
-						<div class="nx-faq-item">
+						<div class="nx-faq-item" class:is-open={openFaq[faqTab] === i}>
 							<button
 								class="nx-faq-q"
 								onclick={() => toggleFaq(faqTab, i)}
 								aria-expanded={openFaq[faqTab] === i}
 							>
 								<span>{item.q}</span>
-								<span class="nx-faq-chevron" class:open={openFaq[faqTab] === i}>
+								<span class="nx-faq-chevron">
 									<svg
 										viewBox="0 0 24 24"
 										fill="none"
@@ -1038,11 +1065,9 @@
 									</svg>
 								</span>
 							</button>
-							{#if openFaq[faqTab] === i}
-								<div class="nx-faq-a">
-									<p>{item.a}</p>
-								</div>
-							{/if}
+							<div class="nx-faq-a">
+								<p>{item.a}</p>
+							</div>
 						</div>
 					{/each}
 				</div>
@@ -1054,7 +1079,7 @@
 			<div class="nx-container">
 				<div class="nx-cta-grid">
 					<!-- Familias CTA -->
-					<div class="nx-cta-card nx-reveal">
+					<div class="nx-cta-card nx-cta-card--green nx-reveal">
 						<div class="nx-cta-icon">
 							<svg
 								viewBox="0 0 24 24"
@@ -1104,7 +1129,7 @@
 					</div>
 
 					<!-- Partners CTA -->
-					<div class="nx-cta-card nx-reveal">
+					<div class="nx-cta-card nx-cta-card--blue nx-reveal">
 						<div class="nx-cta-icon">
 							<svg
 								viewBox="0 0 24 24"
