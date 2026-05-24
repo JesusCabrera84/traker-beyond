@@ -28,7 +28,7 @@
 	--nx-accent-b: #0a7aff;
 	--nx-accent-c: #00ff88;
 	--nx-gradient-cta: linear-gradient(135deg, #00f3ff 0%, #0a7aff 100%);
-	--nx-card-bg: rgba(10, 22, 48, 0.75);
+	--nx-card-bg: rgba(18, 34, 62, 0.8);
 	--nx-card-border: rgba(0, 243, 255, 0.12);
 	--nx-card-border-hover: rgba(0, 243, 255, 0.32);
 	--nx-glass-blur: blur(20px);
@@ -407,7 +407,7 @@
 
 .nx-value {
 	position: relative;
-	background: #06111f;
+	background: #122234;
 	background-image:
 		radial-gradient(ellipse 100% 120% at 50% -10%, rgba(0, 243, 255, 0.12) 0%, transparent 55%),
 		radial-gradient(ellipse 40% 30% at 50% 110%, rgba(10, 122, 255, 0.06) 0%, transparent 60%);
@@ -479,7 +479,7 @@
    ============================================================= */
 
 .nx-segments {
-	background: #040c1a;
+	background: #0e1d30;
 	background-image:
 		radial-gradient(ellipse 50% 60% at 10% 60%, rgba(10, 122, 255, 0.1) 0%, transparent 55%),
 		radial-gradient(ellipse 70% 40% at 90% 10%, rgba(0, 243, 255, 0.06) 0%, transparent 55%),
@@ -501,7 +501,7 @@
 	position: relative;
 	border-radius: 20px;
 	padding: 2.5rem;
-	background: rgba(8, 18, 38, 0.85);
+	background: rgba(18, 32, 58, 0.85);
 	border: 1px solid var(--nx-card-border);
 	backdrop-filter: var(--nx-glass-blur);
 	transition:
@@ -554,7 +554,7 @@
 /* Featured (Flotillas) card */
 .nx-card--featured {
 	border-color: rgba(0, 243, 255, 0.3);
-	background: rgba(5, 15, 35, 0.9);
+	background: rgba(15, 28, 52, 0.9);
 	box-shadow:
 		0 0 0 1px rgba(0, 243, 255, 0.1),
 		0 30px 80px rgba(0, 0, 0, 0.7),
@@ -765,7 +765,7 @@
 
 .nx-features {
 	position: relative;
-	background: #070f1e;
+	background: #111f35;
 	background-image:
 		radial-gradient(ellipse 80% 50% at 50% 110%, rgba(10, 122, 255, 0.14) 0%, transparent 55%),
 		radial-gradient(ellipse 60% 30% at 80% 20%, rgba(0, 243, 255, 0.05) 0%, transparent 50%);
@@ -783,7 +783,7 @@
 
 .nx-feature-item {
 	padding: 2rem;
-	background: rgba(8, 16, 36, 0.9);
+	background: rgba(18, 30, 56, 0.9);
 	border: 1px solid rgba(10, 122, 255, 0.15);
 	border-radius: 16px;
 	transition:
@@ -864,7 +864,7 @@
 
 .nx-diff {
 	position: relative;
-	background: #030811;
+	background: #0b1828;
 	background-image:
 		radial-gradient(ellipse 40% 60% at 0% 50%, rgba(0, 243, 255, 0.06) 0%, transparent 50%),
 		radial-gradient(ellipse 30% 40% at 100% 50%, rgba(10, 122, 255, 0.04) 0%, transparent 50%);
@@ -981,7 +981,7 @@
 
 .nx-proof {
 	position: relative;
-	background: #050f0d;
+	background: #0e2220;
 	background-image:
 		radial-gradient(ellipse 90% 70% at 50% 40%, rgba(0, 255, 136, 0.1) 0%, transparent 55%),
 		radial-gradient(ellipse 50% 40% at 20% 80%, rgba(0, 243, 255, 0.06) 0%, transparent 50%),
@@ -996,8 +996,8 @@
 	grid-template-columns: repeat(3, 1fr);
 	gap: 2rem;
 	padding: 2.5rem 3rem;
-	background: rgba(0, 255, 136, 0.03);
-	border: 1px solid rgba(0, 255, 136, 0.15);
+	background: rgba(0, 255, 136, 0.05);
+	border: 1px solid rgba(0, 255, 136, 0.2);
 	border-radius: 20px;
 	margin-bottom: 3.5rem;
 	text-align: center;
@@ -1026,8 +1026,8 @@
 
 .nx-testimonial {
 	padding: 2rem;
-	background: rgba(5, 14, 12, 0.8);
-	border: 1px solid rgba(0, 255, 136, 0.08);
+	background: rgba(18, 38, 34, 0.85);
+	border: 1px solid rgba(0, 255, 136, 0.12);
 	border-radius: 16px;
 	transition:
 		border-color 0.3s ease,
@@ -1076,7 +1076,7 @@
    ============================================================= */
 
 .nx-faq {
-	background: #070a0f;
+	background: #0d1828;
 	background-image: radial-gradient(
 		ellipse 70% 50% at 50% 0%,
 		rgba(10, 122, 255, 0.07) 0%,
@@ -1209,7 +1209,7 @@
 
 .nx-ctas {
 	position: relative;
-	background: #060e20;
+	background: #101e38;
 	background-image:
 		radial-gradient(ellipse 60% 70% at 25% 50%, rgba(0, 243, 255, 0.09) 0%, transparent 55%),
 		radial-gradient(ellipse 60% 70% at 75% 50%, rgba(10, 122, 255, 0.09) 0%, transparent 55%),
@@ -1244,7 +1244,7 @@
 
 .nx-cta-card {
 	padding: 3rem 2rem;
-	background: rgba(6, 14, 32, 0.9);
+	background: rgba(18, 30, 58, 0.88);
 	border: 1px solid rgba(0, 243, 255, 0.15);
 	border-radius: 24px;
 	text-align: center;
@@ -1261,7 +1261,7 @@
 
 .nx-cta-card--featured {
 	border-color: rgba(0, 243, 255, 0.35);
-	background: rgba(4, 12, 28, 0.95);
+	background: rgba(15, 26, 50, 0.95);
 	box-shadow:
 		0 0 0 1px rgba(0, 243, 255, 0.1),
 		0 20px 60px rgba(0, 0, 0, 0.6),
@@ -1391,9 +1391,9 @@
 
 .nx-legal {
 	padding: 2rem 0;
-	border-top: 1px solid rgba(255, 255, 255, 0.05);
+	border-top: 1px solid rgba(255, 255, 255, 0.07);
 	text-align: center;
-	background: #030811;
+	background: #0a1626;
 }
 
 .nx-legal-links {
