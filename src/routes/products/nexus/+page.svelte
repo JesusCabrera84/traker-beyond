@@ -1070,126 +1070,454 @@
 
 		<!-- CTA SECTION -->
 		<section class="nx-ctas" id="demo">
-			<!-- Animated background layers -->
+			<!-- Layered premium background -->
 			<div class="nx-ctas-bg" aria-hidden="true">
-				<div class="nx-ctas-orb nx-ctas-orb--a"></div>
-				<div class="nx-ctas-orb nx-ctas-orb--b"></div>
-				<div class="nx-ctas-orb nx-ctas-orb--c"></div>
-				<div class="nx-ctas-radar">
-					<div class="nx-ctas-radar-ring"></div>
-					<div class="nx-ctas-radar-ring nx-ctas-radar-ring--b"></div>
-					<div class="nx-ctas-radar-dot"></div>
-				</div>
+				<div class="nx-ctas-depth"></div>
+				<div class="nx-ctas-dotgrid"></div>
+				<svg class="nx-ctas-net" viewBox="0 0 1200 500" preserveAspectRatio="xMidYMid slice">
+					<line
+						x1="120"
+						y1="80"
+						x2="310"
+						y2="190"
+						stroke="rgba(0,166,192,0.08)"
+						stroke-width="0.6"
+					/>
+					<line
+						x1="310"
+						y1="190"
+						x2="560"
+						y2="130"
+						stroke="rgba(0,166,192,0.06)"
+						stroke-width="0.6"
+					/>
+					<line
+						x1="560"
+						y1="130"
+						x2="780"
+						y2="260"
+						stroke="rgba(62,193,40,0.07)"
+						stroke-width="0.6"
+					/>
+					<line
+						x1="780"
+						y1="260"
+						x2="1050"
+						y2="160"
+						stroke="rgba(0,166,192,0.07)"
+						stroke-width="0.6"
+					/>
+					<line
+						x1="310"
+						y1="190"
+						x2="480"
+						y2="360"
+						stroke="rgba(0,166,192,0.05)"
+						stroke-width="0.5"
+					/>
+					<line
+						x1="480"
+						y1="360"
+						x2="700"
+						y2="400"
+						stroke="rgba(62,193,40,0.05)"
+						stroke-width="0.5"
+					/>
+					<line
+						x1="700"
+						y1="400"
+						x2="900"
+						y2="320"
+						stroke="rgba(0,166,192,0.05)"
+						stroke-width="0.5"
+					/>
+					<line
+						x1="900"
+						y1="320"
+						x2="1050"
+						y2="160"
+						stroke="rgba(0,166,192,0.06)"
+						stroke-width="0.5"
+					/>
+					<line
+						x1="120"
+						y1="80"
+						x2="480"
+						y2="360"
+						stroke="rgba(62,193,40,0.03)"
+						stroke-width="0.4"
+						stroke-dasharray="4 6"
+					/>
+					<line
+						x1="1050"
+						y1="160"
+						x2="1150"
+						y2="380"
+						stroke="rgba(0,166,192,0.05)"
+						stroke-width="0.5"
+					/>
+					<circle cx="120" cy="80" r="3" fill="rgba(0,166,192,0.5)" />
+					<circle cx="120" cy="80" r="7" fill="rgba(0,166,192,0.08)" />
+					<circle cx="310" cy="190" r="3.5" fill="rgba(62,193,40,0.6)" />
+					<circle cx="310" cy="190" r="9" fill="rgba(62,193,40,0.07)" />
+					<circle cx="560" cy="130" r="2.5" fill="rgba(0,166,192,0.4)" />
+					<circle cx="560" cy="130" r="6" fill="rgba(0,166,192,0.06)" />
+					<circle cx="480" cy="360" r="3" fill="rgba(0,166,192,0.35)" />
+					<circle cx="480" cy="360" r="7" fill="rgba(0,166,192,0.05)" />
+					<circle cx="780" cy="260" r="2.5" fill="rgba(62,193,40,0.4)" />
+					<circle cx="780" cy="260" r="6" fill="rgba(62,193,40,0.06)" />
+					<circle cx="700" cy="400" r="2" fill="rgba(0,166,192,0.3)" />
+					<circle cx="900" cy="320" r="3" fill="rgba(0,166,192,0.4)" />
+					<circle cx="900" cy="320" r="7" fill="rgba(0,166,192,0.05)" />
+					<circle cx="1050" cy="160" r="4" fill="rgba(62,193,40,0.55)" />
+					<circle cx="1050" cy="160" r="10" fill="rgba(62,193,40,0.07)" />
+					<circle cx="1150" cy="380" r="2" fill="rgba(0,166,192,0.25)" />
+					<circle r="2" fill="rgba(0,166,192,0.9)">
+						<animateMotion dur="4s" repeatCount="indefinite" path="M120,80 Q220,135 310,190" />
+					</circle>
+					<circle r="1.5" fill="rgba(62,193,40,0.9)">
+						<animateMotion
+							dur="5.5s"
+							repeatCount="indefinite"
+							begin="1s"
+							path="M310,190 Q435,175 560,130"
+						/>
+					</circle>
+					<circle r="2" fill="rgba(0,166,192,0.8)">
+						<animateMotion
+							dur="6s"
+							repeatCount="indefinite"
+							begin="2.5s"
+							path="M780,260 Q915,210 1050,160"
+						/>
+					</circle>
+				</svg>
+				<div class="nx-ctas-glow nx-ctas-glow--cyan"></div>
+				<div class="nx-ctas-glow nx-ctas-glow--green"></div>
+				<div class="nx-ctas-glow nx-ctas-glow--deep"></div>
+				<div class="nx-ctas-vignette"></div>
 			</div>
 			<div class="nx-container">
 				<div class="nx-section-header nx-reveal">
 					<p class="nx-overline">Empieza hoy</p>
-					<h2 class="nx-section-title">Nexus, a tu medida</h2>
-					<p class="nx-section-sub">Elige el plan que se adapta a tu caso de uso.</p>
+					<h2 class="nx-section-title">Una plataforma. Tres formas de usarla.</h2>
+					<p class="nx-section-sub">Elige la experiencia que mejor se adapta a tu operación.</p>
 				</div>
 
 				<div class="nx-cta-grid">
-					<!-- Familias CTA -->
-					<div class="nx-cta-card nx-cta-card--green nx-reveal">
-						<div class="nx-cta-img-header">
-							<img
-								src="/img/products/nexus/nexus-cta-familia.jpeg"
-								alt="Protección familiar conectada"
-							/>
+					<!-- ── FAMILIA ──────────────────────────────── -->
+					<div class="nx-cta-card nx-cta-card--familia nx-reveal">
+						<div class="nx-cta-visual nx-cta-visual--familia" aria-hidden="true">
+							<div class="nx-cta-visual-bg"></div>
+							<!-- iPhone mockup -->
+							<div class="nx-mock-phone">
+								<div class="nx-mock-phone-notch"></div>
+								<div class="nx-mock-phone-screen">
+									<div class="nx-mock-map">
+										<div class="nx-mock-map-grid"></div>
+										<svg class="nx-mock-route" viewBox="0 0 160 120" fill="none">
+											<path
+												d="M20 95 Q40 70 60 65 Q90 58 110 40 Q130 25 145 20"
+												stroke="rgba(0,255,136,0.7)"
+												stroke-width="2"
+												stroke-dasharray="4 3"
+												stroke-linecap="round"
+											/>
+											<circle
+												cx="20"
+												cy="95"
+												r="4"
+												fill="rgba(0,255,136,0.3)"
+												stroke="rgba(0,255,136,0.8)"
+												stroke-width="1.5"
+											/>
+											<circle cx="145" cy="20" r="5" fill="#00ff88" />
+											<circle
+												cx="145"
+												cy="20"
+												r="10"
+												fill="rgba(0,255,136,0.15)"
+												class="nx-mock-ping"
+											/>
+										</svg>
+									</div>
+									<div class="nx-mock-statusbar">
+										<span>Nexus</span>
+										<span class="nx-mock-live">● LIVE</span>
+									</div>
+									<div class="nx-mock-pill">
+										<div class="nx-mock-pill-dot"></div>
+										<div>
+											<div class="nx-mock-pill-label">Toyota RAV4</div>
+											<div class="nx-mock-pill-sub">En movimiento · 62 km/h</div>
+										</div>
+									</div>
+								</div>
+							</div>
+							<div class="nx-cta-visual-glow"></div>
 						</div>
 						<div class="nx-cta-body">
-							<div class="nx-cta-icon">
-								<svg
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="1.5"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								>
-									<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-									<polyline points="9 22 9 12 15 12 15 22" />
-									<circle cx="18" cy="5" r="2" fill="currentColor" opacity="0.4" />
-								</svg>
+							<div class="nx-cta-header">
+								<div class="nx-cta-icon">
+									<svg
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.5"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									>
+										<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+										<polyline points="9 22 9 12 15 12 15 22" />
+									</svg>
+								</div>
+								<div class="nx-cta-segment-label">Para familias</div>
 							</div>
-							<h3 class="nx-cta-title">Para tu familia</h3>
+							<h3 class="nx-cta-title">Protege lo que más importa</h3>
 							<p class="nx-cta-desc">
-								Protege a los tuyos y a tus vehículos — alertas en tiempo real, sin contratos
-								forzosos.
+								Alertas en tiempo real, geocercas y rastreo activo. Sin contratos forzosos.
 							</p>
+							<ul class="nx-cta-bullets">
+								<li>Alertas inmediatas de movimiento</li>
+								<li>Geocercas inteligentes</li>
+								<li>Historial de recorridos</li>
+								<li>App iOS y Android incluida</li>
+							</ul>
 							<div class="nx-cta-actions">
-								<a href="#contacto" class="btn-nx-primary">Quiero proteger mi vehículo</a>
-								<p class="nx-cta-download-note">
-									Descarga la app gratis: <a href="#download" class="nx-cta-link-sm">App Store</a> ·
+								<a href="#contacto" class="nx-cta-btn nx-cta-btn--familia"
+									>Quiero proteger mi vehículo</a
+								>
+								<p class="nx-cta-sub-note">
+									Descarga gratis: <a href="#download" class="nx-cta-link-sm">App Store</a> ·
 									<a href="#download" class="nx-cta-link-sm">Google Play</a>
 								</p>
 							</div>
 						</div>
 					</div>
 
-					<!-- Flotillas CTA (featured) -->
-					<div class="nx-cta-card nx-cta-card--featured nx-reveal">
-						<div class="nx-cta-img-header">
-							<img
-								src="/img/products/nexus/nexus-cta-flotilla.jpeg"
-								alt="Crecimiento de flotilla"
-							/>
+					<!-- ── FLOTILLA (featured) ───────────────────── -->
+					<div class="nx-cta-card nx-cta-card--flotilla nx-cta-card--featured nx-reveal">
+						<div class="nx-cta-badge">Más popular</div>
+						<div class="nx-cta-visual nx-cta-visual--flotilla" aria-hidden="true">
+							<div class="nx-cta-visual-bg"></div>
+							<div class="nx-mock-dash">
+								<div class="nx-mock-dash-bar">
+									<span class="nx-mock-dash-title">Fleet Overview</span>
+									<span class="nx-mock-dash-badge">14 activas</span>
+								</div>
+								<div class="nx-mock-metrics">
+									<div class="nx-mock-metric">
+										<span class="nx-mock-metric-val">14</span>
+										<span class="nx-mock-metric-lbl">En ruta</span>
+									</div>
+									<div class="nx-mock-metric nx-mock-metric--warn">
+										<span class="nx-mock-metric-val">2</span>
+										<span class="nx-mock-metric-lbl">Alertas</span>
+									</div>
+									<div class="nx-mock-metric">
+										<span class="nx-mock-metric-val">98%</span>
+										<span class="nx-mock-metric-lbl">Uptime</span>
+									</div>
+								</div>
+								<div class="nx-mock-fleet-map">
+									<div class="nx-mock-map-grid"></div>
+									<svg class="nx-mock-fleet-svg" viewBox="0 0 220 80" fill="none">
+										<path
+											d="M10 50 Q50 30 90 35 Q130 40 170 20 Q195 12 210 15"
+											stroke="rgba(249,115,22,0.3)"
+											stroke-width="1.5"
+											stroke-dasharray="3 2"
+										/>
+										<circle cx="45" cy="35" r="4" fill="#f97316" />
+										<circle cx="45" cy="35" r="8" fill="rgba(249,115,22,0.15)" />
+										<circle cx="90" cy="32" r="4" fill="#f97316" />
+										<circle cx="130" cy="28" r="4" fill="#f97316" />
+										<circle cx="170" cy="18" r="4" fill="#f59e0b" />
+										<circle cx="170" cy="18" r="8" fill="rgba(245,158,11,0.15)" />
+										<circle cx="60" cy="55" r="3.5" fill="#f97316" />
+										<circle cx="155" cy="45" r="3.5" fill="#f97316" />
+									</svg>
+								</div>
+								<div class="nx-mock-alert-row">
+									<div class="nx-mock-alert-dot"></div>
+									<span class="nx-mock-alert-text">Unidad 07 — geocerca violation · hace 2 min</span
+									>
+								</div>
+							</div>
+							<div class="nx-cta-visual-glow"></div>
 						</div>
 						<div class="nx-cta-body">
-							<div class="nx-cta-icon">
-								<svg
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="1.5"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								>
-									<rect x="1" y="3" width="15" height="13" />
-									<polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-									<circle cx="5.5" cy="18.5" r="2.5" />
-									<circle cx="18.5" cy="18.5" r="2.5" />
-								</svg>
+							<div class="nx-cta-header">
+								<div class="nx-cta-icon">
+									<svg
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.5"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									>
+										<rect x="1" y="3" width="15" height="13" />
+										<polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+										<circle cx="5.5" cy="18.5" r="2.5" />
+										<circle cx="18.5" cy="18.5" r="2.5" />
+									</svg>
+								</div>
+								<div class="nx-cta-segment-label">Para flotillas</div>
 							</div>
-							<h3 class="nx-cta-title">Para tu flotilla</h3>
+							<h3 class="nx-cta-title">Visibilidad total de tu operación</h3>
 							<p class="nx-cta-desc">
-								Te mostramos cómo Nexus se adapta a tu operación exacta — en 30 minutos.
+								Monitoreo en tiempo real, reportes automáticos y alertas inteligentes. Diseñado para
+								escalar.
 							</p>
+							<ul class="nx-cta-bullets">
+								<li>Dashboard en tiempo real</li>
+								<li>Alertas y geocercas por unidad</li>
+								<li>Reportes automáticos</li>
+								<li>Multiusuario con roles</li>
+								<li>API e integraciones disponibles</li>
+							</ul>
 							<div class="nx-cta-actions">
-								<a href="#contacto" class="btn-nx-primary">Quiero una demo para mi flotilla</a>
+								<a href="#contacto" class="nx-cta-btn nx-cta-btn--flotilla"
+									>Ver demo en 30 minutos</a
+								>
 							</div>
 						</div>
 					</div>
 
-					<!-- Partners CTA -->
-					<div class="nx-cta-card nx-reveal">
-						<div class="nx-cta-img-header">
-							<img
-								src="/img/products/nexus/nexus-cta-taas.jpeg"
-								alt="Integración técnica como servicio"
-							/>
+					<!-- ── PARTNERS / TaaS ───────────────────────── -->
+					<div class="nx-cta-card nx-cta-card--partners nx-reveal">
+						<div class="nx-cta-visual nx-cta-visual--taas" aria-hidden="true">
+							<div class="nx-cta-visual-bg"></div>
+							<div class="nx-mock-arch">
+								<div class="nx-arch-node nx-arch-node--top">
+									<svg viewBox="0 0 16 16" fill="none"
+										><rect
+											x="1"
+											y="4"
+											width="14"
+											height="9"
+											rx="2"
+											stroke="currentColor"
+											stroke-width="1.2"
+										/><path
+											d="M5 4V2M11 4V2"
+											stroke="currentColor"
+											stroke-width="1.2"
+											stroke-linecap="round"
+										/><circle cx="4" cy="9" r="1.2" fill="currentColor" opacity="0.5" /><circle
+											cx="8"
+											cy="9"
+											r="1.2"
+											fill="currentColor"
+											opacity="0.5"
+										/></svg
+									>
+									<span>Device / Hardware</span>
+									<span class="nx-arch-status"></span>
+								</div>
+								<div class="nx-arch-connector">
+									<div class="nx-arch-line"></div>
+									<span class="nx-arch-proto">TCP · MQTT</span>
+									<div class="nx-arch-line"></div>
+								</div>
+								<div class="nx-arch-node nx-arch-node--mid">
+									<svg viewBox="0 0 16 16" fill="none"
+										><path
+											d="M8 1v14M1 8h14"
+											stroke="currentColor"
+											stroke-width="1.2"
+											stroke-linecap="round"
+											opacity="0.4"
+										/><circle cx="8" cy="8" r="4" stroke="currentColor" stroke-width="1.2" /></svg
+									>
+									<span>Geminis Ingestion</span>
+								</div>
+								<div class="nx-arch-connector">
+									<div class="nx-arch-line"></div>
+									<span class="nx-arch-proto">Processing</span>
+									<div class="nx-arch-line"></div>
+								</div>
+								<div class="nx-arch-node nx-arch-node--mid">
+									<svg viewBox="0 0 16 16" fill="none"
+										><rect
+											x="1"
+											y="1"
+											width="14"
+											height="14"
+											rx="2"
+											stroke="currentColor"
+											stroke-width="1.2"
+										/><path
+											d="M4 5.5h8M4 8h6M4 10.5h4"
+											stroke="currentColor"
+											stroke-width="1.2"
+											stroke-linecap="round"
+										/></svg
+									>
+									<span>REST API · Webhooks</span>
+								</div>
+								<div class="nx-arch-connector"><div class="nx-arch-line"></div></div>
+								<div class="nx-arch-outputs">
+									<span class="nx-arch-output-chip">Web</span>
+									<span class="nx-arch-output-chip">Mobile</span>
+									<span class="nx-arch-output-chip nx-arch-output-chip--accent">White-label</span>
+								</div>
+							</div>
+							<svg class="nx-arch-pulse-svg" viewBox="0 0 200 220" aria-hidden="true">
+								<defs
+									><filter id="arch-glow"
+										><feGaussianBlur stdDeviation="1.5" result="b" /><feMerge
+											><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge
+										></filter
+									></defs
+								>
+								<circle r="2" fill="rgba(167,139,250,0.90)" filter="url(#arch-glow)">
+									<animateMotion dur="2.2s" repeatCount="indefinite" path="M100,18 L100,195" />
+								</circle>
+								<circle r="1.5" fill="rgba(109,40,217,0.75)">
+									<animateMotion
+										dur="2.2s"
+										repeatCount="indefinite"
+										begin="1.1s"
+										path="M100,18 L100,195"
+									/>
+								</circle>
+							</svg>
+							<div class="nx-cta-visual-glow"></div>
 						</div>
 						<div class="nx-cta-body">
-							<div class="nx-cta-icon">
-								<svg
-									viewBox="0 0 24 24"
-									fill="none"
-									stroke="currentColor"
-									stroke-width="1.5"
-									stroke-linecap="round"
-									stroke-linejoin="round"
-								>
-									<polyline points="16 18 22 12 16 6" />
-									<polyline points="8 6 2 12 8 18" />
-									<circle cx="12" cy="12" r="2" fill="currentColor" opacity="0.4" />
-								</svg>
+							<div class="nx-cta-header">
+								<div class="nx-cta-icon">
+									<svg
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.5"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									>
+										<polyline points="16 18 22 12 16 6" />
+										<polyline points="8 6 2 12 8 18" />
+										<circle cx="12" cy="12" r="2" fill="currentColor" opacity="0.4" />
+									</svg>
+								</div>
+								<div class="nx-cta-segment-label">Para partners</div>
 							</div>
-							<h3 class="nx-cta-title">Para Partners y Distribuidores</h3>
+							<h3 class="nx-cta-title">Tu hardware. Nuestra infraestructura.</h3>
 							<p class="nx-cta-desc">
-								Habla con nuestro equipo técnico y pon en marcha tu primera integración esta semana.
+								Conecta tu hardware a Geminis TaaS y lanza tu servicio esta semana.
 							</p>
+							<ul class="nx-cta-bullets">
+								<li>TCP, MQTT y REST API</li>
+								<li>White-label disponible</li>
+								<li>Webhooks e integraciones</li>
+								<li>Onboarding técnico incluido</li>
+							</ul>
 							<div class="nx-cta-actions">
-								<a href="#contacto" class="btn-nx-primary">Hablar sobre integración</a>
+								<a href="#contacto" class="nx-cta-btn nx-cta-btn--partners"
+									>Hablar sobre integración</a
+								>
 							</div>
 						</div>
 					</div>
