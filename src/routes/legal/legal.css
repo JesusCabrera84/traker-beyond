@@ -1,0 +1,454 @@
+/* =============================================================
+   TERMS OF SERVICE — Standalone light document design
+   Scoped to .tos-page — does not inherit dark theme tokens
+   ============================================================= */
+
+.tos-page {
+	background: #f8fafc;
+	color: #0f172a;
+	font-family: 'Outfit', sans-serif;
+	min-height: 100vh;
+}
+
+/* ── Page header ───────────────────────────────────────────── */
+.tos-hero {
+	background: #ffffff;
+	border-bottom: 1px solid #e2e8f0;
+	padding: 4rem 2rem 3rem;
+}
+
+.tos-hero-inner {
+	max-width: 1100px;
+	margin: 0 auto;
+}
+
+.tos-eyebrow {
+	font-family: 'Outfit', sans-serif;
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: #3ec128;
+	display: block;
+	margin-bottom: 1rem;
+}
+
+.tos-h1 {
+	font-family: 'Audiowide', sans-serif;
+	font-size: clamp(1.5rem, 4vw, 2rem);
+	font-weight: 700;
+	color: #0f172a;
+	margin: 0 0 1.25rem;
+	letter-spacing: -0.01em;
+}
+
+.tos-meta {
+	display: flex;
+	align-items: center;
+	gap: 1.25rem;
+	flex-wrap: wrap;
+}
+
+.tos-meta-item {
+	font-size: 0.8125rem;
+	color: #94a3b8;
+	font-family: 'Outfit', sans-serif;
+}
+
+.tos-meta-sep {
+	color: #e2e8f0;
+	font-size: 0.8125rem;
+}
+
+/* ── Main layout ───────────────────────────────────────────── */
+.tos-body {
+	max-width: 1100px;
+	margin: 0 auto;
+	padding: 3rem 2rem 6rem;
+	display: grid;
+	grid-template-columns: 220px 1fr;
+	gap: 5rem;
+	align-items: start;
+}
+
+/* ── Sticky Table of Contents ──────────────────────────────── */
+.tos-toc {
+	position: sticky;
+	top: 88px;
+	max-height: calc(100vh - 108px);
+	overflow-y: auto;
+	scrollbar-width: none;
+}
+
+.tos-toc::-webkit-scrollbar {
+	display: none;
+}
+
+.tos-toc-label {
+	font-size: 0.6875rem;
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+	color: #94a3b8;
+	display: block;
+	margin-bottom: 0.875rem;
+}
+
+.tos-toc-list {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	border-left: 1px solid #e2e8f0;
+}
+
+.tos-toc-list li a {
+	display: block;
+	padding: 0.35rem 0.75rem;
+	font-size: 0.8rem;
+	color: #64748b;
+	text-decoration: none;
+	line-height: 1.5;
+	border-left: 3px solid transparent;
+	margin-left: -1px;
+	transition:
+		color 0.2s ease,
+		border-color 0.2s ease,
+		background 0.2s ease;
+}
+
+.tos-toc-list li a:hover {
+	color: #267a18;
+}
+
+.tos-toc-list li a.is-active {
+	color: #267a18;
+	font-weight: 600;
+	border-left-color: #3ec128;
+	background: rgba(62, 193, 40, 0.06);
+	border-radius: 0 4px 4px 0;
+}
+
+/* ── Content column ────────────────────────────────────────── */
+.tos-content {
+	min-width: 0;
+}
+
+/* Intro block */
+.tos-intro {
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 2rem 2.25rem;
+	margin-bottom: 2.5rem;
+}
+
+.tos-intro p {
+	font-size: 1.0625rem;
+	color: #475569;
+	line-height: 1.8;
+	margin: 0 0 1rem;
+}
+
+.tos-intro p:last-child {
+	margin-bottom: 0;
+}
+
+.tos-intro ul {
+	margin: 0.5rem 0 1rem 0;
+	padding-left: 1.25rem;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0.25rem 1.5rem;
+}
+
+.tos-intro ul li {
+	font-size: 0.9375rem;
+	color: #475569;
+	line-height: 1.7;
+	list-style: none;
+	padding-left: 1rem;
+	position: relative;
+}
+
+.tos-intro ul li::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 0.55em;
+	width: 5px;
+	height: 5px;
+	background: #3ec128;
+	border-radius: 1px;
+	transform: rotate(45deg);
+}
+
+.tos-accept {
+	background: rgba(62, 193, 40, 0.06);
+	border: 1px solid rgba(62, 193, 40, 0.2);
+	border-radius: 8px;
+	padding: 1rem 1.25rem;
+	font-size: 0.9375rem;
+	color: #1e3a1a;
+	line-height: 1.65;
+	margin-top: 1.25rem;
+}
+
+/* ── Individual section ────────────────────────────────────── */
+/* Override the global section rule in login-page.css (display:flex, min-height:100vh) */
+.tos-page section {
+	display: block !important;
+	min-height: 0 !important;
+	align-items: unset !important;
+	justify-content: unset !important;
+	contain: unset !important;
+	padding: 0 !important;
+}
+
+.tos-section {
+	margin-bottom: 3rem;
+	padding-bottom: 3rem;
+	border-bottom: 1px solid #e2e8f0;
+	scroll-margin-top: 100px;
+}
+
+.tos-section:last-child {
+	border-bottom: none;
+	margin-bottom: 0;
+}
+
+.tos-section-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	border-radius: 8px;
+	background: #edfaea;
+	border: 1px solid rgba(62, 193, 40, 0.22);
+	font-family: 'JetBrains Mono', 'Courier New', monospace;
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: #267a18;
+	letter-spacing: 0.02em;
+	margin-bottom: 0.625rem;
+	flex-shrink: 0;
+}
+
+.tos-section h2 {
+	font-family: 'Audiowide', sans-serif;
+	font-size: 1.1875rem;
+	font-weight: 700;
+	color: #0f172a;
+	margin: 0 0 1.25rem;
+	letter-spacing: -0.01em;
+	border-left: 3px solid #3ec128;
+	padding-left: 0.875rem;
+}
+
+/* Sub-section headings (1.1, 1.2, etc.) */
+.tos-section h3 {
+	font-family: 'Outfit', sans-serif;
+	font-size: 0.9375rem;
+	font-weight: 700;
+	color: #1e3a52;
+	margin: 2rem 0 0.75rem;
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.tos-subsection-num {
+	font-family: 'JetBrains Mono', 'Courier New', monospace;
+	font-size: 0.72rem;
+	font-weight: 600;
+	color: #267a18;
+	background: #edfaea;
+	border: 1px solid rgba(62, 193, 40, 0.2);
+	border-radius: 5px;
+	padding: 0.15em 0.45em;
+	flex-shrink: 0;
+}
+
+.tos-section p {
+	font-size: 1rem;
+	color: #0f172a;
+	line-height: 1.8;
+	margin: 0 0 1rem;
+}
+
+.tos-section p:last-child {
+	margin-bottom: 0;
+}
+
+.tos-section ul,
+.tos-section ol {
+	margin: 0.5rem 0 1rem;
+	padding-left: 1.25rem;
+}
+
+.tos-section ul li,
+.tos-section ol li {
+	font-size: 0.9375rem;
+	color: #334155;
+	line-height: 1.7;
+	margin-bottom: 0.375rem;
+	list-style: none;
+	padding-left: 1rem;
+	position: relative;
+}
+
+.tos-section ul li::before {
+	content: '';
+	position: absolute;
+	left: 0;
+	top: 0.58em;
+	width: 5px;
+	height: 5px;
+	background: #3ec128;
+	border-radius: 1px;
+	transform: rotate(45deg);
+}
+
+.tos-section strong {
+	font-weight: 700;
+	color: #0f172a;
+}
+
+.tos-section a {
+	color: #267a18;
+	text-decoration: underline;
+	text-underline-offset: 3px;
+	transition: color 0.2s ease;
+}
+
+.tos-section a:hover {
+	color: #3ec128;
+}
+
+/* ── Callout / Warning box ─────────────────────────────────── */
+.tos-callout {
+	background: #fffbeb;
+	border-left: 4px solid #f59e0b;
+	border-radius: 0 8px 8px 0;
+	padding: 1.25rem 1.5rem;
+	margin: 1.5rem 0;
+	display: flex;
+	gap: 0.875rem;
+	align-items: flex-start;
+}
+
+.tos-callout-icon {
+	flex-shrink: 0;
+	width: 20px;
+	height: 20px;
+	color: #f59e0b;
+	margin-top: 0.1rem;
+}
+
+.tos-callout-body {
+	flex: 1;
+}
+
+.tos-callout-title {
+	font-size: 0.9375rem;
+	font-weight: 700;
+	color: #92400e;
+	margin: 0 0 0.5rem;
+}
+
+.tos-callout-text {
+	font-size: 0.9375rem;
+	color: #78350f;
+	line-height: 1.6;
+	margin: 0;
+}
+
+.tos-callout-text ul {
+	margin: 0.5rem 0 0;
+	padding-left: 1.25rem;
+}
+
+.tos-callout-text ul li {
+	font-size: 0.9rem;
+	color: #78350f;
+	margin-bottom: 0.25rem;
+	list-style: disc;
+	padding-left: 0;
+}
+
+.tos-callout-text ul li::before {
+	display: none;
+}
+
+/* ── Contact / Operator box ────────────────────────────────── */
+.tos-contact-box {
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	padding: 1.5rem 2rem;
+	margin-top: 1rem;
+}
+
+.tos-contact-box p {
+	margin: 0 0 0.5rem;
+	font-size: 0.9375rem;
+	color: #475569;
+}
+
+.tos-contact-box p:last-child {
+	margin-bottom: 0;
+}
+
+.tos-contact-box a {
+	font-weight: 600;
+}
+
+.tos-placeholder {
+	background: #fef3c7;
+	color: #92400e;
+	padding: 0.1em 0.4em;
+	border-radius: 4px;
+	font-size: 0.875em;
+	font-family: 'JetBrains Mono', monospace;
+}
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 1023px) {
+	.tos-body {
+		grid-template-columns: 1fr;
+		gap: 0;
+		padding: 2rem 1.5rem 4rem;
+	}
+
+	.tos-toc {
+		display: none;
+	}
+}
+
+@media (max-width: 640px) {
+	.tos-hero {
+		padding: 3rem 1.25rem 2rem;
+	}
+
+	.tos-intro {
+		padding: 1.5rem 1.25rem;
+		border-radius: 8px;
+	}
+
+	.tos-intro ul {
+		grid-template-columns: 1fr;
+	}
+
+	.tos-section h2 {
+		font-size: 1.05rem;
+	}
+
+	.tos-section {
+		margin-bottom: 2rem;
+		padding-bottom: 2rem;
+	}
+
+	.tos-body {
+		padding: 1.5rem 1.25rem 3rem;
+	}
+}

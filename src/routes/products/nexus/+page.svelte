@@ -1,5 +1,6 @@
 <script>
 	import Navbar from '$lib/components/Navbar.svelte';
+	import Footer from '$lib/components/Footer.svelte';
 	import { onMount, tick } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { fly } from 'svelte/transition';
@@ -1300,22 +1301,6 @@
 				</div>
 			</div>
 		</section>
-
-		<!-- LEGAL -->
-		<div class="nx-legal">
-			<div class="nx-container">
-				<nav class="nx-legal-links" aria-label="Documentos legales">
-					<a href="/legal/terminos">Términos de Uso</a>
-					<span class="nx-legal-sep" aria-hidden="true">·</span>
-					<a href="/legal/privacidad">Política de Privacidad</a>
-					<span class="nx-legal-sep" aria-hidden="true">·</span>
-					<a href="/legal/aviso">Aviso Legal</a>
-				</nav>
-				<p class="nx-legal-note">
-					Los precios no incluyen IVA. Disponibilidad sujeta a cobertura de red. Nexus es una
-					plataforma de Geminis Labs.
-				</p>
-			</div>
-		</div>
 	</main>
+	<Footer />
 </div>

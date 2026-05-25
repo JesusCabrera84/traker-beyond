@@ -1516,49 +1516,6 @@ section.nx-audience-content {
 }
 
 /* =============================================================
-   LEGAL — .nx-legal
-   ============================================================= */
-
-.nx-legal {
-	padding: 2rem 0;
-	border-top: 1px solid rgba(255, 255, 255, 0.07);
-	text-align: center;
-	background: #0a1626;
-}
-
-.nx-legal-links {
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 1rem;
-	flex-wrap: wrap;
-	margin-bottom: 0.75rem;
-}
-
-.nx-legal-links a {
-	color: var(--nx-text-muted);
-	font-size: 0.82rem;
-	text-decoration: none;
-	transition: color 0.2s ease;
-}
-
-.nx-legal-links a:hover {
-	color: var(--nx-accent-a);
-}
-
-.nx-legal-sep {
-	color: rgba(255, 255, 255, 0.12);
-	font-size: 0.8rem;
-}
-
-.nx-legal-note {
-	font-size: 0.75rem;
-	color: var(--nx-text-muted);
-	max-width: 480px;
-	margin: 0 auto;
-}
-
-/* =============================================================
    BUTTONS
    ============================================================= */
 

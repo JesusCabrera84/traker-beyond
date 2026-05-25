@@ -1,7 +1,6 @@
 <script>
 	import { page } from '$app/stores';
 
-	// Helper function for hash links
 	function getLinkHref(hash) {
 		if ($page.url.pathname === '/') {
 			return hash;
@@ -11,115 +10,203 @@
 </script>
 
 <footer class="footer">
-	<div class="container-padding container">
-		<div class="footer-content">
-			<div class="footer-section">
-				<h3>Geminis Labs</h3>
-				<p>Tecnología avanzada de monitoreo GPS para un mundo conectado.</p>
+	<div class="footer-inner">
+		<!-- Top: brand + 4 columns -->
+		<div class="footer-top">
+			<!-- Brand -->
+			<div class="footer-brand">
+				<span class="footer-logo">Geminis Labs</span>
+				<p class="footer-tagline">Tecnología avanzada de monitoreo GPS para un mundo conectado.</p>
 			</div>
-			<div class="footer-section">
-				<h4>Servicios</h4>
-				<ul>
-					<li><a href={getLinkHref('#servicios')}>Localización Celular</a></li>
-					<li><a href={getLinkHref('#servicios')}>Monitoreo Vehicular</a></li>
-					<li><a href={getLinkHref('#servicios')}>Consultoría Tecnológica</a></li>
-					<li><a href={getLinkHref('#servicios')}>Análisis de Riesgos</a></li>
+
+			<!-- Productos -->
+			<div class="footer-col">
+				<h4 class="footer-col-title">Productos</h4>
+				<ul class="footer-links">
+					<li><a href="/products/nexus">Nexus</a></li>
+					<li><a href="/products/orion">Orion</a></li>
 				</ul>
 			</div>
-			<div class="footer-section">
-				<h4>Empresa</h4>
-				<ul>
+
+			<!-- Empresa -->
+			<div class="footer-col">
+				<h4 class="footer-col-title">Empresa</h4>
+				<ul class="footer-links">
 					<li><a href={getLinkHref('#nosotros')}>Quiénes Somos</a></li>
 					<li><a href={getLinkHref('#contacto')}>Contacto</a></li>
-					<li><a href="/privacidad" aria-label="Política de Privacidad">Privacidad</a></li>
+				</ul>
+			</div>
+
+			<!-- Recursos -->
+			<div class="footer-col">
+				<h4 class="footer-col-title">Recursos</h4>
+				<ul class="footer-links">
+					<li><a href="/faq">FAQ</a></li>
+					<li><a href="/docs">Documentación</a></li>
+				</ul>
+			</div>
+
+			<!-- Legal -->
+			<div class="footer-col">
+				<h4 class="footer-col-title">Legal</h4>
+				<ul class="footer-links">
+					<li><a href="/legal/privacidad">Política de Privacidad</a></li>
+					<li><a href="/legal/terminos">Términos de Uso</a></li>
+					<li><a href="/legal/aviso-legal">Aviso Legal</a></li>
 				</ul>
 			</div>
 		</div>
+
+		<!-- Bottom bar -->
 		<div class="footer-bottom">
-			<p>&copy; 2025 Geminis Labs. Todos los derechos reservados.</p>
+			<p class="footer-copy">&copy; 2026 Geminis Labs &middot; Todos los derechos reservados</p>
+			<p class="footer-disclaimer">
+				Los servicios pueden depender de conectividad, hardware y terceros.
+			</p>
 		</div>
 	</div>
 </footer>
 
 <style>
-	/* Footer Styles */
 	.footer {
 		background: #0b1016;
 		color: #ffffff;
-		padding: 4rem 0 2rem;
-		border-top: 1px solid rgba(255, 255, 255, 0.05);
+		border-top: 1px solid rgba(255, 255, 255, 0.06);
 	}
 
-	.footer-content {
+	.footer-inner {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 4rem 2rem 0;
+	}
+
+	/* ── Top grid ───────────────────────────────────────────── */
+	.footer-top {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-		gap: 3rem;
-		margin-bottom: 3rem;
+		grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
+		gap: 2.5rem;
+		padding-bottom: 3rem;
 	}
 
-	.footer-section h3 {
+	.footer-brand {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.footer-logo {
 		font-family: 'Audiowide', sans-serif;
-		font-size: 1.5rem;
-		margin-bottom: 1rem;
+		font-size: 1.2rem;
 		color: #ffffff;
+		letter-spacing: 0.02em;
 	}
 
-	.footer-section h4 {
-		font-size: 1.1rem;
-		margin-bottom: 1.2rem;
-		color: #00a6c0;
+	.footer-tagline {
+		font-size: 0.875rem;
+		color: #6b7280;
+		line-height: 1.65;
+		max-width: 220px;
+	}
+
+	/* ── Column ─────────────────────────────────────────────── */
+	.footer-col-title {
+		font-size: 0.6875rem;
+		font-weight: 700;
+		letter-spacing: 0.1em;
 		text-transform: uppercase;
-		letter-spacing: 1px;
+		color: #00a6c0;
+		margin: 0 0 1rem;
 	}
 
-	.footer-section p {
-		color: #9ca3af;
-		line-height: 1.6;
-	}
-
-	.footer-section ul {
+	.footer-links {
 		list-style: none;
 		padding: 0;
 		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
 	}
 
-	.footer-section ul li {
-		margin-bottom: 0.8rem;
-	}
-
-	.footer-section ul li a {
-		color: #d1d5db;
+	.footer-links a {
+		font-size: 0.875rem;
+		color: #9ca3af;
 		text-decoration: none;
-		transition: color 0.3s ease;
+		transition: color 0.2s ease;
 	}
 
-	.footer-section ul li a:hover {
-		color: #00a6c0;
+	.footer-links a:hover {
+		color: #ffffff;
 	}
 
+	/* ── Bottom bar ─────────────────────────────────────────── */
 	.footer-bottom {
-		text-align: center;
-		padding-top: 2rem;
-		border-top: 1px solid rgba(255, 255, 255, 0.05);
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 1.5rem 0 2rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.06);
+		flex-wrap: wrap;
 	}
 
-	.footer-bottom p {
-		color: #6b7280;
-		font-size: 0.9rem;
+	.footer-copy {
+		font-size: 0.8125rem;
+		color: #4b5563;
 	}
 
-	/* Utility from layout.css */
-	.container-padding {
-		padding: 0 2rem;
+	.footer-disclaimer {
+		font-size: 0.75rem;
+		color: #374151;
+		text-align: right;
 	}
 
-	@media (max-width: 768px) {
-		.footer {
-			padding: 3rem 0 1.5rem;
+	/* ── Responsive ─────────────────────────────────────────── */
+	@media (max-width: 1024px) {
+		.footer-top {
+			grid-template-columns: 1fr 1fr 1fr;
+			gap: 2rem;
 		}
 
-		.footer-content {
+		.footer-brand {
+			grid-column: 1 / -1;
+			flex-direction: row;
+			align-items: flex-start;
 			gap: 2rem;
+		}
+
+		.footer-tagline {
+			max-width: 300px;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.footer-inner {
+			padding: 3rem 1.5rem 0;
+		}
+
+		.footer-top {
+			grid-template-columns: 1fr 1fr;
+			gap: 2rem;
+		}
+
+		.footer-brand {
+			grid-column: 1 / -1;
+			flex-direction: column;
+			gap: 0.5rem;
+		}
+
+		.footer-tagline {
+			max-width: 100%;
+		}
+
+		.footer-bottom {
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.5rem;
+		}
+
+		.footer-disclaimer {
+			text-align: left;
 		}
 	}
 </style>
