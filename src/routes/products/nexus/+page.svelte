@@ -1,6 +1,7 @@
 <script>
 	import Navbar from '$lib/components/Navbar.svelte';
 	import { onMount, tick } from 'svelte';
+	import { SvelteSet } from 'svelte/reactivity';
 	import { fly } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
 	import './nexus.css';
@@ -22,6 +23,19 @@
 		flotillas: '/img/products/nexus/empresas.mp4',
 		partners: '/img/products/nexus/taas-2.mp4'
 	};
+
+	const preloadedVideos = new SvelteSet();
+
+	function preloadVideo(segment) {
+		const src = panelVideos[segment];
+		if (!src || preloadedVideos.has(src)) return;
+		preloadedVideos.add(src);
+		const link = document.createElement('link');
+		link.rel = 'preload';
+		link.as = 'video';
+		link.href = src;
+		document.head.appendChild(link);
+	}
 
 	async function selectPanel(segment) {
 		if (selectedAudience === segment) {
@@ -157,6 +171,10 @@
 		name="description"
 		content="Plataforma de inteligencia vehicular en tiempo real para familias, flotillas y partners TaaS. Rastreo GPS, telemetría, geocercas de precisión y apps nativas. Nexus by Geminis Labs."
 	/>
+	<!-- Preload audience panel images — visible above the fold on scroll -->
+	<link rel="preload" as="image" href="/img/products/nexus/familia.png" />
+	<link rel="preload" as="image" href="/img/products/nexus/empresas.png" />
+	<link rel="preload" as="image" href="/img/products/nexus/taas.png" />
 </svelte:head>
 
 <div class="nx-page-wrap">
@@ -583,7 +601,10 @@
 				onclick={() => selectPanel('familias')}
 				onkeydown={(e) => e.key === 'Enter' && selectPanel('familias')}
 				onmousemove={(e) => handlePanelMove(e, e.currentTarget)}
-				onmouseenter={() => (hoveredPanel = 'familias')}
+				onmouseenter={() => {
+					hoveredPanel = 'familias';
+					preloadVideo('familias');
+				}}
 				onmouseleave={() => (hoveredPanel = null)}
 			>
 				{#if selectedAudience === 'familias'}
@@ -643,7 +664,10 @@
 				onclick={() => selectPanel('flotillas')}
 				onkeydown={(e) => e.key === 'Enter' && selectPanel('flotillas')}
 				onmousemove={(e) => handlePanelMove(e, e.currentTarget)}
-				onmouseenter={() => (hoveredPanel = 'flotillas')}
+				onmouseenter={() => {
+					hoveredPanel = 'flotillas';
+					preloadVideo('flotillas');
+				}}
 				onmouseleave={() => (hoveredPanel = null)}
 			>
 				{#if selectedAudience === 'flotillas'}
@@ -703,7 +727,10 @@
 				onclick={() => selectPanel('partners')}
 				onkeydown={(e) => e.key === 'Enter' && selectPanel('partners')}
 				onmousemove={(e) => handlePanelMove(e, e.currentTarget)}
-				onmouseenter={() => (hoveredPanel = 'partners')}
+				onmouseenter={() => {
+					hoveredPanel = 'partners';
+					preloadVideo('partners');
+				}}
 				onmouseleave={() => (hoveredPanel = null)}
 			>
 				{#if selectedAudience === 'partners'}
