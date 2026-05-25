@@ -2763,6 +2763,7 @@ section.nx-audience-content {
 
 .nx-audience-content {
 	background: #f2f4f7;
+	padding: 1.5rem 0 3rem;
 	overflow: hidden;
 }
 
@@ -3046,26 +3047,43 @@ section.nx-audience-content {
    ============================================================= */
 
 @media (max-width: 767px) {
+	/* ── Audience intro ── */
+	.nx-aud-intro {
+		padding: 3rem 1.5rem 2.5rem;
+	}
+
+	.nx-aud-intro-headline {
+		font-size: clamp(1.8rem, 7vw, 2.5rem);
+	}
+
+	/* ── Audience selector panels ── */
 	.nx-audience-selector {
 		flex-direction: column;
 		height: auto;
+		min-height: 0;
 		max-height: none;
 	}
 
 	.nx-panel {
-		height: 160px;
+		height: 200px;
 		flex: none !important;
 		transition: height 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 	}
 
 	.nx-panel.is-active {
-		height: 280px;
+		height: 340px;
 	}
 
+	/* Always show text on mobile — no hover state */
 	.nx-panel-hook {
-		font-size: 0.85rem;
+		font-size: clamp(1rem, 5vw, 1.3rem) !important;
+		opacity: 1 !important;
+		transform: none !important;
+	}
+
+	.nx-panel-eyebrow {
 		opacity: 1;
-		transform: none;
+		color: rgba(255, 255, 255, 0.85) !important;
 	}
 
 	.nx-panel-live {
@@ -3081,6 +3099,15 @@ section.nx-audience-content {
 		transform: rotate(180deg);
 	}
 
+	/* On mobile active: show image in full color */
+	.nx-panel.is-active .nx-panel-img--bw {
+		filter: grayscale(0) brightness(1) contrast(1);
+	}
+
+	.nx-panel.is-active .nx-panel-img--color {
+		clip-path: circle(2000px at 50% 50%);
+	}
+
 	.nx-panel-divider {
 		width: 100%;
 		height: 1px;
@@ -3091,8 +3118,26 @@ section.nx-audience-content {
 		box-shadow: 0 0 8px rgba(62, 193, 40, 0.2);
 	}
 
+	/* ── Audience dynamic content ── */
+	.nx-audience-content {
+		padding: 1.5rem 0 2rem;
+	}
+
+	.nx-aud-container {
+		padding: 0 1.25rem;
+	}
+
+	.nx-aud-headline {
+		font-size: clamp(1.4rem, 6vw, 2rem);
+	}
+
 	.nx-callouts {
 		grid-template-columns: 1fr;
+		gap: 0.75rem;
+	}
+
+	.nx-callout {
+		padding: 1.25rem 1rem;
 	}
 
 	.nx-aud-cta {

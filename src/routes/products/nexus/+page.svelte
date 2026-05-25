@@ -16,6 +16,7 @@
 	let hoveredPanel = $state(null);
 	let contentEl = $state(null);
 	let selectorEl = $state(null);
+	let isMobile = $state(false);
 	let liveCounters = $state({ familias: 23847, flotillas: 148, partners: 3.2 });
 
 	const panelVideos = {
@@ -134,6 +135,12 @@
 		setTimeout(() => {
 			heroReady = true;
 		}, 150);
+
+		const mq = window.matchMedia('(max-width: 767px)');
+		isMobile = mq.matches;
+		mq.addEventListener('change', (e) => {
+			isMobile = e.matches;
+		});
 
 		const observer = new IntersectionObserver(
 			(entries) =>
@@ -607,7 +614,7 @@
 				}}
 				onmouseleave={() => (hoveredPanel = null)}
 			>
-				{#if selectedAudience === 'familias'}
+				{#if selectedAudience === 'familias' && !isMobile}
 					<video class="nx-panel-video" src={panelVideos.familias} autoplay loop muted playsinline
 					></video>
 				{:else}
@@ -670,7 +677,7 @@
 				}}
 				onmouseleave={() => (hoveredPanel = null)}
 			>
-				{#if selectedAudience === 'flotillas'}
+				{#if selectedAudience === 'flotillas' && !isMobile}
 					<video class="nx-panel-video" src={panelVideos.flotillas} autoplay loop muted playsinline
 					></video>
 				{:else}
@@ -733,7 +740,7 @@
 				}}
 				onmouseleave={() => (hoveredPanel = null)}
 			>
-				{#if selectedAudience === 'partners'}
+				{#if selectedAudience === 'partners' && !isMobile}
 					<video class="nx-panel-video" src={panelVideos.partners} autoplay loop muted playsinline
 					></video>
 				{:else}
