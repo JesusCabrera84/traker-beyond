@@ -15,6 +15,12 @@ section::before {
 	background: none !important;
 }
 
+section.nx-audience-content {
+	min-height: auto;
+
+	padding: 0;
+}
+
 /* ── Outer wrapper ─────────────────────────────────────────── */
 .nx-page-wrap {
 	width: 100%;
@@ -2460,12 +2466,13 @@ section::before {
 .nx-audience-selector {
 	display: flex;
 	width: 100%;
-	height: 85vh;
+	height: 45vh;
 	min-height: 520px;
 	max-height: 900px;
 	overflow: hidden;
 	background: #f2f4f7;
 	user-select: none;
+	scroll-margin-top: 2.5rem;
 }
 
 /* ── Individual panel ─────────────────────────────────────── */
@@ -2521,6 +2528,18 @@ section::before {
 	pointer-events: none;
 	display: block;
 	margin: 0;
+}
+
+.nx-panel-video {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	pointer-events: none;
+	display: block;
+	z-index: 2;
 }
 
 .nx-panel-img--bw {
@@ -2746,7 +2765,6 @@ section::before {
 
 .nx-audience-content {
 	background: #f2f4f7;
-	padding: 4rem 0 5rem;
 	overflow: hidden;
 }
 
@@ -2761,7 +2779,7 @@ section::before {
 }
 
 .nx-aud-header {
-	margin-bottom: 3rem;
+	margin-bottom: 1.5rem;
 }
 
 .nx-aud-eyebrow {

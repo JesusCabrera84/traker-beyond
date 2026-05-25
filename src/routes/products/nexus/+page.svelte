@@ -14,7 +14,14 @@
 	let selectedAudience = $state(null);
 	let hoveredPanel = $state(null);
 	let contentEl = $state(null);
+	let selectorEl = $state(null);
 	let liveCounters = $state({ familias: 23847, flotillas: 148, partners: 3.2 });
+
+	const panelVideos = {
+		familias: '/img/products/nexus/familia.mp4',
+		flotillas: '/img/products/nexus/empresas.mp4',
+		partners: '/img/products/nexus/empresas.mp4'
+	};
 
 	async function selectPanel(segment) {
 		if (selectedAudience === segment) {
@@ -23,7 +30,7 @@
 		}
 		selectedAudience = segment;
 		await tick();
-		contentEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		selectorEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 	}
 
 	function handlePanelMove(event, panelEl) {
@@ -561,7 +568,7 @@
 		</div>
 
 		<!-- AUDIENCE SELECTOR -->
-		<section class="nx-audience-selector" aria-label="Selecciona tu perfil">
+		<section class="nx-audience-selector" aria-label="Selecciona tu perfil" bind:this={selectorEl}>
 			<!-- Panel 1: Familias -->
 			<div
 				class="nx-panel nx-panel--familias"
@@ -579,17 +586,22 @@
 				onmouseenter={() => (hoveredPanel = 'familias')}
 				onmouseleave={() => (hoveredPanel = null)}
 			>
-				<img
-					class="nx-panel-img nx-panel-img--bw"
-					src="/img/products/nexus/familia.png"
-					alt=""
-					aria-hidden="true"
-				/>
-				<img
-					class="nx-panel-img nx-panel-img--color"
-					src="/img/products/nexus/familia.png"
-					alt="Familia junto a su vehículo"
-				/>
+				{#if selectedAudience === 'familias'}
+					<video class="nx-panel-video" src={panelVideos.familias} autoplay loop muted playsinline
+					></video>
+				{:else}
+					<img
+						class="nx-panel-img nx-panel-img--bw"
+						src="/img/products/nexus/familia.png"
+						alt=""
+						aria-hidden="true"
+					/>
+					<img
+						class="nx-panel-img nx-panel-img--color"
+						src="/img/products/nexus/familia.png"
+						alt="Familia junto a su vehículo"
+					/>
+				{/if}
 				<div class="nx-panel-overlay">
 					<span class="nx-panel-ordinal" aria-hidden="true">01</span>
 					<div class="nx-panel-info">
@@ -634,17 +646,22 @@
 				onmouseenter={() => (hoveredPanel = 'flotillas')}
 				onmouseleave={() => (hoveredPanel = null)}
 			>
-				<img
-					class="nx-panel-img nx-panel-img--bw"
-					src="/img/products/nexus/empresas.png"
-					alt=""
-					aria-hidden="true"
-				/>
-				<img
-					class="nx-panel-img nx-panel-img--color"
-					src="/img/products/nexus/empresas.png"
-					alt="Flotilla de camiones en operación"
-				/>
+				{#if selectedAudience === 'flotillas'}
+					<video class="nx-panel-video" src={panelVideos.flotillas} autoplay loop muted playsinline
+					></video>
+				{:else}
+					<img
+						class="nx-panel-img nx-panel-img--bw"
+						src="/img/products/nexus/empresas.png"
+						alt=""
+						aria-hidden="true"
+					/>
+					<img
+						class="nx-panel-img nx-panel-img--color"
+						src="/img/products/nexus/empresas.png"
+						alt="Flotilla de camiones en operación"
+					/>
+				{/if}
 				<div class="nx-panel-overlay">
 					<span class="nx-panel-ordinal" aria-hidden="true">02</span>
 					<div class="nx-panel-info">
@@ -689,17 +706,22 @@
 				onmouseenter={() => (hoveredPanel = 'partners')}
 				onmouseleave={() => (hoveredPanel = null)}
 			>
-				<img
-					class="nx-panel-img nx-panel-img--bw"
-					src="/img/products/nexus/taas.png"
-					alt=""
-					aria-hidden="true"
-				/>
-				<img
-					class="nx-panel-img nx-panel-img--color"
-					src="/img/products/nexus/taas.png"
-					alt="Plataforma Nexus en múltiples dispositivos"
-				/>
+				{#if selectedAudience === 'partners'}
+					<video class="nx-panel-video" src={panelVideos.partners} autoplay loop muted playsinline
+					></video>
+				{:else}
+					<img
+						class="nx-panel-img nx-panel-img--bw"
+						src="/img/products/nexus/taas.png"
+						alt=""
+						aria-hidden="true"
+					/>
+					<img
+						class="nx-panel-img nx-panel-img--color"
+						src="/img/products/nexus/taas.png"
+						alt="Plataforma Nexus en múltiples dispositivos"
+					/>
+				{/if}
 				<div class="nx-panel-overlay">
 					<span class="nx-panel-ordinal" aria-hidden="true">03</span>
 					<div class="nx-panel-info">
