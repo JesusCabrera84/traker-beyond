@@ -20,7 +20,7 @@
 	const panelVideos = {
 		familias: '/img/products/nexus/familia.mp4',
 		flotillas: '/img/products/nexus/empresas.mp4',
-		partners: '/img/products/nexus/empresas.mp4'
+		partners: '/img/products/nexus/taas-2.mp4'
 	};
 
 	async function selectPanel(segment) {
@@ -1035,6 +1035,17 @@
 
 		<!-- CTA SECTION -->
 		<section class="nx-ctas" id="demo">
+			<!-- Animated background layers -->
+			<div class="nx-ctas-bg" aria-hidden="true">
+				<div class="nx-ctas-orb nx-ctas-orb--a"></div>
+				<div class="nx-ctas-orb nx-ctas-orb--b"></div>
+				<div class="nx-ctas-orb nx-ctas-orb--c"></div>
+				<div class="nx-ctas-radar">
+					<div class="nx-ctas-radar-ring"></div>
+					<div class="nx-ctas-radar-ring nx-ctas-radar-ring--b"></div>
+					<div class="nx-ctas-radar-dot"></div>
+				</div>
+			</div>
 			<div class="nx-container">
 				<div class="nx-section-header nx-reveal">
 					<p class="nx-overline">Empieza hoy</p>
