@@ -1014,85 +1014,115 @@
 		<!-- CTA SECTION -->
 		<section class="nx-ctas" id="demo">
 			<div class="nx-container">
+				<div class="nx-section-header nx-reveal">
+					<p class="nx-overline">Empieza hoy</p>
+					<h2 class="nx-section-title">Nexus, a tu medida</h2>
+					<p class="nx-section-sub">Elige el plan que se adapta a tu caso de uso.</p>
+				</div>
+
 				<div class="nx-cta-grid">
 					<!-- Familias CTA -->
 					<div class="nx-cta-card nx-cta-card--green nx-reveal">
-						<div class="nx-cta-icon">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-								<polyline points="9 22 9 12 15 12 15 22" />
-								<circle cx="18" cy="5" r="2" fill="currentColor" opacity="0.4" />
-							</svg>
+						<div class="nx-cta-img-header">
+							<img
+								src="/img/products/nexus/nexus-cta-familia.jpeg"
+								alt="Protección familiar conectada"
+							/>
 						</div>
-						<h3 class="nx-cta-title">Para tu familia</h3>
-						<p class="nx-cta-desc">
-							Protege a los tuyos y a tus vehículos — alertas en tiempo real, sin contratos
-							forzosos.
-						</p>
-						<div class="nx-cta-actions">
-							<a href="#contacto" class="btn-nx-primary">Quiero proteger mi vehículo</a>
-							<p class="nx-cta-download-note">
-								Descarga la app gratis: <a href="#download" class="nx-cta-link-sm">App Store</a> ·
-								<a href="#download" class="nx-cta-link-sm">Google Play</a>
+						<div class="nx-cta-body">
+							<div class="nx-cta-icon">
+								<svg
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+									<polyline points="9 22 9 12 15 12 15 22" />
+									<circle cx="18" cy="5" r="2" fill="currentColor" opacity="0.4" />
+								</svg>
+							</div>
+							<h3 class="nx-cta-title">Para tu familia</h3>
+							<p class="nx-cta-desc">
+								Protege a los tuyos y a tus vehículos — alertas en tiempo real, sin contratos
+								forzosos.
 							</p>
+							<div class="nx-cta-actions">
+								<a href="#contacto" class="btn-nx-primary">Quiero proteger mi vehículo</a>
+								<p class="nx-cta-download-note">
+									Descarga la app gratis: <a href="#download" class="nx-cta-link-sm">App Store</a> ·
+									<a href="#download" class="nx-cta-link-sm">Google Play</a>
+								</p>
+							</div>
 						</div>
 					</div>
 
 					<!-- Flotillas CTA (featured) -->
 					<div class="nx-cta-card nx-cta-card--featured nx-reveal">
-						<div class="nx-cta-icon">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<rect x="1" y="3" width="15" height="13" />
-								<polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-								<circle cx="5.5" cy="18.5" r="2.5" />
-								<circle cx="18.5" cy="18.5" r="2.5" />
-							</svg>
+						<div class="nx-cta-img-header">
+							<img
+								src="/img/products/nexus/nexus-cta-flotilla.jpeg"
+								alt="Crecimiento de flotilla"
+							/>
 						</div>
-						<h3 class="nx-cta-title">Para tu flotilla</h3>
-						<p class="nx-cta-desc">
-							Te mostramos cómo Nexus se adapta a tu operación exacta — en 30 minutos.
-						</p>
-						<div class="nx-cta-actions">
-							<a href="#contacto" class="btn-nx-primary">Quiero una demo para mi flotilla</a>
+						<div class="nx-cta-body">
+							<div class="nx-cta-icon">
+								<svg
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<rect x="1" y="3" width="15" height="13" />
+									<polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+									<circle cx="5.5" cy="18.5" r="2.5" />
+									<circle cx="18.5" cy="18.5" r="2.5" />
+								</svg>
+							</div>
+							<h3 class="nx-cta-title">Para tu flotilla</h3>
+							<p class="nx-cta-desc">
+								Te mostramos cómo Nexus se adapta a tu operación exacta — en 30 minutos.
+							</p>
+							<div class="nx-cta-actions">
+								<a href="#contacto" class="btn-nx-primary">Quiero una demo para mi flotilla</a>
+							</div>
 						</div>
 					</div>
 
 					<!-- Partners CTA -->
-					<div class="nx-cta-card nx-cta-card--blue nx-reveal">
-						<div class="nx-cta-icon">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<polyline points="16 18 22 12 16 6" />
-								<polyline points="8 6 2 12 8 18" />
-								<circle cx="12" cy="12" r="2" fill="currentColor" opacity="0.4" />
-							</svg>
+					<div class="nx-cta-card nx-reveal">
+						<div class="nx-cta-img-header">
+							<img
+								src="/img/products/nexus/nexus-cta-taas.jpeg"
+								alt="Integración técnica como servicio"
+							/>
 						</div>
-						<h3 class="nx-cta-title">Para Partners y Distribuidores</h3>
-						<p class="nx-cta-desc">
-							Habla con nuestro equipo técnico y pon en marcha tu primera integración esta semana.
-						</p>
-						<div class="nx-cta-actions">
-							<a href="#contacto" class="btn-nx-secondary">Hablar sobre integración</a>
+						<div class="nx-cta-body">
+							<div class="nx-cta-icon">
+								<svg
+									viewBox="0 0 24 24"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.5"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+								>
+									<polyline points="16 18 22 12 16 6" />
+									<polyline points="8 6 2 12 8 18" />
+									<circle cx="12" cy="12" r="2" fill="currentColor" opacity="0.4" />
+								</svg>
+							</div>
+							<h3 class="nx-cta-title">Para Partners y Distribuidores</h3>
+							<p class="nx-cta-desc">
+								Habla con nuestro equipo técnico y pon en marcha tu primera integración esta semana.
+							</p>
+							<div class="nx-cta-actions">
+								<a href="#contacto" class="btn-nx-primary">Hablar sobre integración</a>
+							</div>
 						</div>
 					</div>
 				</div>
