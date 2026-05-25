@@ -1324,18 +1324,18 @@
 									<svg class="nx-mock-fleet-svg" viewBox="0 0 220 80" fill="none">
 										<path
 											d="M10 50 Q50 30 90 35 Q130 40 170 20 Q195 12 210 15"
-											stroke="rgba(249,115,22,0.3)"
+											stroke="rgba(8,145,178,0.3)"
 											stroke-width="1.5"
 											stroke-dasharray="3 2"
 										/>
-										<circle cx="45" cy="35" r="4" fill="#f97316" />
-										<circle cx="45" cy="35" r="8" fill="rgba(249,115,22,0.15)" />
-										<circle cx="90" cy="32" r="4" fill="#f97316" />
-										<circle cx="130" cy="28" r="4" fill="#f97316" />
+										<circle cx="45" cy="35" r="4" fill="#0891b2" />
+										<circle cx="45" cy="35" r="8" fill="rgba(8,145,178,0.15)" />
+										<circle cx="90" cy="32" r="4" fill="#0891b2" />
+										<circle cx="130" cy="28" r="4" fill="#0891b2" />
 										<circle cx="170" cy="18" r="4" fill="#f59e0b" />
 										<circle cx="170" cy="18" r="8" fill="rgba(245,158,11,0.15)" />
-										<circle cx="60" cy="55" r="3.5" fill="#f97316" />
-										<circle cx="155" cy="45" r="3.5" fill="#f97316" />
+										<circle cx="60" cy="55" r="3.5" fill="#0891b2" />
+										<circle cx="155" cy="45" r="3.5" fill="#0891b2" />
 									</svg>
 								</div>
 								<div class="nx-mock-alert-row">
@@ -1472,10 +1472,10 @@
 										></filter
 									></defs
 								>
-								<circle r="2" fill="rgba(167,139,250,0.90)" filter="url(#arch-glow)">
+								<circle r="2" fill="rgba(99,102,241,0.90)" filter="url(#arch-glow)">
 									<animateMotion dur="2.2s" repeatCount="indefinite" path="M100,18 L100,195" />
 								</circle>
-								<circle r="1.5" fill="rgba(109,40,217,0.75)">
+								<circle r="1.5" fill="rgba(67,56,202,0.75)">
 									<animateMotion
 										dur="2.2s"
 										repeatCount="indefinite"
