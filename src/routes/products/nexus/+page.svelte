@@ -1,15 +1,36 @@
 <script>
 	import Navbar from '$lib/components/Navbar.svelte';
-	import { onMount } from 'svelte';
+	import { onMount, tick } from 'svelte';
+	import { fly } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
 	import './nexus.css';
 
 	let scrollY = $state(0);
 	let faqTab = $state('familias');
 	let openFaq = $state({ familias: null, flotillas: null, partners: null });
-	let activeVertical = $state(0);
 	let heroReady = $state(false);
 
-	let statValues = $state({ vehicles: 0, uptime: 0, rating: 0 });
+	// Audience selector
+	let selectedAudience = $state(null);
+	let hoveredPanel = $state(null);
+	let contentEl = $state(null);
+	let liveCounters = $state({ familias: 23847, flotillas: 148, partners: 3.2 });
+
+	async function selectPanel(segment) {
+		if (selectedAudience === segment) {
+			selectedAudience = null;
+			return;
+		}
+		selectedAudience = segment;
+		await tick();
+		contentEl?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+	}
+
+	function handlePanelMove(event, panelEl) {
+		const rect = panelEl.getBoundingClientRect();
+		panelEl.style.setProperty('--mx', `${event.clientX - rect.left}px`);
+		panelEl.style.setProperty('--my', `${event.clientY - rect.top}px`);
+	}
 
 	let heroVideoEl = $state(null);
 	const VIDEO_LOOP_PAUSE = 4000; // ms pause before replay
@@ -84,20 +105,6 @@
 		]
 	};
 
-	const flotillaVerticals = [
-		{
-			label: 'Distribución',
-			problem: 'Rutas ineficientes generan hasta 12% de desperdicio en combustible'
-		},
-		{ label: 'Paquetería', problem: 'Prueba de entrega automatizada con foto y geolocalización' },
-		{
-			label: 'Construcción',
-			problem: 'Alertas inmediatas ante movimiento de maquinaria fuera de horario'
-		},
-		{ label: 'Seguridad', problem: 'Verificación de rondines con historial de recorrido completo' },
-		{ label: 'Corporativo', problem: 'Detección de uso no autorizado del vehículo en tiempo real' }
-	];
-
 	function toggleFaq(tab, idx) {
 		openFaq[tab] = openFaq[tab] === idx ? null : idx;
 	}
@@ -115,37 +122,22 @@
 						observer.unobserve(e.target);
 					}
 				}),
-			{ threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+			{ threshold: 0, rootMargin: '0px 0px 60px 0px' }
 		);
 		document.querySelectorAll('.nx-reveal').forEach((el) => observer.observe(el));
 
-		// Stat counter animation on scroll into view
-		const statsEl = document.querySelector('.nx-stats-bar');
-		if (statsEl) {
-			const statsObs = new IntersectionObserver(
-				(entries) => {
-					if (entries[0].isIntersecting) {
-						statsObs.disconnect();
-						const duration = 1200;
-						const start = performance.now();
-						const tick = (now) => {
-							const t = Math.min((now - start) / duration, 1);
-							const ease = 1 - Math.pow(1 - t, 3);
-							statValues.vehicles = Math.floor(ease * 10000);
-							statValues.uptime = +(ease * 98.7).toFixed(1);
-							statValues.rating = +(ease * 4.8).toFixed(1);
-							if (t < 1) requestAnimationFrame(tick);
-						};
-						requestAnimationFrame(tick);
-					}
-				},
-				{ threshold: 0.5 }
-			);
-			statsObs.observe(statsEl);
-		}
+		// Live counter — simulates real platform activity
+		const counterInterval = setInterval(() => {
+			liveCounters = {
+				familias: 23600 + Math.floor(Math.random() * 400),
+				flotillas: 138 + Math.floor(Math.random() * 24),
+				partners: +(2.9 + Math.random() * 0.5).toFixed(1)
+			};
+		}, 3500);
 
 		return () => {
 			observer.disconnect();
+			clearInterval(counterInterval);
 		};
 	});
 </script>
@@ -188,16 +180,16 @@
 				<div class="nx-hero-content" style="opacity: {heroOpacity}" class:nx-hero-ready={heroReady}>
 					<div class="nx-hero-status">
 						<span class="nx-status-dot"></span>
-						RASTREO EN VIVO
+						RASTREO · ALERTAS · TELEMETRÍA
 					</div>
-					<h1 class="nx-hero-title">Sabe exactamente<br />dónde está. Siempre.</h1>
+					<h1 class="nx-hero-title">Tu vehículo no debería<br />desaparecer de tu control.</h1>
 					<p class="nx-hero-sub">
-						Nexus convierte cada vehículo en inteligencia en tiempo real — para tu familia, tu
-						operación y tu negocio.
+						Nexus te muestra dónde está, cómo se mueve y qué está pasando — en tiempo real, desde
+						iPhone, Android y Web.
 					</p>
 					<div class="nx-hero-actions">
-						<a href="#segmentos" class="btn-nx-primary">Ver para quién es Nexus</a>
-						<a href="#demo" class="btn-nx-ghost">Ver una demo</a>
+						<a href="#contacto" class="btn-nx-primary">Hablar con un asesor</a>
+						<a href="#app" class="btn-nx-ghost">Ver cómo funciona Nexus</a>
 					</div>
 				</div>
 
@@ -561,449 +553,394 @@
 			</div>
 		</section>
 
-		<!-- VALUE PROPOSITION -->
-		<section class="nx-value" id="inicio">
-			<div class="nx-container">
-				<div class="nx-reveal">
-					<p class="nx-overline">Plataforma de Inteligencia Vehicular</p>
-					<h2 class="nx-value-title">
-						Un vehículo que sabes que está bien<br />vale más que uno que supones que está bien.
-					</h2>
-					<div class="nx-value-badges">
-						<span class="nx-badge">Familias</span>
-						<span class="nx-badge">Flotillas</span>
-						<span class="nx-badge">Partners TaaS</span>
+		<!-- AUDIENCE INTRO -->
+		<div class="nx-aud-intro" id="audiencias">
+			<p class="nx-aud-intro-eyebrow">TU PERFIL</p>
+			<h2 class="nx-aud-intro-headline">No todos rastrean<br />por la misma <em>razón.</em></h2>
+			<p class="nx-aud-intro-sub">Elige el perfil que más se acerca a tu caso de uso.</p>
+		</div>
+
+		<!-- AUDIENCE SELECTOR -->
+		<section class="nx-audience-selector" aria-label="Selecciona tu perfil">
+			<!-- Panel 1: Familias -->
+			<div
+				class="nx-panel nx-panel--familias"
+				class:is-active={selectedAudience === 'familias'}
+				class:is-hovered={hoveredPanel === 'familias'}
+				class:is-dimmed={hoveredPanel !== null &&
+					hoveredPanel !== 'familias' &&
+					selectedAudience !== 'familias'}
+				role="button"
+				tabindex="0"
+				aria-label="Familias"
+				onclick={() => selectPanel('familias')}
+				onkeydown={(e) => e.key === 'Enter' && selectPanel('familias')}
+				onmousemove={(e) => handlePanelMove(e, e.currentTarget)}
+				onmouseenter={() => (hoveredPanel = 'familias')}
+				onmouseleave={() => (hoveredPanel = null)}
+			>
+				<img
+					class="nx-panel-img nx-panel-img--bw"
+					src="/img/products/nexus/familia.png"
+					alt=""
+					aria-hidden="true"
+				/>
+				<img
+					class="nx-panel-img nx-panel-img--color"
+					src="/img/products/nexus/familia.png"
+					alt="Familia junto a su vehículo"
+				/>
+				<div class="nx-panel-overlay">
+					<span class="nx-panel-ordinal" aria-hidden="true">01</span>
+					<div class="nx-panel-info">
+						<span class="nx-panel-eyebrow">Familias</span>
+						<p class="nx-panel-hook">Ya llegaste.<br />Ellos, todavía no.</p>
+						<span class="nx-panel-live">
+							<span class="nx-live-dot"></span>
+							<span>{liveCounters.familias.toLocaleString('es-MX')} vehículos en línea</span>
+						</span>
 					</div>
+					<svg
+						class="nx-panel-arrow"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg
+					>
+				</div>
+			</div>
+
+			<div
+				class="nx-panel-divider"
+				class:speed-streak={hoveredPanel !== null}
+				aria-hidden="true"
+			></div>
+
+			<!-- Panel 2: Flotillas -->
+			<div
+				class="nx-panel nx-panel--flotillas"
+				class:is-active={selectedAudience === 'flotillas'}
+				class:is-hovered={hoveredPanel === 'flotillas'}
+				class:is-dimmed={hoveredPanel !== null &&
+					hoveredPanel !== 'flotillas' &&
+					selectedAudience !== 'flotillas'}
+				role="button"
+				tabindex="0"
+				aria-label="Flotillas"
+				onclick={() => selectPanel('flotillas')}
+				onkeydown={(e) => e.key === 'Enter' && selectPanel('flotillas')}
+				onmousemove={(e) => handlePanelMove(e, e.currentTarget)}
+				onmouseenter={() => (hoveredPanel = 'flotillas')}
+				onmouseleave={() => (hoveredPanel = null)}
+			>
+				<img
+					class="nx-panel-img nx-panel-img--bw"
+					src="/img/products/nexus/empresas.png"
+					alt=""
+					aria-hidden="true"
+				/>
+				<img
+					class="nx-panel-img nx-panel-img--color"
+					src="/img/products/nexus/empresas.png"
+					alt="Flotilla de camiones en operación"
+				/>
+				<div class="nx-panel-overlay">
+					<span class="nx-panel-ordinal" aria-hidden="true">02</span>
+					<div class="nx-panel-info">
+						<span class="nx-panel-eyebrow">Flotillas</span>
+						<p class="nx-panel-hook">Sabes cuánto gastas.<br />Mentira.</p>
+						<span class="nx-panel-live">
+							<span class="nx-live-dot"></span>
+							<span>{liveCounters.flotillas} flotillas activas</span>
+						</span>
+					</div>
+					<svg
+						class="nx-panel-arrow"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg
+					>
+				</div>
+			</div>
+
+			<div
+				class="nx-panel-divider"
+				class:speed-streak={hoveredPanel !== null}
+				aria-hidden="true"
+			></div>
+
+			<!-- Panel 3: Partners -->
+			<div
+				class="nx-panel nx-panel--partners"
+				class:is-active={selectedAudience === 'partners'}
+				class:is-hovered={hoveredPanel === 'partners'}
+				class:is-dimmed={hoveredPanel !== null &&
+					hoveredPanel !== 'partners' &&
+					selectedAudience !== 'partners'}
+				role="button"
+				tabindex="0"
+				aria-label="Partners & TaaS"
+				onclick={() => selectPanel('partners')}
+				onkeydown={(e) => e.key === 'Enter' && selectPanel('partners')}
+				onmousemove={(e) => handlePanelMove(e, e.currentTarget)}
+				onmouseenter={() => (hoveredPanel = 'partners')}
+				onmouseleave={() => (hoveredPanel = null)}
+			>
+				<img
+					class="nx-panel-img nx-panel-img--bw"
+					src="/img/products/nexus/taas.png"
+					alt=""
+					aria-hidden="true"
+				/>
+				<img
+					class="nx-panel-img nx-panel-img--color"
+					src="/img/products/nexus/taas.png"
+					alt="Plataforma Nexus en múltiples dispositivos"
+				/>
+				<div class="nx-panel-overlay">
+					<span class="nx-panel-ordinal" aria-hidden="true">03</span>
+					<div class="nx-panel-info">
+						<span class="nx-panel-eyebrow">Partners & TaaS</span>
+						<p class="nx-panel-hook">Tu hardware.<br />Nuestra plataforma. Mañana.</p>
+						<span class="nx-panel-live">
+							<span class="nx-live-dot"></span>
+							<span>{liveCounters.partners}M eventos/hora</span>
+						</span>
+					</div>
+					<svg
+						class="nx-panel-arrow"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg
+					>
 				</div>
 			</div>
 		</section>
 
-		<!-- SEGMENTS -->
-		<section class="nx-segments" id="segmentos">
+		<!-- DYNAMIC AUDIENCE CONTENT -->
+		{#if selectedAudience}
+			<section class="nx-audience-content nx-aud--{selectedAudience}" bind:this={contentEl}>
+				{#key selectedAudience}
+					<div class="nx-aud-inner" in:fly={{ y: 28, duration: 380, easing: cubicOut }}>
+						<div class="nx-aud-container">
+							{#if selectedAudience === 'familias'}
+								<div class="nx-aud-header">
+									<span class="nx-aud-eyebrow nx-aud-eyebrow--familias">Para Familias</span>
+									<h2 class="nx-aud-headline">
+										Saber que llegaron bien<br />no debería ser un lujo.
+									</h2>
+									<p class="nx-aud-sub">
+										Diseñas tu vida entera para protegerlos — Nexus hace lo mismo con sus vehículos.
+									</p>
+								</div>
+								<div class="nx-callouts">
+									<div class="nx-callout">
+										<span class="nx-callout-num nx-cn--familias">2 AM</span>
+										<span class="nx-callout-label">Alerta en tu muñeca</span>
+										<p class="nx-callout-text">
+											Cuando el carro se enciende a una hora en que nadie debería moverse, tú lo
+											sabes primero. No el vecino, no la aseguradora. Tú.
+										</p>
+									</div>
+									<div class="nx-callout">
+										<span class="nx-callout-num nx-cn--familias">0 km</span>
+										<span class="nx-callout-label">Margen de error</span>
+										<p class="nx-callout-text">
+											Geocercas con forma libre, no círculos que mienten. Tu hijo cruza la zona que
+											acordaron — la notificación llega antes del siguiente semáforo.
+										</p>
+									</div>
+									<div class="nx-callout">
+										<span class="nx-callout-num nx-cn--familias">Historial</span>
+										<span class="nx-callout-label">Que no se puede borrar</span>
+										<p class="nx-callout-text">
+											Replay completo: hora, ruta, paradas, velocidad. No para perseguirlos — para
+											tener la conversación con datos, no con sospechas.
+										</p>
+									</div>
+								</div>
+								<div class="nx-aud-cta">
+									<a href="#contacto" class="btn-aud btn-aud--familias"
+										>Quiero saber que llegaron bien</a
+									>
+									<p class="nx-cta-download-note">
+										Descarga gratis: <a href="#download" class="nx-cta-link-sm">App Store</a> ·
+										<a href="#download" class="nx-cta-link-sm">Google Play</a>
+									</p>
+								</div>
+							{:else if selectedAudience === 'flotillas'}
+								<div class="nx-aud-header">
+									<span class="nx-aud-eyebrow nx-aud-eyebrow--flotillas">Para Flotillas</span>
+									<h2 class="nx-aud-headline">
+										Cada unidad que no ves<br />es dinero que ya perdiste.
+									</h2>
+									<p class="nx-aud-sub">
+										El problema no es que tus conductores sean malos — es que nadie les está
+										mostrando los números.
+									</p>
+								</div>
+								<div class="nx-callouts">
+									<div class="nx-callout">
+										<span class="nx-callout-num nx-cn--flotillas">Combustible</span>
+										<span class="nx-callout-label">El gasto invisible</span>
+										<p class="nx-callout-text">
+											El desvío de 3 km que nadie reporta, el ralentí de 40 minutos con el motor
+											encendido. Nexus los detecta y te los presenta en tu correo antes de que abras
+											la oficina.
+										</p>
+									</div>
+									<div class="nx-callout">
+										<span class="nx-callout-num nx-cn--flotillas">Datos</span>
+										<span class="nx-callout-label">No intuiciones</span>
+										<p class="nx-callout-text">
+											Cuando el dato es objetivo, la conversación cambia. "VH-09 tuvo 4 paradas no
+											programadas el martes." Los conductores se autorregulan solos.
+										</p>
+									</div>
+									<div class="nx-callout">
+										<span class="nx-callout-num nx-cn--flotillas">ROI</span>
+										<span class="nx-callout-label">Que se calcula solo</span>
+										<p class="nx-callout-text">
+											Activa los reportes de consumo, dale 30 días y abre el Excel. La diferencia
+											entre lo que gastabas y lo que gastas es el argumento para tu dirección.
+										</p>
+									</div>
+								</div>
+								<div class="nx-aud-cta">
+									<a href="#contacto" class="btn-aud btn-aud--flotillas"
+										>Ver cómo funciona en mi operación</a
+									>
+								</div>
+							{:else if selectedAudience === 'partners'}
+								<div class="nx-aud-header">
+									<span class="nx-aud-eyebrow nx-aud-eyebrow--partners">Partners & TaaS</span>
+									<h2 class="nx-aud-headline">
+										Tus clientes esperan una plataforma.<br />Tú tienes el hardware. Nosotros, el
+										resto.
+									</h2>
+									<p class="nx-aud-sub">
+										No construyas lo que ya existe — lanza tu servicio con marca propia esta semana.
+									</p>
+								</div>
+								<div class="nx-callouts">
+									<div class="nx-callout">
+										<span class="nx-callout-num nx-cn--partners">3 días</span>
+										<span class="nx-callout-label">A producción</span>
+										<p class="nx-callout-text">
+											Si tu dispositivo envía latitud, longitud y timestamp en JSON o MQTT, ya es
+											compatible. Sin reescribir firmware, sin contratos de 18 meses.
+										</p>
+									</div>
+									<div class="nx-callout">
+										<span class="nx-callout-num nx-cn--partners">100%</span>
+										<span class="nx-callout-label">Tu marca, nuestra infraestructura</span>
+										<p class="nx-callout-text">
+											Tus clientes ven tu nombre, tu logo, tu app. Nosotros mantenemos servidores,
+											mapas, notificaciones, reportes, roles, AES-256 y soporte de plataforma. Tú
+											cobras.
+										</p>
+									</div>
+									<div class="nx-callout">
+										<span class="nx-callout-num nx-cn--partners">18 meses</span>
+										<span class="nx-callout-label">De desarrollo que no vas a gastar</span>
+										<p class="nx-callout-text">
+											Apps nativas iOS/Android, mapas, geocercas, telemetría, permisos, API,
+											webhooks — Nexus TaaS elimina ese costo y ese riesgo de tu ecuación desde el
+											día uno.
+										</p>
+									</div>
+								</div>
+								<div class="nx-aud-cta">
+									<a href="#contacto" class="btn-aud btn-aud--partners"
+										>Hablar con el equipo técnico</a
+									>
+								</div>
+							{/if}
+						</div>
+					</div>
+				{/key}
+			</section>
+		{/if}
+
+		<!-- APP GALLERY -->
+		<section class="nx-gallery" id="app">
 			<div class="nx-container">
 				<div class="nx-section-header nx-reveal">
-					<p class="nx-overline">Para quién es Nexus</p>
-					<h2 class="nx-section-title">Inteligencia vehicular para cada necesidad</h2>
-					<p class="nx-section-sub">Tres perfiles. Una plataforma. La misma precisión.</p>
+					<p class="nx-overline">La app en tus manos</p>
+					<h2 class="nx-section-title">Descárgala. Úsala. Impresiona.</h2>
+					<p class="nx-section-sub">
+						GPS en vivo, historial de recorridos, geocercas de precisión y telemetría completa —
+						todo en iOS y Android.
+					</p>
 				</div>
 
-				<div class="nx-segments-grid">
-					<!-- FAMILIAS -->
-					<div class="nx-segment-card nx-card--familias nx-reveal">
-						<div class="nx-card-eyebrow">Para Familias</div>
-						<h3 class="nx-card-title">Protege a quien quieres. Sabe dónde están, siempre.</h3>
-						<p class="nx-card-desc">
-							Nexus te avisa si alguien sale de su ruta habitual, llega a un lugar que no debería, o
-							si el carro se mueve a una hora en que nadie debería usarlo. No es espiar. Es saber
-							que están bien.
-						</p>
-						<ul class="nx-card-cases">
-							<li>Tu hijo adolescente maneja solo — sabes si llegó bien y a qué velocidad fue</li>
-							<li>Prestaste el auto a un empleado — confirma que lo usa solo para el trabajo</li>
-							<li>Tus padres adultos mayores salen solos — llegaron sin contratiempos</li>
-							<li>Tu auto de valor está en la calle — cualquier movimiento inesperado te alerta</li>
-						</ul>
-						<div class="nx-card-pain">
-							En México se roban más de 100,000 vehículos al año. La mayoría no saben hasta horas
-							después.
-						</div>
-						<div class="nx-card-resolution">
-							Con Nexus, el momento en que algo cambia, tú ya lo sabes.
-						</div>
-						<div class="nx-card-cta">
-							<a href="#download" class="btn-nx-primary">Descargar la App</a>
+				<div class="nx-gallery-grid">
+					<!-- Card 1: Live tracking -->
+					<div class="nx-phone-card nx-reveal">
+						<img
+							src="/img/products/nexus/IMG_8745.PNG"
+							alt="Rastreo en vivo — mapa con pin del vehículo KIA"
+							loading="lazy"
+						/>
+						<div class="nx-phone-caption-wrap">
+							<div class="nx-phone-caption">
+								<span class="nx-phone-caption-title">Rastreo en vivo</span>
+								<span class="nx-phone-caption-desc">Sabe dónde está, en este momento.</span>
+							</div>
 						</div>
 					</div>
 
-					<!-- FLOTILLAS (featured) -->
-					<div class="nx-segment-card nx-card--flotillas nx-card--featured nx-reveal">
-						<div class="nx-card-eyebrow">Para Flotillas</div>
-						<div class="nx-badge">Más popular</div>
-						<h3 class="nx-card-title">Tu operación no para. Tu visibilidad tampoco.</h3>
-						<p class="nx-card-desc">
-							Conoce el estado real de cada unidad: posición exacta, comportamiento del conductor,
-							consumo estimado — ahora mismo. Las flotillas pierden entre 20 y 30% de su presupuesto
-							en ineficiencias perfectamente prevenibles.
-						</p>
-
-						<div class="nx-flotilla-tabs">
-							{#each flotillaVerticals as v, i (v.label)}
-								<button
-									class="nx-tab-chip"
-									class:active={activeVertical === i}
-									onclick={() => (activeVertical = i)}
+					<!-- Card 2: Route replay -->
+					<div class="nx-phone-card nx-reveal">
+						<img
+							src="/img/products/nexus/IMG_8751.PNG"
+							alt="Replay de recorrido con controles de reproducción"
+							loading="lazy"
+						/>
+						<div class="nx-phone-caption-wrap">
+							<div class="nx-phone-caption">
+								<span class="nx-phone-caption-title">Replay de recorrido</span>
+								<span class="nx-phone-caption-desc"
+									>Reconstruye cualquier trayecto, al segundo.</span
 								>
-									{v.label}
-								</button>
-							{/each}
-						</div>
-						<div class="nx-vertical-display">
-							{flotillaVerticals[activeVertical].problem}
-						</div>
-
-						<div class="nx-card-resolution">
-							Una flota de 20 vehículos puede ahorrar $240,000+ MXN al año solo en combustible.
-						</div>
-						<div class="nx-card-cta">
-							<a href="#demo" class="btn-nx-primary">Agendar una Demo</a>
-						</div>
-					</div>
-
-					<!-- PARTNERS TaaS -->
-					<div class="nx-segment-card nx-card--partners nx-reveal">
-						<div class="nx-card-eyebrow">Para Partners TaaS</div>
-						<h3 class="nx-card-title">
-							Tu hardware ya funciona. Dale la plataforma que se merece.
-						</h3>
-						<p class="nx-card-desc">
-							Conecta tus dispositivos a Nexus vía JSON o MQTT y ofrece a tus clientes una
-							plataforma completa — sin escribir front-end, sin construir infraestructura, sin
-							contratar desarrollo.
-						</p>
-
-						<div class="nx-partner-split">
-							<div class="nx-partner-col">
-								<div class="nx-partner-col-label gets">Lo que obtienen</div>
-								<ul class="nx-check-list gets">
-									<li>Apps nativas (iOS, Android, Web)</li>
-									<li>Telemetría en tiempo real</li>
-									<li>Geocercas y alertas</li>
-									<li>Reportes exportables</li>
-									<li>Marca blanca incluida</li>
-								</ul>
-							</div>
-							<div class="nx-partner-col">
-								<div class="nx-partner-col-label no">Sin necesitar</div>
-								<ul class="nx-check-list no">
-									<li>Equipo de desarrollo propio</li>
-									<li>Infraestructura de servidores</li>
-									<li>Contratos mínimos anuales</li>
-								</ul>
 							</div>
 						</div>
-
-						<div class="nx-card-pain">
-							El costo de construir esta plataforma desde cero supera los $500,000 MXN. Con Nexus
-							TaaS, en producción esta semana.
-						</div>
-						<div class="nx-card-cta">
-							<a href="#contacto" class="btn-nx-secondary">Contactar al Equipo</a>
-						</div>
 					</div>
-				</div>
-			</div>
-		</section>
 
-		<!-- FEATURES -->
-		<section class="nx-features" id="caracteristicas">
-			<div class="nx-container">
-				<div class="nx-section-header nx-reveal">
-					<p class="nx-overline">Capacidades</p>
-					<h2 class="nx-section-title">Todo lo que necesitas, en una sola plataforma</h2>
-					<p class="nx-section-sub">Ocho capacidades clave diseñadas para el mundo real.</p>
-				</div>
-
-				<div class="nx-features-grid">
-					<div class="nx-feature-item nx-reveal">
-						<div class="nx-feature-icon">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<circle cx="12" cy="12" r="3" />
-								<circle cx="12" cy="12" r="7" opacity="0.4" />
-								<circle cx="12" cy="12" r="11" opacity="0.2" />
-							</svg>
-						</div>
-						<div class="nx-feature-name">Posición en vivo</div>
-						<div class="nx-feature-desc">
-							Ubicación exacta actualizada al instante, con velocidad y estado del motor.
+					<!-- Card 3: Hexagonal geocerce — differentiator badge -->
+					<div class="nx-phone-card nx-reveal" data-diff="01">
+						<img
+							src="/img/products/nexus/IMG_8746.PNG"
+							alt="Crear Zona — geocercas hexagonales de precisión"
+							loading="lazy"
+						/>
+						<div class="nx-phone-caption-wrap">
+							<div class="nx-phone-caption">
+								<span class="nx-phone-caption-title">Geocercas hexagonales</span>
+								<span class="nx-phone-caption-desc">Zonas exactas. Cero falsas alarmas.</span>
+							</div>
 						</div>
 					</div>
 
-					<div class="nx-feature-item nx-reveal">
-						<div class="nx-feature-icon">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<circle cx="12" cy="12" r="9" />
-								<polyline points="12 7 12 12 15 15" />
-								<path d="M17 3l2 2-2 2" />
-								<path d="M19 5H12" />
-							</svg>
-						</div>
-						<div class="nx-feature-name">Historial con replay</div>
-						<div class="nx-feature-desc">
-							Reproduce el recorrido completo de cualquier vehículo en cualquier día.
-						</div>
-					</div>
-
-					<div class="nx-feature-item nx-reveal">
-						<div class="nx-feature-icon">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<polygon points="12 2 19 7 19 17 12 22 5 17 5 7 12 2" />
-								<polyline points="12 2 12 22" opacity="0.4" />
-								<polyline points="5 7 19 7" opacity="0.4" />
-								<polyline points="5 17 19 17" opacity="0.4" />
-							</svg>
-						</div>
-						<div class="nx-feature-name">Geocercas de precisión</div>
-						<div class="nx-feature-desc">
-							Define zonas poligonales exactas. Sin los círculos aproximados que generan falsas
-							alarmas.
-						</div>
-					</div>
-
-					<div class="nx-feature-item nx-reveal">
-						<div class="nx-feature-icon">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9" />
-								<path d="M13.73 21a2 2 0 01-3.46 0" />
-								<path d="M20 8l2-2M4 8L2 6" opacity="0.5" />
-							</svg>
-						</div>
-						<div class="nx-feature-name">Alertas instantáneas</div>
-						<div class="nx-feature-desc">
-							Push inmediato por encendido, salida de zona, velocidad excesiva o pérdida de señal.
-						</div>
-					</div>
-
-					<div class="nx-feature-item nx-reveal">
-						<div class="nx-feature-icon">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-								<polyline points="14 2 14 8 20 8" />
-								<polyline points="8 17 10 19 14 15" />
-							</svg>
-						</div>
-						<div class="nx-feature-name">Reportes operacionales</div>
-						<div class="nx-feature-desc">
-							Consumo, kilómetros, tiempos y detenciones — exportables en PDF o Excel.
-						</div>
-					</div>
-
-					<div class="nx-feature-item nx-reveal">
-						<div class="nx-feature-icon">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-								<path d="M9 12l2 2 4-4" />
-							</svg>
-						</div>
-						<div class="nx-feature-name">Permisos granulares</div>
-						<div class="nx-feature-desc">
-							Cada usuario accede solo a los vehículos que le corresponden, por rol y por unidad.
-						</div>
-					</div>
-
-					<div class="nx-feature-item nx-reveal">
-						<div class="nx-feature-icon">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<rect x="5" y="2" width="14" height="20" rx="2" />
-								<line x1="12" y1="18" x2="12.01" y2="18" />
-								<rect x="2" y="7" width="3" height="10" rx="1" opacity="0.4" />
-							</svg>
-						</div>
-						<div class="nx-feature-name">Apps nativas</div>
-						<div class="nx-feature-desc">
-							Construidas para iOS, Android y Web. No una web disfrazada de app móvil.
-						</div>
-					</div>
-
-					<div class="nx-feature-item nx-reveal">
-						<div class="nx-feature-icon">
-							<svg
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="1.5"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-							>
-								<polyline points="16 18 22 12 16 6" />
-								<polyline points="8 6 2 12 8 18" />
-								<line x1="12" y1="5" x2="12" y2="19" opacity="0.3" />
-							</svg>
-						</div>
-						<div class="nx-feature-name">Integración JSON/MQTT</div>
-						<div class="nx-feature-desc">
-							Conecta tu hardware existente en días. Si envía posición, Nexus lo entiende.
-						</div>
-					</div>
-				</div>
-			</div>
-		</section>
-
-		<!-- DIFFERENTIATORS -->
-		<section class="nx-diff" id="diferenciadores">
-			<div class="nx-container">
-				<div class="nx-section-header nx-reveal">
-					<p class="nx-overline">Ventajas reales</p>
-					<h2 class="nx-section-title">Por qué Nexus y no otro</h2>
-					<p class="nx-section-sub">Diferencias concretas, no promesas de marketing.</p>
-				</div>
-
-				<ol class="nx-diff-list">
-					<li class="nx-diff-item nx-reveal">
-						<div class="nx-diff-num">01</div>
-						<div class="nx-diff-content">
-							<h4 class="nx-diff-title">Geocercas de precisión real</h4>
-							<p class="nx-diff-text">
-								La mayoría de las plataformas definen zonas con círculos que generan alertas que
-								nadie atiende. Nexus utiliza tecnología de zonificación de siguiente generación — la
-								misma que usan las plataformas de movilidad más exigentes del mundo — que permite
-								perímetros con forma libre y precisión milimétrica.
-							</p>
-						</div>
-					</li>
-
-					<li class="nx-diff-item nx-reveal">
-						<div class="nx-diff-num">02</div>
-						<div class="nx-diff-content">
-							<h4 class="nx-diff-title">Telemetría real, no solo un punto en el mapa</h4>
-							<p class="nx-diff-text">
-								Un punto te dice dónde está el vehículo. Nexus te dice cómo está: voltaje de
-								batería, calidad de señal, velocidad media, paradas detectadas, consumo estimado. La
-								diferencia entre rastrear y entender tu activo.
-							</p>
-						</div>
-					</li>
-
-					<li class="nx-diff-item nx-reveal">
-						<div class="nx-diff-num">03</div>
-						<div class="nx-diff-content">
-							<h4 class="nx-diff-title">Privacidad configurable</h4>
-							<p class="nx-diff-text">
-								Conductor, supervisor, administrador, cliente con vista limitada — cada rol ve
-								exactamente lo que debe ver, nada más. Control por vehículo, por usuario y por
-								horario. Sin manuales.
-							</p>
-						</div>
-					</li>
-
-					<li class="nx-diff-item nx-reveal">
-						<div class="nx-diff-num">04</div>
-						<div class="nx-diff-content">
-							<h4 class="nx-diff-title">App nativa construida para lo que importa</h4>
-							<p class="nx-diff-text">
-								No un portal web adaptado para móvil. Mapas fluidos, notificaciones que llegan
-								aunque el teléfono esté en reposo, interfaz para usarse con una mano. La diferencia
-								se siente la primera vez que recibes una alerta a las 2am.
-							</p>
-						</div>
-					</li>
-
-					<li class="nx-diff-item nx-reveal">
-						<div class="nx-diff-num">05</div>
-						<div class="nx-diff-content">
-							<h4 class="nx-diff-title">TaaS: tu hardware, nuestra plataforma</h4>
-							<p class="nx-diff-text">
-								Si ya tienes dispositivos GPS o eres fabricante, Nexus recibe sus datos sin cambio
-								de equipo. Tu cliente ve una plataforma completa con tu marca desde el primer día.
-								El time-to-market que tomaría meses, en días.
-							</p>
-						</div>
-					</li>
-				</ol>
-			</div>
-		</section>
-
-		<!-- SOCIAL PROOF -->
-		<section class="nx-proof" id="evidencia">
-			<div class="nx-container">
-				<div class="nx-stats-bar nx-reveal">
-					<div class="nx-stat">
-						<span class="nx-stat-num">{statValues.vehicles.toLocaleString()}+</span>
-						<span class="nx-stat-label">vehículos monitoreados activamente</span>
-					</div>
-					<div class="nx-stat">
-						<span class="nx-stat-num">{statValues.uptime.toFixed(1)}%</span>
-						<span class="nx-stat-label">uptime garantizado en los últimos 12 meses</span>
-					</div>
-					<div class="nx-stat">
-						<span class="nx-stat-num">{statValues.rating.toFixed(1)} / 5</span>
-						<span class="nx-stat-label">calificación en App Store y Google Play</span>
-					</div>
-				</div>
-
-				<div class="nx-testimonials-grid">
-					<div class="nx-testimonial nx-reveal">
-						<div class="nx-testimonial-quote">"</div>
-						<p class="nx-testimonial-text">
-							Tengo tres hijos y dos carros que les presto. Ahora sé exactamente dónde están y si se
-							salen de la ruta me avisa de inmediato. Nexus me devolvió la calma que no sabía que
-							había perdido.
-						</p>
-						<div class="nx-testimonial-author">
-							<strong>Claudia R.</strong>
-							<span>Madre de familia, Monterrey</span>
-						</div>
-					</div>
-
-					<div class="nx-testimonial nx-reveal">
-						<div class="nx-testimonial-quote">"</div>
-						<p class="nx-testimonial-text">
-							En los primeros dos meses redujimos el desperdicio de combustible de 12% a menos del
-							2%. Los números hablan solos.
-						</p>
-						<div class="nx-testimonial-author">
-							<strong>Ing. Martínez</strong>
-							<span>Director de Operaciones, flota de 35 unidades</span>
-						</div>
-					</div>
-
-					<div class="nx-testimonial nx-reveal">
-						<div class="nx-testimonial-quote">"</div>
-						<p class="nx-testimonial-text">
-							Desde que implementamos Nexus no hemos tenido un solo robo en obra. Las geocercas nos
-							avisan de madrugada si algo se mueve fuera de horario.
-						</p>
-						<div class="nx-testimonial-author">
-							<strong>Gerente de Proyectos</strong>
-							<span>Constructora, norte de México</span>
+					<!-- Card 4: Telemetry dashboard -->
+					<div class="nx-phone-card nx-reveal">
+						<img
+							src="/img/products/nexus/IMG_8747.PNG"
+							alt="Dashboard de telemetría — distancia, combustible, tiempo"
+							loading="lazy"
+						/>
+						<div class="nx-phone-caption-wrap">
+							<div class="nx-phone-caption">
+								<span class="nx-phone-caption-title">Telemetría completa</span>
+								<span class="nx-phone-caption-desc"
+									>Combustible, distancia, tiempo. De un vistazo.</span
+								>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -1095,10 +1032,16 @@
 							</svg>
 						</div>
 						<h3 class="nx-cta-title">Para tu familia</h3>
-						<p class="nx-cta-desc">Descarga la app y empieza en minutos. Sin contratos forzosos.</p>
+						<p class="nx-cta-desc">
+							Protege a los tuyos y a tus vehículos — alertas en tiempo real, sin contratos
+							forzosos.
+						</p>
 						<div class="nx-cta-actions">
-							<a href="#download" class="btn-nx-secondary">App Store</a>
-							<a href="#download" class="btn-nx-secondary">Google Play</a>
+							<a href="#contacto" class="btn-nx-primary">Quiero proteger mi vehículo</a>
+							<p class="nx-cta-download-note">
+								Descarga la app gratis: <a href="#download" class="nx-cta-link-sm">App Store</a> ·
+								<a href="#download" class="nx-cta-link-sm">Google Play</a>
+							</p>
 						</div>
 					</div>
 
@@ -1124,7 +1067,7 @@
 							Te mostramos cómo Nexus se adapta a tu operación exacta — en 30 minutos.
 						</p>
 						<div class="nx-cta-actions">
-							<a href="#demo-form" class="btn-nx-primary">Agendar una Demo</a>
+							<a href="#contacto" class="btn-nx-primary">Quiero una demo para mi flotilla</a>
 						</div>
 					</div>
 
@@ -1149,7 +1092,112 @@
 							Habla con nuestro equipo técnico y pon en marcha tu primera integración esta semana.
 						</p>
 						<div class="nx-cta-actions">
-							<a href="#contacto" class="btn-nx-secondary">Contactar al Equipo</a>
+							<a href="#contacto" class="btn-nx-secondary">Hablar sobre integración</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- SOCIAL PROOF -->
+		<section class="nx-proof" id="evidencia">
+			<div class="nx-container">
+				<div class="nx-stats-bar nx-reveal">
+					<div class="nx-proof-point">
+						<div class="nx-proof-icon" aria-hidden="true">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path
+									d="M9 12l2 2 4-4"
+								/></svg
+							>
+						</div>
+						<span class="nx-proof-label">En producción</span>
+						<span class="nx-proof-desc">Plataforma operativa, no una maqueta</span>
+					</div>
+					<div class="nx-proof-point">
+						<div class="nx-proof-icon" aria-hidden="true">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><rect x="5" y="2" width="14" height="20" rx="2" /><line
+									x1="12"
+									y1="18"
+									x2="12.01"
+									y2="18"
+								/><rect x="2" y="7" width="3" height="10" rx="1" opacity="0.4" /></svg
+							>
+						</div>
+						<span class="nx-proof-label">iOS, Android y Web</span>
+						<span class="nx-proof-desc">Apps disponibles hoy, sin lista de espera</span>
+					</div>
+					<div class="nx-proof-point">
+						<div class="nx-proof-icon" aria-hidden="true">
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.5"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" /><line
+									x1="12"
+									y1="5"
+									x2="12"
+									y2="19"
+									opacity="0.3"
+								/></svg
+							>
+						</div>
+						<span class="nx-proof-label">GPS, API y MQTT</span>
+						<span class="nx-proof-desc">Conecta tu hardware desde el primer día</span>
+					</div>
+				</div>
+
+				<div class="nx-testimonials-grid">
+					<div class="nx-testimonial nx-reveal">
+						<div class="nx-testimonial-quote">"</div>
+						<p class="nx-testimonial-text">
+							Tengo tres hijos y dos carros que les presto. Ahora sé exactamente dónde están y si se
+							salen de la ruta me avisa de inmediato. Nexus me devolvió la calma que no sabía que
+							había perdido.
+						</p>
+						<div class="nx-testimonial-author">
+							<strong>Claudia R.</strong>
+							<span>Madre de familia, Monterrey</span>
+						</div>
+					</div>
+
+					<div class="nx-testimonial nx-reveal">
+						<div class="nx-testimonial-quote">"</div>
+						<p class="nx-testimonial-text">
+							En los primeros dos meses redujimos el desperdicio de combustible de 12% a menos del
+							2%. Los números hablan solos.
+						</p>
+						<div class="nx-testimonial-author">
+							<strong>Ing. Martínez</strong>
+							<span>Director de Operaciones, flota de 35 unidades</span>
+						</div>
+					</div>
+
+					<div class="nx-testimonial nx-reveal">
+						<div class="nx-testimonial-quote">"</div>
+						<p class="nx-testimonial-text">
+							Desde que implementamos Nexus no hemos tenido un solo robo en obra. Las geocercas nos
+							avisan de madrugada si algo se mueve fuera de horario.
+						</p>
+						<div class="nx-testimonial-author">
+							<strong>Gerente de Proyectos</strong>
+							<span>Constructora, norte de México</span>
 						</div>
 					</div>
 				</div>
@@ -1157,7 +1205,7 @@
 		</section>
 
 		<!-- LEGAL -->
-		<section class="nx-legal">
+		<div class="nx-legal">
 			<div class="nx-container">
 				<nav class="nx-legal-links" aria-label="Documentos legales">
 					<a href="/legal/terminos">Términos de Uso</a>
@@ -1171,6 +1219,6 @@
 					plataforma de Geminis Labs.
 				</p>
 			</div>
-		</section>
+		</div>
 	</main>
 </div>

@@ -5,9 +5,14 @@
    ============================================================= */
 
 /* ── Global Reset ─────────────────────────────────────────── */
-:global(html) {
+:global(html),
+:global(body) {
 	scroll-behavior: smooth;
-	background: #040912;
+	background: #080f1e;
+}
+
+section::before {
+	background: none !important;
 }
 
 /* ── Outer wrapper ─────────────────────────────────────────── */
@@ -18,9 +23,9 @@
 /* ── Page root — all design tokens live here ─────────────── */
 .nx-page {
 	/* Color tokens */
-	--nx-bg-primary: #040912;
-	--nx-bg-secondary: #071428;
-	--nx-bg-surface: #0d1e3a;
+	--nx-bg-primary: #080f1e;
+	--nx-bg-secondary: #0a1220;
+	--nx-bg-surface: #0e1e38;
 	--nx-text-primary: #eaf3fc;
 	--nx-text-secondary: #94b5d0;
 	--nx-text-muted: #3d5a72;
@@ -34,13 +39,12 @@
 	--nx-glass-blur: blur(20px);
 
 	/* Base page styles */
-	background-color: var(--nx-bg-primary);
 	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100' viewBox='0 0 56 100'%3E%3Cpath d='M28 66L0 50L0 16L28 0L56 16L56 50L28 66L28 100' fill='none' stroke='rgba(0%2C243%2C255%2C0.02)' stroke-width='1'/%3E%3C/svg%3E");
 	background-size: 56px 100px;
 	font-family: 'Outfit', sans-serif;
 	color: var(--nx-text-secondary);
 	min-height: 100vh;
-	padding-top: 80px;
+	padding-top: 0;
 }
 
 /* ── Container ───────────────────────────────────────────── */
@@ -56,7 +60,7 @@
 
 .nx-reveal {
 	opacity: 0;
-	transform: translateY(24px);
+	transform: translateY(12px);
 	transition:
 		opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1),
 		transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
@@ -369,7 +373,7 @@
 
 .nx-section-header {
 	text-align: center;
-	margin-bottom: 3rem;
+	margin-bottom: 2rem;
 }
 
 .nx-section-title {
@@ -401,29 +405,28 @@
 }
 
 /* =============================================================
-   VALUE PROPOSITION — .nx-value
-   "Signal acquired" — strong cyan entry, establishes the brand
+   BRIDGE — .nx-bridge
+   Compact transition band — anchors hero claim to segments
    ============================================================= */
 
-.nx-value {
+.nx-bridge {
 	position: relative;
-	background: #122234;
+	background: #080f1e;
 	background-image:
-		radial-gradient(ellipse 100% 120% at 50% -10%, rgba(0, 243, 255, 0.12) 0%, transparent 55%),
+		radial-gradient(ellipse 100% 80% at 50% -5%, rgba(0, 243, 255, 0.1) 0%, transparent 55%),
 		radial-gradient(ellipse 40% 30% at 50% 110%, rgba(10, 122, 255, 0.06) 0%, transparent 60%);
-	padding: 5rem 0;
+	padding: 2.5rem 0;
 	text-align: center;
 	border-top: 1px solid rgba(0, 243, 255, 0.2);
 	border-bottom: 1px solid rgba(0, 243, 255, 0.08);
 	overflow: hidden;
 }
 
-/* Scanning beam across the value section */
-.nx-value::before {
+.nx-bridge::before {
 	content: '';
 	position: absolute;
 	top: 0;
-	left: -100%;
+	left: -40%;
 	width: 40%;
 	height: 100%;
 	background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.03), transparent);
@@ -443,34 +446,65 @@
 	}
 }
 
-.nx-value-title {
+.nx-bridge-body {
+	margin-bottom: 2rem;
+}
+
+.nx-bridge-headline {
 	font-family: 'Audiowide', sans-serif;
-	font-size: clamp(1.5rem, 3.2vw, 2.6rem);
+	font-size: clamp(1.05rem, 2.2vw, 1.75rem);
 	color: var(--nx-text-primary);
-	line-height: 1.3;
+	line-height: 1.45;
 	font-weight: 400;
-	margin: 0 0 2rem;
-	text-align: center;
+	margin: 0;
 }
 
-.nx-value-badges {
-	display: flex;
+.nx-bridge-strip {
+	display: grid;
+	grid-template-columns: 1fr 1px 1fr 1px 1fr;
 	align-items: center;
-	justify-content: center;
-	gap: 0.75rem;
-	flex-wrap: wrap;
+	max-width: 740px;
+	margin: 0 auto;
 }
 
-.nx-badge {
-	padding: 0.4rem 1.2rem;
-	border-radius: 50px;
-	border: 1px solid rgba(0, 243, 255, 0.2);
-	background: rgba(0, 243, 255, 0.07);
-	color: var(--nx-accent-a);
-	font-size: 0.78rem;
-	font-weight: 600;
-	letter-spacing: 0.1em;
+.nx-bridge-rule {
+	width: 1px;
+	height: 40px;
+	background: rgba(0, 243, 255, 0.15);
+	justify-self: center;
+}
+
+.nx-bridge-item {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.3rem;
+	padding: 0 1.5rem;
+}
+
+.nx-bridge-label {
+	font-size: 0.72rem;
+	font-weight: 700;
+	letter-spacing: 0.14em;
 	text-transform: uppercase;
+}
+
+.nx-bridge-label--familias {
+	color: var(--nx-accent-a);
+}
+.nx-bridge-label--flotillas {
+	color: var(--nx-accent-b);
+}
+.nx-bridge-label--partners {
+	color: #a78bfa;
+}
+
+.nx-bridge-text {
+	font-size: 0.86rem;
+	color: var(--nx-text-secondary);
+	text-align: center;
+	line-height: 1.4;
+	margin: 0;
 }
 
 /* =============================================================
@@ -479,12 +513,11 @@
    ============================================================= */
 
 .nx-segments {
-	background: #0e1d30;
+	background: #080f1e;
 	background-image:
-		radial-gradient(ellipse 50% 60% at 10% 60%, rgba(10, 122, 255, 0.1) 0%, transparent 55%),
-		radial-gradient(ellipse 70% 40% at 90% 10%, rgba(0, 243, 255, 0.06) 0%, transparent 55%),
-		radial-gradient(ellipse 40% 40% at 50% 50%, rgba(100, 80, 200, 0.04) 0%, transparent 60%);
-	padding: 5rem 0;
+		radial-gradient(ellipse 60% 50% at 15% 60%, rgba(10, 122, 255, 0.09) 0%, transparent 55%),
+		radial-gradient(ellipse 50% 40% at 90% 10%, rgba(0, 243, 255, 0.06) 0%, transparent 55%);
+	padding: 3.5rem 0;
 	border-bottom: 1px solid rgba(10, 122, 255, 0.1);
 }
 
@@ -765,13 +798,13 @@
 
 .nx-features {
 	position: relative;
-	background: #111f35;
+	background: #0a1220;
 	background-image:
-		radial-gradient(ellipse 80% 50% at 50% 110%, rgba(10, 122, 255, 0.14) 0%, transparent 55%),
+		radial-gradient(ellipse 80% 50% at 50% 110%, rgba(10, 122, 255, 0.12) 0%, transparent 55%),
 		radial-gradient(ellipse 60% 30% at 80% 20%, rgba(0, 243, 255, 0.05) 0%, transparent 50%);
-	padding: 5rem 0;
-	border-top: 1px solid rgba(10, 122, 255, 0.15);
-	border-bottom: 1px solid rgba(10, 122, 255, 0.1);
+	padding: 3.5rem 0;
+	border-top: 1px solid rgba(10, 122, 255, 0.12);
+	border-bottom: 1px solid rgba(10, 122, 255, 0.08);
 	overflow: hidden;
 }
 
@@ -864,11 +897,11 @@
 
 .nx-diff {
 	position: relative;
-	background: #0b1828;
+	background: #080f1e;
 	background-image:
 		radial-gradient(ellipse 40% 60% at 0% 50%, rgba(0, 243, 255, 0.06) 0%, transparent 50%),
 		radial-gradient(ellipse 30% 40% at 100% 50%, rgba(10, 122, 255, 0.04) 0%, transparent 50%);
-	padding: 5rem 0;
+	padding: 3.5rem 0;
 	overflow: hidden;
 }
 
@@ -976,19 +1009,15 @@
 
 /* =============================================================
    SOCIAL PROOF — .nx-proof
-   "Validation" — green accent for success/trust association
+   Validation — unified dark, cyan accent for trust/precision
    ============================================================= */
 
 .nx-proof {
 	position: relative;
-	background: #0e2220;
-	background-image:
-		radial-gradient(ellipse 90% 70% at 50% 40%, rgba(0, 255, 136, 0.1) 0%, transparent 55%),
-		radial-gradient(ellipse 50% 40% at 20% 80%, rgba(0, 243, 255, 0.06) 0%, transparent 50%),
-		radial-gradient(ellipse 40% 30% at 80% 20%, rgba(0, 255, 136, 0.05) 0%, transparent 50%);
-	padding: 5rem 0;
-	border-top: 1px solid rgba(0, 255, 136, 0.18);
-	border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+	background: #f2f4f7;
+	padding: 3.5rem 0;
+	border-top: 1px solid rgba(13, 27, 46, 0.08);
+	overflow: hidden;
 }
 
 .nx-stats-bar {
@@ -996,24 +1025,44 @@
 	grid-template-columns: repeat(3, 1fr);
 	gap: 2rem;
 	padding: 2.5rem 3rem;
-	background: rgba(0, 255, 136, 0.05);
-	border: 1px solid rgba(0, 255, 136, 0.2);
+	background: rgba(0, 243, 255, 0.04);
+	border: 1px solid rgba(0, 243, 255, 0.12);
 	border-radius: 20px;
-	margin-bottom: 3.5rem;
+	margin-bottom: 3rem;
 	text-align: center;
 }
 
-.nx-stat-num {
-	font-family: 'Audiowide', sans-serif;
-	font-size: clamp(2rem, 4vw, 3rem);
-	color: var(--nx-accent-c);
-	text-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
-	margin-bottom: 0.5rem;
-	display: block;
+.nx-proof-point {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.5rem;
 }
 
-.nx-stat-label {
-	font-size: 0.85rem;
+.nx-proof-icon {
+	width: 2.25rem;
+	height: 2.25rem;
+	color: var(--nx-accent-a);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.nx-proof-icon svg {
+	width: 100%;
+	height: 100%;
+}
+
+.nx-proof-label {
+	font-family: 'Audiowide', sans-serif;
+	font-size: 0.88rem;
+	color: var(--nx-text-primary);
+	font-weight: 400;
+	letter-spacing: 0.04em;
+}
+
+.nx-proof-desc {
+	font-size: 0.8rem;
 	color: var(--nx-text-muted);
 	line-height: 1.4;
 }
@@ -1026,8 +1075,8 @@
 
 .nx-testimonial {
 	padding: 2rem;
-	background: rgba(18, 38, 34, 0.85);
-	border: 1px solid rgba(0, 255, 136, 0.12);
+	background: rgba(14, 28, 52, 0.85);
+	border: 1px solid rgba(0, 243, 255, 0.1);
 	border-radius: 16px;
 	transition:
 		border-color 0.3s ease,
@@ -1035,15 +1084,15 @@
 }
 
 .nx-testimonial:hover {
-	border-color: rgba(0, 255, 136, 0.2);
+	border-color: rgba(0, 243, 255, 0.22);
 	transform: translateY(-3px);
 }
 
 .nx-testimonial-quote {
 	font-family: 'Audiowide', sans-serif;
 	font-size: 3.5rem;
-	color: var(--nx-accent-c);
-	opacity: 0.25;
+	color: var(--nx-accent-a);
+	opacity: 0.18;
 	line-height: 0.7;
 	display: block;
 	margin-bottom: 1rem;
@@ -1060,7 +1109,7 @@
 .nx-testimonial-author {
 	font-size: 0.82rem;
 	color: var(--nx-text-muted);
-	border-top: 1px solid rgba(0, 255, 136, 0.08);
+	border-top: 1px solid rgba(0, 243, 255, 0.08);
 	padding-top: 1rem;
 }
 
@@ -1076,14 +1125,11 @@
    ============================================================= */
 
 .nx-faq {
-	background: #0d1828;
-	background-image: radial-gradient(
-		ellipse 70% 50% at 50% 0%,
-		rgba(10, 122, 255, 0.07) 0%,
-		transparent 55%
-	);
-	padding: 5rem 0;
-	border-top: 1px solid rgba(10, 122, 255, 0.12);
+	position: relative;
+	overflow: hidden;
+	background: #f2f4f7;
+	padding: 3.5rem 0;
+	border-top: 1px solid rgba(13, 27, 46, 0.07);
 }
 
 /* Tab row */
@@ -1209,12 +1255,12 @@
 
 .nx-ctas {
 	position: relative;
-	background: #101e38;
+	background: #0a1220;
 	background-image:
 		radial-gradient(ellipse 60% 70% at 25% 50%, rgba(0, 243, 255, 0.09) 0%, transparent 55%),
 		radial-gradient(ellipse 60% 70% at 75% 50%, rgba(10, 122, 255, 0.09) 0%, transparent 55%),
 		radial-gradient(ellipse 40% 30% at 50% 0%, rgba(0, 243, 255, 0.05) 0%, transparent 50%);
-	padding: 5rem 0;
+	padding: 3.5rem 0;
 	border-top: 1px solid rgba(0, 243, 255, 0.15);
 	overflow: hidden;
 }
@@ -1385,6 +1431,23 @@
 	align-items: center;
 }
 
+.nx-cta-download-note {
+	font-size: 0.78rem;
+	color: var(--nx-text-muted);
+	margin: 0;
+}
+
+.nx-cta-link-sm {
+	color: var(--nx-accent-a);
+	text-decoration: none;
+	opacity: 0.8;
+	transition: opacity 0.2s ease;
+}
+
+.nx-cta-link-sm:hover {
+	opacity: 1;
+}
+
 /* =============================================================
    LEGAL — .nx-legal
    ============================================================= */
@@ -1530,6 +1593,607 @@
 }
 
 /* =============================================================
+   APP GALLERY — .nx-gallery
+   "Descárgala. Úsala. Impresiona."
+   Off-white device bezels on dark field: maximum screenshot
+   legibility, premium hardware signal, brand identity intact.
+   Decision: 2 agents (Brand Guardian + UX Researcher) confirmed
+   light frames over dark — dark screenshots on dark bg disappear.
+   ============================================================= */
+
+.nx-gallery {
+	position: relative;
+	background: #edf0f5;
+	padding: 3.5rem 0 4.5rem;
+	border-top: 1px solid rgba(13, 27, 46, 0.08);
+	border-bottom: 1px solid rgba(13, 27, 46, 0.06);
+	overflow: hidden;
+}
+
+/* 4-column stagger: odd cards baseline, even cards offset */
+.nx-gallery-grid {
+	display: grid;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 1.5rem;
+	align-items: start;
+	padding-top: 0.5rem;
+}
+
+.nx-gallery-grid .nx-phone-card:nth-child(2) {
+	margin-top: 2rem;
+}
+.nx-gallery-grid .nx-phone-card:nth-child(4) {
+	margin-top: 3rem;
+}
+
+/* ── Device card ────────────────────────────────────────────
+   Off-white (#dde3f0) bezel creates contrast between the dark
+   app screenshots and the dark page background, mimicking
+   physical device hardware. Cyan outer ring ties to brand. */
+.nx-phone-card {
+	position: relative;
+	border-radius: 32px;
+	overflow: hidden;
+	background: #dde3f0;
+	padding: 7px;
+	box-shadow:
+		0 0 0 1px rgba(0, 243, 255, 0.14),
+		0 16px 48px rgba(0, 0, 0, 0.55),
+		0 0 32px rgba(0, 243, 255, 0.07);
+	transition:
+		transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+		box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+	will-change: transform;
+	cursor: default;
+}
+
+.nx-phone-card img {
+	width: 100%;
+	height: auto;
+	display: block;
+	border-radius: 26px;
+}
+
+/* ── Hover: lift + intense cyan ring ────────────────────── */
+.nx-phone-card:hover {
+	transform: translateY(-10px);
+	box-shadow:
+		0 0 0 2px rgba(0, 243, 255, 0.5),
+		0 24px 64px rgba(0, 0, 0, 0.7),
+		0 0 60px rgba(0, 243, 255, 0.14);
+}
+
+/* ── Caption slide-up on hover ──────────────────────────── */
+.nx-phone-caption-wrap {
+	position: absolute;
+	bottom: 7px;
+	left: 7px;
+	right: 7px;
+	border-radius: 0 0 26px 26px;
+	overflow: hidden;
+}
+
+.nx-phone-caption {
+	padding: 1rem 1rem 0.85rem;
+	background: linear-gradient(to top, rgba(4, 9, 18, 0.96), rgba(4, 9, 18, 0.72));
+	backdrop-filter: blur(8px);
+	transform: translateY(100%);
+	transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nx-phone-card:hover .nx-phone-caption {
+	transform: translateY(0);
+}
+
+.nx-phone-caption-title {
+	display: block;
+	font-family: 'Audiowide', sans-serif;
+	font-size: 0.72rem;
+	font-weight: 400;
+	color: var(--nx-text-primary);
+	margin-bottom: 0.2rem;
+}
+
+.nx-phone-caption-desc {
+	display: block;
+	font-family: 'Outfit', sans-serif;
+	font-size: 0.7rem;
+	color: var(--nx-text-secondary);
+	line-height: 1.4;
+}
+
+/* ── Differentiator badge — geocerce card only ──────────── */
+.nx-phone-card[data-diff]::after {
+	content: 'Diferenciador ' attr(data-diff);
+	position: absolute;
+	top: 14px;
+	right: 14px;
+	padding: 0.28rem 0.7rem;
+	border-radius: 50px;
+	background: rgba(4, 9, 18, 0.8);
+	border: 1px solid rgba(0, 243, 255, 0.4);
+	font-family: 'Outfit', sans-serif;
+	font-size: 0.62rem;
+	font-weight: 700;
+	letter-spacing: 0.12em;
+	text-transform: uppercase;
+	color: var(--nx-accent-a);
+	backdrop-filter: blur(8px);
+	pointer-events: none;
+	z-index: 5;
+}
+
+/* ── Entry animation — perspective fan, inner cards first ── */
+.nx-gallery .nx-phone-card.nx-reveal {
+	opacity: 0;
+	transition:
+		opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+		transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.nx-gallery .nx-phone-card:nth-child(1).nx-reveal {
+	transform: perspective(1000px) translateY(40px) rotateY(-10deg);
+	transition-delay: 0.22s;
+}
+.nx-gallery .nx-phone-card:nth-child(2).nx-reveal {
+	transform: perspective(1000px) translateY(40px) rotateY(-4deg);
+	transition-delay: 0s;
+}
+.nx-gallery .nx-phone-card:nth-child(3).nx-reveal {
+	transform: perspective(1000px) translateY(40px) rotateY(4deg);
+	transition-delay: 0.1s;
+}
+.nx-gallery .nx-phone-card:nth-child(4).nx-reveal {
+	transform: perspective(1000px) translateY(40px) rotateY(10deg);
+	transition-delay: 0.32s;
+}
+
+.nx-gallery .nx-phone-card.nx-reveal.is-visible {
+	opacity: 1;
+	transform: perspective(1000px) translateY(0) rotateY(0deg);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	.nx-gallery .nx-phone-card.nx-reveal {
+		transition: opacity 0.2s ease;
+		transform: none;
+	}
+	.nx-phone-card:hover {
+		transform: none;
+	}
+	.nx-phone-caption {
+		transform: translateY(0);
+		transition: none;
+	}
+}
+
+/* ── Responsive ─────────────────────────────────────────── */
+@media (max-width: 1024px) {
+	.nx-gallery-grid {
+		grid-template-columns: repeat(2, 1fr);
+		max-width: 560px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.nx-gallery-grid .nx-phone-card:nth-child(2),
+	.nx-gallery-grid .nx-phone-card:nth-child(4) {
+		margin-top: 0;
+	}
+}
+
+@media (max-width: 640px) {
+	.nx-gallery-grid {
+		display: flex;
+		overflow-x: auto;
+		scroll-snap-type: x mandatory;
+		-webkit-overflow-scrolling: touch;
+		gap: 1.25rem;
+		padding-bottom: 1.5rem;
+		scrollbar-width: none;
+		max-width: 100%;
+	}
+	.nx-gallery-grid::-webkit-scrollbar {
+		display: none;
+	}
+	.nx-gallery-grid .nx-phone-card {
+		flex: 0 0 78vw;
+		max-width: 280px;
+		scroll-snap-align: center;
+		margin-top: 0 !important;
+	}
+}
+
+/* =============================================================
+   REVEAL ANIMATIONS — Staggered per-section choreography
+   ============================================================= */
+
+/* Segments: perspective lift-in with rotateX */
+.nx-segments .nx-segment-card.nx-reveal {
+	opacity: 0;
+	transform: perspective(900px) translateY(36px) rotateX(6deg);
+	transform-origin: top center;
+	transition:
+		opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+		transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nx-segments .nx-segment-card.nx-reveal.is-visible {
+	opacity: 1;
+	transform: perspective(900px) translateY(0) rotateX(0deg);
+}
+.nx-segments .nx-segment-card:nth-child(1).nx-reveal {
+	transition-delay: 0s;
+}
+.nx-segments .nx-segment-card:nth-child(2).nx-reveal {
+	transition-delay: 0.14s;
+}
+.nx-segments .nx-segment-card:nth-child(3).nx-reveal {
+	transition-delay: 0.28s;
+}
+
+/* Card top accent bar reveals left→right after card settles */
+.nx-segments .nx-segment-card::before {
+	transform-origin: left center;
+	transform: scaleX(0);
+	transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s;
+}
+.nx-segments .nx-segment-card.nx-reveal.is-visible::before {
+	transform: scaleX(1);
+}
+
+/* Breathing animation for featured card */
+.nx-segments .nx-card--featured {
+	animation: card-breathe 3.5s ease-in-out infinite;
+}
+@keyframes card-breathe {
+	0%,
+	100% {
+		box-shadow:
+			0 30px 80px rgba(0, 0, 0, 0.7),
+			0 0 0 1px rgba(0, 243, 255, 0.1),
+			0 0 60px rgba(0, 243, 255, 0.04);
+	}
+	50% {
+		box-shadow:
+			0 30px 80px rgba(0, 0, 0, 0.7),
+			0 0 0 1px rgba(0, 243, 255, 0.28),
+			0 0 60px rgba(0, 243, 255, 0.08);
+	}
+}
+
+/* Features: scale + translateY wave (diagonal timing) */
+.nx-features .nx-feature-item.nx-reveal {
+	opacity: 0;
+	transform: translateY(20px) scale(0.97);
+	transition:
+		opacity 0.55s cubic-bezier(0.16, 1, 0.3, 1),
+		transform 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nx-features .nx-feature-item.nx-reveal.is-visible {
+	opacity: 1;
+	transform: translateY(0) scale(1);
+}
+.nx-features .nx-feature-item:nth-child(1).nx-reveal {
+	transition-delay: 0s;
+}
+.nx-features .nx-feature-item:nth-child(2).nx-reveal {
+	transition-delay: 0.07s;
+}
+.nx-features .nx-feature-item:nth-child(3).nx-reveal {
+	transition-delay: 0.14s;
+}
+.nx-features .nx-feature-item:nth-child(4).nx-reveal {
+	transition-delay: 0.21s;
+}
+.nx-features .nx-feature-item:nth-child(5).nx-reveal {
+	transition-delay: 0.1s;
+}
+.nx-features .nx-feature-item:nth-child(6).nx-reveal {
+	transition-delay: 0.17s;
+}
+.nx-features .nx-feature-item:nth-child(7).nx-reveal {
+	transition-delay: 0.24s;
+}
+.nx-features .nx-feature-item:nth-child(8).nx-reveal {
+	transition-delay: 0.31s;
+}
+
+/* Icon entry: scale + rotate, fires after the card */
+.nx-features .nx-feature-item.nx-reveal .nx-feature-icon {
+	opacity: 0;
+	transform: scale(0.6) rotate(-8deg);
+	transition:
+		opacity 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+		transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.nx-features .nx-feature-item:nth-child(1).nx-reveal .nx-feature-icon {
+	transition-delay: 0.2s;
+}
+.nx-features .nx-feature-item:nth-child(2).nx-reveal .nx-feature-icon {
+	transition-delay: 0.27s;
+}
+.nx-features .nx-feature-item:nth-child(3).nx-reveal .nx-feature-icon {
+	transition-delay: 0.34s;
+}
+.nx-features .nx-feature-item:nth-child(4).nx-reveal .nx-feature-icon {
+	transition-delay: 0.41s;
+}
+.nx-features .nx-feature-item:nth-child(5).nx-reveal .nx-feature-icon {
+	transition-delay: 0.3s;
+}
+.nx-features .nx-feature-item:nth-child(6).nx-reveal .nx-feature-icon {
+	transition-delay: 0.37s;
+}
+.nx-features .nx-feature-item:nth-child(7).nx-reveal .nx-feature-icon {
+	transition-delay: 0.44s;
+}
+.nx-features .nx-feature-item:nth-child(8).nx-reveal .nx-feature-icon {
+	transition-delay: 0.51s;
+}
+.nx-features .nx-feature-item.nx-reveal.is-visible .nx-feature-icon {
+	opacity: 1;
+	transform: scale(1) rotate(0deg);
+}
+
+/* Icon hover nudge (one-shot, retriggered by JS) */
+@keyframes icon-nudge {
+	0% {
+		transform: rotate(0deg) scale(1);
+	}
+	40% {
+		transform: rotate(-12deg) scale(1.15);
+	}
+	70% {
+		transform: rotate(6deg) scale(1.05);
+	}
+	100% {
+		transform: rotate(0deg) scale(1);
+	}
+}
+.nx-features .nx-feature-item:hover .nx-feature-icon svg {
+	animation: icon-nudge 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Diff: horizontal slide-in from left */
+.nx-diff .nx-diff-item.nx-reveal {
+	opacity: 0;
+	transform: translateX(-28px);
+	transition:
+		opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+		transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nx-diff .nx-diff-item.nx-reveal.is-visible {
+	opacity: 1;
+	transform: translateX(0);
+}
+.nx-diff .nx-diff-item:nth-child(1).nx-reveal {
+	transition-delay: 0s;
+}
+.nx-diff .nx-diff-item:nth-child(2).nx-reveal {
+	transition-delay: 0.1s;
+}
+.nx-diff .nx-diff-item:nth-child(3).nx-reveal {
+	transition-delay: 0.2s;
+}
+.nx-diff .nx-diff-item:nth-child(4).nx-reveal {
+	transition-delay: 0.3s;
+}
+.nx-diff .nx-diff-item:nth-child(5).nx-reveal {
+	transition-delay: 0.4s;
+}
+
+/* Number drops in slightly after the item text */
+.nx-diff .nx-diff-item.nx-reveal .nx-diff-num {
+	opacity: 0;
+	transform: translateY(10px);
+	transition:
+		opacity 0.5s ease,
+		transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+		color 0.3s ease;
+}
+.nx-diff .nx-diff-item:nth-child(1).nx-reveal .nx-diff-num {
+	transition-delay: 0.15s;
+}
+.nx-diff .nx-diff-item:nth-child(2).nx-reveal .nx-diff-num {
+	transition-delay: 0.25s;
+}
+.nx-diff .nx-diff-item:nth-child(3).nx-reveal .nx-diff-num {
+	transition-delay: 0.35s;
+}
+.nx-diff .nx-diff-item:nth-child(4).nx-reveal .nx-diff-num {
+	transition-delay: 0.45s;
+}
+.nx-diff .nx-diff-item:nth-child(5).nx-reveal .nx-diff-num {
+	transition-delay: 0.55s;
+}
+.nx-diff .nx-diff-item.nx-reveal.is-visible .nx-diff-num {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+/* Rule draws left→right after the item settles */
+.nx-diff .nx-diff-item {
+	border-bottom: none;
+	position: relative;
+}
+.nx-diff .nx-diff-item::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 1px;
+	background: rgba(0, 243, 255, 0.12);
+	transform: scaleX(0);
+	transform-origin: left center;
+	transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.nx-diff .nx-diff-item:nth-child(1).nx-reveal.is-visible::after {
+	transition-delay: 0.5s;
+	transform: scaleX(1);
+}
+.nx-diff .nx-diff-item:nth-child(2).nx-reveal.is-visible::after {
+	transition-delay: 0.6s;
+	transform: scaleX(1);
+}
+.nx-diff .nx-diff-item:nth-child(3).nx-reveal.is-visible::after {
+	transition-delay: 0.7s;
+	transform: scaleX(1);
+}
+.nx-diff .nx-diff-item:nth-child(4).nx-reveal.is-visible::after {
+	transition-delay: 0.8s;
+	transform: scaleX(1);
+}
+.nx-diff .nx-diff-item:nth-child(5).nx-reveal.is-visible::after {
+	transition-delay: 0.9s;
+	transform: scaleX(1);
+}
+
+/* Left border indicator on hover */
+.nx-diff .nx-diff-item {
+	padding-left: 1.25rem;
+	border-left: 3px solid transparent;
+	transition:
+		border-color 0.2s ease,
+		background 0.2s ease,
+		padding-left 0.3s ease;
+}
+.nx-diff .nx-diff-item:hover {
+	border-left-color: rgba(0, 243, 255, 0.4);
+	padding-left: 1.25rem;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+	.nx-segments .nx-segment-card.nx-reveal,
+	.nx-features .nx-feature-item.nx-reveal,
+	.nx-diff .nx-diff-item.nx-reveal,
+	.nx-diff .nx-diff-item.nx-reveal .nx-diff-num,
+	.nx-features .nx-feature-item.nx-reveal .nx-feature-icon {
+		transition: opacity 0.2s ease;
+		transform: none;
+	}
+	.nx-diff .nx-diff-item::after {
+		transition: none;
+		transform: scaleX(1);
+	}
+	.nx-features .nx-feature-item:hover .nx-feature-icon svg {
+		animation: none;
+	}
+	.nx-segments .nx-card--featured {
+		animation: none;
+	}
+}
+
+/* =============================================================
+   AMBIENT MOTION — hex pan + section depth orbs
+   Compositor-only (transform/opacity/background-position)
+   ============================================================= */
+
+@keyframes nx-hex-pan {
+	from {
+		background-position: 0 0;
+	}
+	to {
+		background-position: 56px 100px;
+	}
+}
+
+.nx-page {
+	animation: nx-hex-pan 60s linear infinite;
+}
+
+/* Social Proof — cyan orb drifts from bottom-left */
+.nx-proof::before {
+	content: '';
+	position: absolute;
+	width: 520px;
+	height: 320px;
+	background: radial-gradient(ellipse, rgba(0, 243, 255, 0.06) 0%, transparent 70%);
+	bottom: -80px;
+	left: -80px;
+	border-radius: 50%;
+	filter: blur(80px);
+	pointer-events: none;
+	z-index: 0;
+	animation: nx-orb-drift-a 18s ease-in-out infinite alternate;
+}
+
+/* FAQ — blue orb breathes at top center */
+.nx-faq::before {
+	content: '';
+	position: absolute;
+	width: 600px;
+	height: 260px;
+	background: radial-gradient(ellipse, rgba(10, 122, 255, 0.06) 0%, transparent 70%);
+	top: -60px;
+	left: 50%;
+	transform: translateX(-50%);
+	border-radius: 50%;
+	filter: blur(80px);
+	pointer-events: none;
+	z-index: 0;
+	animation: nx-orb-breathe 14s ease-in-out infinite alternate;
+}
+
+/* CTA — blue orb on the right side */
+.nx-ctas::after {
+	content: '';
+	position: absolute;
+	width: 480px;
+	height: 360px;
+	background: radial-gradient(ellipse, rgba(10, 122, 255, 0.07) 0%, transparent 70%);
+	top: 50%;
+	right: -120px;
+	transform: translateY(-50%);
+	border-radius: 50%;
+	filter: blur(80px);
+	pointer-events: none;
+	z-index: 0;
+	animation: nx-orb-drift-b 22s ease-in-out infinite alternate;
+}
+
+@keyframes nx-orb-drift-a {
+	from {
+		transform: translate(0, 0);
+	}
+	to {
+		transform: translate(60px, -40px);
+	}
+}
+
+@keyframes nx-orb-drift-b {
+	from {
+		transform: translateY(-50%) translateX(0);
+	}
+	to {
+		transform: translateY(-50%) translateX(-50px);
+	}
+}
+
+@keyframes nx-orb-breathe {
+	from {
+		opacity: 0.6;
+		transform: translateX(-50%) scaleX(0.9);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(-50%) scaleX(1.1);
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.nx-page {
+		animation: none;
+	}
+	.nx-proof::before,
+	.nx-faq::before,
+	.nx-ctas::after {
+		animation: none;
+	}
+}
+
+/* =============================================================
    RESPONSIVE BREAKPOINTS
    ============================================================= */
 
@@ -1577,11 +2241,21 @@
 	.nx-proof,
 	.nx-faq,
 	.nx-ctas {
-		padding: 3.5rem 0;
+		padding: 2.5rem 0;
 	}
 
-	.nx-value {
-		padding: 3.5rem 0;
+	.nx-bridge {
+		padding: 2rem 0;
+	}
+
+	.nx-bridge-strip {
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
+
+	.nx-bridge-rule {
+		width: 40px;
+		height: 1px;
 	}
 
 	.nx-stats-bar {
@@ -1628,5 +2302,703 @@
 
 	.nx-features-grid {
 		grid-template-columns: 1fr;
+	}
+}
+
+/* =============================================================
+   AUDIENCE INTRO — section title + breathing room
+   ============================================================= */
+
+.nx-aud-intro {
+	text-align: center;
+	padding: 9rem 2rem 5.5rem;
+	background-color: #f2f4f7;
+}
+
+.nx-aud-intro-eyebrow {
+	font-family: 'Outfit', sans-serif;
+	font-size: 0.65rem;
+	font-weight: 700;
+	letter-spacing: 0.38em;
+	color: #0a7aff;
+	text-transform: uppercase;
+	margin: 0 0 0;
+}
+
+.nx-aud-intro-eyebrow::after {
+	content: '';
+	display: block;
+	width: 3rem;
+	height: 2px;
+	background: linear-gradient(90deg, #0a7aff 0%, #00f3ff 100%);
+	border-radius: 2px;
+	box-shadow: 0 0 10px rgba(0, 243, 255, 0.55);
+	margin: 0.85rem auto 2rem;
+}
+
+.nx-aud-intro-headline {
+	font-family: 'Audiowide', sans-serif;
+	font-size: clamp(2.5rem, 5.5vw, 4.25rem);
+	color: #0d1b2e;
+	line-height: 1.12;
+	letter-spacing: -0.01em;
+	margin: 0 0 2rem;
+}
+
+.nx-aud-intro-headline em {
+	font-style: normal;
+	background: linear-gradient(95deg, #0a7aff 0%, #00f3ff 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+}
+
+.nx-aud-intro-sub {
+	font-family: 'Outfit', sans-serif;
+	font-size: 1.15rem;
+	font-weight: 400;
+	color: #2d4a62;
+	letter-spacing: 0.01em;
+	line-height: 1.65;
+	max-width: 540px;
+	margin: 0 auto;
+}
+
+/* =============================================================
+   AUDIENCE SELECTOR — .nx-audience-selector
+   Full-viewport cinematic 3-panel experience
+   ============================================================= */
+
+.nx-audience-selector {
+	display: flex;
+	width: 100%;
+	height: 85vh;
+	min-height: 520px;
+	max-height: 900px;
+	overflow: hidden;
+	background: #f2f4f7;
+	user-select: none;
+}
+
+/* ── Individual panel ─────────────────────────────────────── */
+.nx-panel {
+	flex: 1;
+	position: relative;
+	overflow: hidden;
+	cursor: pointer;
+	transition: flex 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+	outline: none;
+	/* Explicit height so absolutely-positioned children can resolve height: 100% */
+	height: 100%;
+	min-height: 0;
+	min-width: 0;
+}
+
+/* JS-driven hover expansion — more reliable than :has() across Svelte DOM */
+.nx-panel.is-hovered {
+	flex: 3;
+}
+
+.nx-panel.is-dimmed {
+	flex: 0.38;
+}
+
+/* JS-driven active state */
+.nx-panel.is-active {
+	flex: 3;
+}
+
+/* When any panel is active, dim the others */
+.nx-audience-selector:has(.nx-panel.is-active) .nx-panel:not(.is-active) {
+	flex: 0.38;
+}
+
+/* Hover still expands even when another panel is active — same specificity, later source wins */
+.nx-audience-selector:has(.nx-panel.is-active) .nx-panel.is-hovered {
+	flex: 3;
+}
+
+/* ── Images: B&W base + color reveal layer ────────────────── */
+.nx-panel-img {
+	position: absolute !important;
+	top: 0 !important;
+	left: 0 !important;
+	right: 0 !important;
+	bottom: 0 !important;
+	width: 100% !important;
+	height: 100% !important;
+	max-width: none !important;
+	max-height: none !important;
+	object-fit: cover;
+	pointer-events: none;
+	display: block;
+	margin: 0;
+}
+
+.nx-panel-img--bw {
+	filter: grayscale(1) brightness(0.85) contrast(1.05);
+	transition: filter 650ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
+	z-index: 1;
+}
+
+/* Color layer clipped to cursor — the "spotlight" effect */
+.nx-panel-img--color {
+	clip-path: circle(0px at var(--mx, 50%) var(--my, 50%));
+	transition: clip-path 0.42s ease-out;
+	z-index: 2;
+}
+
+.nx-panel.is-hovered .nx-panel-img--color {
+	clip-path: circle(200px at var(--mx, 50%) var(--my, 50%));
+}
+
+/* Active panel: full color, no clip */
+.nx-panel.is-active .nx-panel-img--bw {
+	filter: grayscale(0) brightness(1) contrast(1);
+}
+.nx-panel.is-active .nx-panel-img--color {
+	clip-path: circle(2000px at 50% 50%);
+	transition: clip-path 0.7s ease-out;
+}
+
+/* ── Overlay gradient & content ───────────────────────────── */
+.nx-panel-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 3;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	padding: 2rem 2.25rem;
+	background: linear-gradient(
+		to top,
+		rgba(0, 0, 0, 0.7) 0%,
+		rgba(0, 0, 0, 0.15) 40%,
+		transparent 100%
+	);
+}
+
+.nx-panel-ordinal {
+	position: absolute;
+	top: 1.25rem;
+	right: 1.5rem;
+	font-family: 'Audiowide', sans-serif;
+	font-size: clamp(4rem, 8vw, 8.5rem);
+	color: rgba(255, 255, 255, 0.05);
+	line-height: 1;
+	user-select: none;
+	pointer-events: none;
+	transition: color 0.5s ease;
+}
+
+.nx-panel.is-active .nx-panel-ordinal {
+	color: rgba(255, 255, 255, 0.09);
+}
+
+.nx-panel-info {
+	display: flex;
+	flex-direction: column;
+}
+
+.nx-panel-eyebrow {
+	font-size: 0.68rem;
+	font-weight: 700;
+	letter-spacing: 0.22em;
+	text-transform: uppercase;
+	color: rgba(255, 255, 255, 0.45);
+	display: block;
+	margin-bottom: 0.5rem;
+	transition: color 0.4s ease;
+}
+
+.nx-panel.is-hovered .nx-panel-eyebrow,
+.nx-panel.is-active .nx-panel-eyebrow {
+	color: rgba(255, 255, 255, 0.9);
+}
+
+.nx-panel-hook {
+	font-family: 'Audiowide', sans-serif;
+	font-size: clamp(0.85rem, 1.6vw, 1.3rem);
+	color: #fff;
+	line-height: 1.38;
+	margin: 0 0 0.875rem;
+	max-width: 340px;
+	opacity: 0;
+	transform: translateY(10px);
+	transition:
+		opacity 0.4s ease 0.08s,
+		transform 0.4s ease 0.08s;
+}
+
+.nx-panel.is-hovered .nx-panel-hook,
+.nx-panel.is-active .nx-panel-hook {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+/* Live counter */
+.nx-panel-live {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+	font-size: 0.68rem;
+	color: rgba(255, 255, 255, 0.38);
+	font-family: 'JetBrains Mono', 'Courier New', monospace;
+	letter-spacing: 0.06em;
+	opacity: 0;
+	transform: translateY(6px);
+	transition:
+		opacity 0.35s ease 0.15s,
+		transform 0.35s ease 0.15s;
+	margin-bottom: 0.25rem;
+}
+
+.nx-panel.is-hovered .nx-panel-live,
+.nx-panel.is-active .nx-panel-live {
+	opacity: 1;
+	transform: translateY(0);
+}
+
+.nx-live-dot {
+	width: 5px;
+	height: 5px;
+	border-radius: 50%;
+	background: #00f3ff;
+	flex-shrink: 0;
+	animation: nx-live-blink 2s ease-in-out infinite;
+}
+
+@keyframes nx-live-blink {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.18;
+	}
+}
+
+/* Down-arrow indicator */
+.nx-panel-arrow {
+	width: 20px;
+	height: 20px;
+	color: rgba(255, 255, 255, 0.5);
+	opacity: 0;
+	transition:
+		opacity 0.3s ease 0.12s,
+		transform 0.3s ease,
+		color 0.3s ease;
+	margin-top: 0.625rem;
+	flex-shrink: 0;
+}
+
+.nx-panel.is-hovered .nx-panel-arrow,
+.nx-panel.is-active .nx-panel-arrow {
+	opacity: 1;
+}
+
+.nx-panel.is-active .nx-panel-arrow {
+	opacity: 1;
+	transform: rotate(180deg);
+	color: rgba(255, 255, 255, 0.9);
+}
+
+/* Active bottom accent line */
+.nx-panel::after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 3px;
+	z-index: 4;
+	transform: scaleX(0);
+	transition: transform 0.4s ease 0.18s;
+}
+
+.nx-panel.is-active::after {
+	transform: scaleX(1);
+}
+
+.nx-panel--familias::after {
+	background: #e8621a;
+}
+.nx-panel--flotillas::after {
+	background: #005fa3;
+}
+.nx-panel--partners::after {
+	background: #00a878;
+}
+
+/* ── Dividers — speed streak effect ──────────────────────── */
+.nx-panel-divider {
+	width: 1px;
+	background: rgba(255, 255, 255, 0.1);
+	flex-shrink: 0;
+	height: 100%;
+	z-index: 5;
+	transition:
+		transform 0.22s ease-out,
+		box-shadow 0.22s ease;
+}
+
+.nx-panel-divider.speed-streak {
+	transform: scaleY(1.12);
+	box-shadow: 0 0 10px rgba(0, 243, 255, 0.22);
+}
+
+/* =============================================================
+   GRADIENT BRIDGE — dark selector → light content
+   ============================================================= */
+
+/* =============================================================
+   AUDIENCE CONTENT — .nx-audience-content
+   Light premium editorial content per segment
+   ============================================================= */
+
+.nx-audience-content {
+	background: #f2f4f7;
+	padding: 4rem 0 5rem;
+	overflow: hidden;
+}
+
+.nx-aud-inner {
+	will-change: transform, opacity;
+}
+
+.nx-aud-container {
+	max-width: 1200px;
+	margin: 0 auto;
+	padding: 0 2rem;
+}
+
+.nx-aud-header {
+	margin-bottom: 3rem;
+}
+
+.nx-aud-eyebrow {
+	font-size: 0.7rem;
+	font-weight: 700;
+	letter-spacing: 0.2em;
+	text-transform: uppercase;
+	display: block;
+	margin-bottom: 1.25rem;
+}
+
+.nx-aud-eyebrow--familias {
+	color: #e8621a;
+}
+.nx-aud-eyebrow--flotillas {
+	color: #005fa3;
+}
+.nx-aud-eyebrow--partners {
+	color: #00a878;
+}
+
+.nx-aud-headline {
+	font-family: 'Audiowide', sans-serif;
+	font-size: clamp(1.65rem, 3.5vw, 3rem);
+	color: #0d1b2e;
+	line-height: 1.22;
+	font-weight: 400;
+	margin: 0 0 1.25rem;
+	max-width: 860px;
+}
+
+.nx-aud-sub {
+	font-size: 1.05rem;
+	color: #4a6080;
+	line-height: 1.72;
+	max-width: 620px;
+	margin: 0;
+}
+
+/* ── Callout cards (3-column editorial) ───────────────────── */
+.nx-callouts {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 1.5rem;
+	margin-bottom: 2.75rem;
+}
+
+.nx-callout {
+	background: #f2f4f7;
+	border: 1px solid rgba(13, 27, 46, 0.08);
+	border-radius: 4px;
+	padding: 2rem 1.75rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	transition:
+		box-shadow 0.25s ease,
+		transform 0.25s ease;
+}
+
+.nx-callout:hover {
+	box-shadow: 0 4px 20px rgba(13, 27, 46, 0.1);
+	transform: translateY(-2px);
+}
+
+.nx-callout-num {
+	font-family: 'Audiowide', sans-serif;
+	font-size: clamp(1.5rem, 2.5vw, 2rem);
+	font-weight: 400;
+	line-height: 1;
+	display: block;
+}
+
+.nx-cn--familias {
+	color: #e8621a;
+}
+.nx-cn--flotillas {
+	color: #005fa3;
+}
+.nx-cn--partners {
+	color: #00a878;
+}
+
+.nx-callout-label {
+	font-size: 0.95rem;
+	font-weight: 700;
+	color: #0d1b2e;
+	display: block;
+}
+
+.nx-callout-text {
+	font-size: 0.88rem;
+	color: #4a6080;
+	line-height: 1.72;
+	margin: 0;
+}
+
+/* ── CTA row ──────────────────────────────────────────────── */
+.nx-aud-cta {
+	display: flex;
+	align-items: center;
+	gap: 1.5rem;
+	flex-wrap: wrap;
+}
+
+.btn-aud {
+	display: inline-block;
+	padding: 0.9rem 2.25rem;
+	border-radius: 6px;
+	font-size: 0.95rem;
+	font-weight: 600;
+	font-family: 'Outfit', sans-serif;
+	text-decoration: none;
+	transition:
+		filter 0.2s ease,
+		transform 0.2s ease;
+}
+
+.btn-aud:hover {
+	filter: brightness(0.9);
+	transform: translateY(-1px);
+}
+
+.btn-aud--familias {
+	background: #e8621a;
+	color: #fff;
+}
+.btn-aud--flotillas {
+	background: #005fa3;
+	color: #fff;
+}
+.btn-aud--partners {
+	background: #00a878;
+	color: #fff;
+}
+
+/* =============================================================
+   LIGHT SECTION OVERRIDES
+   Gallery, FAQ and Social Proof on light backgrounds
+   ============================================================= */
+
+/* Gallery section — light bg text overrides */
+.nx-gallery .nx-overline {
+	color: #005fa3;
+}
+
+.nx-gallery .nx-section-title {
+	color: #0d1b2e;
+}
+
+.nx-gallery .nx-section-title::after {
+	background: linear-gradient(90deg, #005fa3, #00a878, transparent);
+}
+
+.nx-gallery .nx-section-sub {
+	color: #4a6080;
+}
+
+/* Phone card on light bg */
+.nx-gallery .nx-phone-card {
+	box-shadow: 0 8px 32px rgba(13, 27, 46, 0.12);
+}
+
+/* FAQ — white bg text overrides */
+.nx-faq .nx-overline {
+	color: #005fa3;
+}
+
+.nx-faq .nx-section-title {
+	color: #0d1b2e;
+}
+
+.nx-faq .nx-section-title::after {
+	background: linear-gradient(90deg, #005fa3, #00a878, transparent);
+}
+
+.nx-faq .nx-section-sub {
+	color: #4a6080;
+}
+
+.nx-faq .nx-faq-tabs {
+	border-bottom: 1px solid rgba(13, 27, 46, 0.1);
+}
+
+.nx-faq .nx-faq-tab {
+	color: #6b7a90;
+}
+
+.nx-faq .nx-faq-tab.active {
+	color: #005fa3;
+	border-bottom-color: #005fa3;
+}
+
+.nx-faq .nx-faq-tab:hover:not(.active) {
+	color: #0d1b2e;
+}
+
+.nx-faq .nx-faq-list {
+	border-top: 1px solid rgba(13, 27, 46, 0.08);
+}
+
+.nx-faq .nx-faq-item {
+	border-bottom-color: rgba(13, 27, 46, 0.08);
+}
+
+.nx-faq .nx-faq-q {
+	color: #0d1b2e;
+}
+
+.nx-faq .nx-faq-a p {
+	color: #4a6080;
+}
+
+.nx-faq .nx-faq-chevron {
+	color: #6b7a90;
+}
+
+/* Social proof — light bg overrides */
+.nx-proof .nx-stats-bar {
+	background: #fff;
+	border-color: rgba(13, 27, 46, 0.08);
+}
+
+.nx-proof .nx-proof-label {
+	color: #0d1b2e;
+}
+
+.nx-proof .nx-proof-desc {
+	color: #4a6080;
+}
+
+.nx-proof .nx-proof-icon {
+	color: #005fa3;
+}
+
+.nx-proof .nx-section-title {
+	color: #0d1b2e;
+}
+
+.nx-proof .nx-section-sub {
+	color: #4a6080;
+}
+
+.nx-proof .nx-testimonial {
+	background: #fff;
+	border-color: rgba(13, 27, 46, 0.08);
+}
+
+.nx-proof .nx-testimonial:hover {
+	border-color: rgba(13, 27, 46, 0.16);
+}
+
+.nx-proof .nx-testimonial-text {
+	color: #4a6080;
+}
+
+.nx-proof .nx-testimonial-author strong {
+	color: #0d1b2e;
+}
+
+.nx-proof .nx-testimonial-author span {
+	color: #6b7a90;
+}
+
+.nx-proof .nx-testimonial-quote {
+	color: #005fa3;
+	opacity: 0.25;
+}
+
+/* =============================================================
+   MOBILE — audience selector stack
+   ============================================================= */
+
+@media (max-width: 767px) {
+	.nx-audience-selector {
+		flex-direction: column;
+		height: auto;
+		max-height: none;
+	}
+
+	.nx-panel {
+		height: 160px;
+		flex: none !important;
+		transition: height 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+
+	.nx-panel.is-active {
+		height: 280px;
+	}
+
+	.nx-panel-hook {
+		font-size: 0.85rem;
+		opacity: 1;
+		transform: none;
+	}
+
+	.nx-panel-live {
+		opacity: 1;
+		transform: none;
+	}
+
+	.nx-panel-arrow {
+		opacity: 1;
+	}
+
+	.nx-panel.is-active .nx-panel-arrow {
+		transform: rotate(180deg);
+	}
+
+	.nx-panel-divider {
+		width: 100%;
+		height: 1px;
+	}
+
+	.nx-panel-divider.speed-streak {
+		transform: scaleX(1.05);
+		box-shadow: 0 0 8px rgba(0, 243, 255, 0.2);
+	}
+
+	.nx-callouts {
+		grid-template-columns: 1fr;
+	}
+
+	.nx-aud-cta {
+		flex-direction: column;
+		align-items: flex-start;
 	}
 }
