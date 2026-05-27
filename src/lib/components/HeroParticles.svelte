@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 
 	let wrap;
-	let logoImg;
 	let pixiCanvas;
 
 	onMount(async () => {
@@ -10,8 +9,11 @@
 
 		const PIXI = await import('pixi.js');
 
-		const W = wrap.clientWidth;
-		const H = wrap.clientHeight;
+		const W = wrap.clientWidth || window.innerWidth;
+		const H = wrap.clientHeight || window.innerHeight;
+		if (W === 0 || H === 0) return;
+
+		const isMobile = W < 768;
 
 		const app = new PIXI.Application({
 			width: W,
@@ -20,54 +22,141 @@
 			backgroundAlpha: 0,
 			resolution: Math.min(window.devicePixelRatio || 1, 2),
 			autoDensity: true,
-			antialias: true,
+			antialias: false,
 			powerPreference: 'high-performance'
 		});
 
-		// ── Logo PNG overlay ──────────────────────────────────
-		const logoSize = Math.min(W, H) * 0.42;
-		const logoCX = W * 0.68;
-		const logoCY = H * 0.38;
-		if (logoImg) {
-			logoImg.style.left = `${logoCX}px`;
-			logoImg.style.top = `${logoCY}px`;
-			logoImg.style.width = `${logoSize}px`;
-			logoImg.style.height = `${logoSize}px`;
-			logoImg.style.opacity = '1';
+		// ── CONTAINERS ────────────────────────────────────────────────
+		const bgContainer = new PIXI.Container(); // sparse ambient fabric
+		const logoContainer = new PIXI.Container(); // logo vortex
+		app.stage.addChild(bgContainer);
+		app.stage.addChild(logoContainer);
+
+		// ── MOUSE ─────────────────────────────────────────────────────
+		let mouseX = W * 0.7;
+		let mouseY = H * 0.43;
+		let smoothX = mouseX;
+		let smoothY = mouseY;
+
+		const onMove = (e) => {
+			const r = wrap.getBoundingClientRect();
+			mouseX = e.clientX - r.left;
+			mouseY = e.clientY - r.top;
+		};
+		const onTouch = (e) => {
+			const r = wrap.getBoundingClientRect();
+			mouseX = e.touches[0].clientX - r.left;
+			mouseY = e.touches[0].clientY - r.top;
+		};
+		wrap.addEventListener('mousemove', onMove);
+		wrap.addEventListener('touchmove', onTouch, { passive: true });
+
+		// ── HELPERS ───────────────────────────────────────────────────
+		const rng = (a, b) => a + Math.random() * (b - a);
+		const lerpColor = (c1, c2, t) => {
+			const r1 = (c1 >> 16) & 0xff,
+				g1 = (c1 >> 8) & 0xff,
+				b1 = c1 & 0xff;
+			const r2 = (c2 >> 16) & 0xff,
+				g2 = (c2 >> 8) & 0xff,
+				b2 = c2 & 0xff;
+			return (
+				(Math.round(r1 + (r2 - r1) * t) << 16) |
+				(Math.round(g1 + (g2 - g1) * t) << 8) |
+				Math.round(b1 + (b2 - b1) * t)
+			);
+		};
+
+		// ── TEXTURES ──────────────────────────────────────────────────
+		// Tiny solid dot for logo particles
+		const makeDotTex = (size) => {
+			const c = document.createElement('canvas');
+			c.width = c.height = size;
+			const ctx = c.getContext('2d');
+			ctx.fillStyle = '#ffffff';
+			ctx.beginPath();
+			ctx.arc(size / 2, size / 2, size / 2 - 0.3, 0, Math.PI * 2);
+			ctx.fill();
+			return PIXI.Texture.from(c);
+		};
+
+		// Soft glow dot for ambient network nodes
+		const makeGlowTex = (size) => {
+			const c = document.createElement('canvas');
+			c.width = c.height = size;
+			const ctx = c.getContext('2d');
+			const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+			g.addColorStop(0, 'rgba(255,255,255,1)');
+			g.addColorStop(0.4, 'rgba(255,255,255,0.5)');
+			g.addColorStop(1, 'rgba(255,255,255,0)');
+			ctx.fillStyle = g;
+			ctx.fillRect(0, 0, size, size);
+			return PIXI.Texture.from(c);
+		};
+
+		const partTex = makeDotTex(4);
+		const nodeTex = makeGlowTex(16);
+
+		// ── AMBIENT DATA NETWORK (background) ─────────────────────────
+		const nodeCount = isMobile ? 50 : 85;
+		const bgNodes = Array.from({ length: nodeCount }, () => ({
+			x: rng(10, W - 10),
+			y: rng(10, H - 10),
+			size: rng(2, 5),
+			baseAlpha: rng(0.05, 0.13),
+			pulseOffset: rng(0, Math.PI * 2),
+			pulseSpeed: rng(0.2, 0.55)
+		}));
+
+		// Static connection lines
+		const lineG = new PIXI.Graphics();
+		const CONN_D = Math.min(W, H) * 0.15;
+		const CONN_D2 = CONN_D * CONN_D;
+		for (let i = 0; i < bgNodes.length; i++) {
+			for (let j = i + 1; j < bgNodes.length; j++) {
+				const dx = bgNodes[i].x - bgNodes[j].x;
+				const dy = bgNodes[i].y - bgNodes[j].y;
+				const d2 = dx * dx + dy * dy;
+				if (d2 < CONN_D2) {
+					const pct = 1 - Math.sqrt(d2) / CONN_D;
+					lineG.lineStyle(0.5, 0x00d4aa, pct * 0.065);
+					lineG.moveTo(bgNodes[i].x, bgNodes[i].y);
+					lineG.lineTo(bgNodes[j].x, bgNodes[j].y);
+				}
+			}
 		}
+		bgContainer.addChild(lineG);
 
-		// ── Green dot texture ─────────────────────────────────
-		const dotC = document.createElement('canvas');
-		dotC.width = 6;
-		dotC.height = 6;
-		const dctx = dotC.getContext('2d');
-		dctx.fillStyle = '#ffffff';
-		dctx.beginPath();
-		dctx.arc(3, 3, 2.2, 0, Math.PI * 2);
-		dctx.fill();
-		const dotTex = PIXI.Texture.from(dotC);
-
-		// ── Binary digit pool ─────────────────────────────────
-		const binStyle = new PIXI.TextStyle({
-			fontFamily: '"Courier New", Courier, monospace',
-			fontSize: 9,
-			fill: '#3d6b3d'
+		const bgNodePC = new PIXI.ParticleContainer(nodeCount, {
+			position: true,
+			tint: true,
+			alpha: true,
+			scale: true,
+			rotation: false
 		});
-		const textLayer = new PIXI.Container();
-		app.stage.addChild(textLayer);
-		const textPool = [];
-		const activeTexts = [];
-		for (let i = 0; i < 40; i++) {
-			const t = new PIXI.Text('0', binStyle);
-			t.anchor.set(0.5);
-			t.alpha = 0;
-			textLayer.addChild(t);
-			textPool.push(t);
-		}
+		bgContainer.addChild(bgNodePC);
 
-		// ── Sample logo pixels ────────────────────────────────
-		const SAMPLE_RES = 360;
-		const STEP = 3;
+		const bgNodeSprites = bgNodes.map((n) => {
+			const s = new PIXI.Sprite(nodeTex);
+			s.anchor.set(0.5);
+			s.x = n.x;
+			s.y = n.y;
+			s.scale.set(n.size / 16);
+			s.alpha = n.baseAlpha;
+			s.tint = 0x00d4aa;
+			bgNodePC.addChild(s);
+			return { ...n, sprite: s };
+		});
+
+		// ── LOGO VORTEX — sample the logo PNG ─────────────────────────
+		// Logo is positioned in the right-center area, large enough to feel epic
+		const logoSize = Math.min(W, H) * (isMobile ? 0.416 : 0.52);
+		const logoCX = W * (isMobile ? 0.64 : 0.7);
+		const logoCY = H * (isMobile ? 0.38 : 0.44);
+
+		const SAMPLE_RES = 512;
+		const STEP = isMobile ? 5 : 3;
+
 		const logoSrcList = [];
 
 		await new Promise((resolve) => {
@@ -83,13 +172,11 @@
 				const ly = logoCY - logoSize / 2;
 				for (let y = 0; y < SAMPLE_RES; y += STEP) {
 					for (let x = 0; x < SAMPLE_RES; x += STEP) {
-						const i = (y * SAMPLE_RES + x) * 4;
-						if (px[i + 3] > 55) {
-							logoSrcList.push({
-								x: lx + (x / SAMPLE_RES) * logoSize,
-								y: ly + (y / SAMPLE_RES) * logoSize,
-								color: (px[i] << 16) | (px[i + 1] << 8) | px[i + 2]
-							});
+						const idx = (y * SAMPLE_RES + x) * 4;
+						if (px[idx + 3] > 50) {
+							const wx = lx + (x / SAMPLE_RES) * logoSize;
+							const wy = ly + (y / SAMPLE_RES) * logoSize;
+							logoSrcList.push({ x: wx, y: wy });
 						}
 					}
 				}
@@ -99,239 +186,122 @@
 			img.src = '/img/geminislabs-nobg.png';
 		});
 
-		// ── Logo particle layer ───────────────────────────────
-		const logoPC = new PIXI.ParticleContainer(logoSrcList.length + 4, {
+		if (logoSrcList.length === 0) return;
+
+		// Build particle data: store polar coords relative to logo center
+		const maxLogoR = logoSize * 0.5;
+
+		const logoPC = new PIXI.ParticleContainer(logoSrcList.length, {
 			position: true,
 			tint: true,
-			alpha: false,
+			alpha: true,
 			scale: false,
 			rotation: false
 		});
-		logoPC.alpha = 0;
-		app.stage.addChild(logoPC);
+		logoContainer.addChild(logoPC);
 
-		const greenParticles = [];
-		for (let i = 0; i < logoSrcList.length; i++) {
-			const s = logoSrcList[i];
-			const sprite = new PIXI.Sprite(dotTex);
+		const logoParticles = logoSrcList.map((s) => {
+			const dx = s.x - logoCX;
+			const dy = s.y - logoCY;
+			const r = Math.sqrt(dx * dx + dy * dy);
+			const baseAngle = Math.atan2(dy, dx);
+
+			// Emerald → cyan gradient based on radius
+			const colorT = Math.min(r / maxLogoR, 1);
+			const tint = lerpColor(0x00ff7a, 0x00c8ff, colorT);
+
+			// Brightness varies with radius: center brighter, outer dimmer
+			const alpha = Math.max(0.15, 0.75 - colorT * 0.38 + rng(-0.1, 0.18));
+
+			const sprite = new PIXI.Sprite(partTex);
 			sprite.anchor.set(0.5);
 			sprite.x = s.x;
 			sprite.y = s.y;
-			sprite.tint = s.color;
+			sprite.alpha = alpha;
+			sprite.tint = tint;
 			logoPC.addChild(sprite);
-			greenParticles.push({
-				id: i,
-				ox: s.x,
-				oy: s.y,
+
+			return {
+				sprite,
+				r,
+				baseAngle,
 				x: s.x,
 				y: s.y,
 				vx: 0,
-				vy: 0,
-				sprite,
-				settled: false
-			});
-		}
-
-		// ── State ─────────────────────────────────────────────
-		// States: 'idle' | 'forming' | 'active' | 'returning'
-		let state = 'idle';
-		let cursorX = logoCX,
-			cursorY = logoCY;
-		let lastMove = 0;
-		let formingStart = 0;
-		let returnStart = 0;
-
-		const IDLE_MS = 50;
-		const FORM_HOLD_MS = 50; // particles hold logo shape before burst
-		const RETURN_SHOW_DELAY = 1000;
-		const PARTICLES_HIDE_DELAY = 1100;
-
-		const setLogoOpacity = (v, dur = '0.5s') => {
-			if (logoImg) {
-				logoImg.style.transition = `opacity ${dur} ease`;
-				logoImg.style.opacity = String(v);
-			}
-		};
-
-		const burstParticles = () => {
-			for (const p of greenParticles) {
-				const dx = p.ox - logoCX,
-					dy = p.oy - logoCY;
-				const len = Math.sqrt(dx * dx + dy * dy) || 1;
-				const burst = 1.5 + Math.random() * 2.5;
-				p.vx += (dx / len) * burst + (Math.random() - 0.5) * 4;
-				p.vy += (dy / len) * burst + (Math.random() - 0.5) * 4;
-				p.settled = false;
-			}
-		};
-
-		// ── Pointer ───────────────────────────────────────────
-		const onMove = (e) => {
-			const r = wrap.getBoundingClientRect();
-			cursorX = e.clientX - r.left;
-			cursorY = e.clientY - r.top;
-			lastMove = performance.now();
-		};
-		const onTouch = (e) => {
-			const touch = e.touches[0];
-			const r = wrap.getBoundingClientRect();
-			cursorX = touch.clientX - r.left;
-			cursorY = touch.clientY - r.top;
-			lastMove = performance.now();
-		};
-		wrap.addEventListener('mousemove', onMove);
-		wrap.addEventListener('touchmove', onTouch, { passive: true });
-		window.addEventListener('resize', () => {
-			if (app && wrap) app.renderer.resize(wrap.clientWidth, wrap.clientHeight);
+				vy: 0
+			};
 		});
 
-		// ── Main ticker ───────────────────────────────────────
+		// ── ANIMATION TICKER ──────────────────────────────────────────
+		let globalRot = 0;
+		const ATTR_R = Math.min(W, H) * 0.34;
+		const PARALLAX = isMobile ? 0.25 : 1.0;
+
 		app.ticker.add(() => {
-			const now = performance.now();
-			const t = now * 0.001;
-			const dt = app.ticker.deltaMS;
-			const idle = lastMove === 0 || now - lastMove > IDLE_MS;
+			const t = performance.now() * 0.001;
+			// ~0.2 RPM slow rotation — pinwheel logo becomes a living vortex
+			globalRot += 0.00038;
 
-			// ── State machine transitions ──────────────────────
-			if (state === 'idle' && !idle) {
-				// Cursor just started moving → show logo as particles, hold briefly
-				state = 'forming';
-				formingStart = now;
-				setLogoOpacity(0, '0.3s');
-				// Reset particles to exact logo positions, no velocity
-				for (const p of greenParticles) {
-					p.x = p.ox;
-					p.y = p.oy;
-					p.vx = 0;
-					p.vy = 0;
-					p.sprite.x = p.ox;
-					p.sprite.y = p.oy;
-					p.settled = false;
-				}
-				logoPC.alpha = 1;
+			// Smooth mouse
+			smoothX += (mouseX - smoothX) * 0.04;
+			smoothY += (mouseY - smoothY) * 0.04;
+			const nx = (smoothX / W - 0.5) * PARALLAX;
+			const ny = (smoothY / H - 0.5) * PARALLAX;
+
+			// Parallax: bg moves slower, logo faster
+			bgContainer.x = nx * -14;
+			bgContainer.y = ny * -9;
+			logoContainer.x = nx * -36;
+			logoContainer.y = ny * -24;
+
+			// Ambient node pulse
+			for (let i = 0; i < bgNodeSprites.length; i++) {
+				const ns = bgNodeSprites[i];
+				const pulse = (Math.sin(t * ns.pulseSpeed + ns.pulseOffset) + 1) * 0.5;
+				ns.sprite.alpha = Math.max(0, ns.baseAlpha * (0.35 + pulse * 0.65));
 			}
 
-			if (state === 'forming') {
-				if (now - formingStart >= FORM_HOLD_MS) {
-					// Hold time elapsed → burst and switch to active
-					state = 'active';
-					burstParticles();
+			// Logo particles: spring toward rotating target + cursor gravity
+			for (let i = 0; i < logoParticles.length; i++) {
+				const p = logoParticles[i];
+
+				// Rotating rest position
+				const ang = p.baseAngle + globalRot;
+				const tx = logoCX + Math.cos(ang) * p.r;
+				const ty = logoCY + Math.sin(ang) * p.r;
+
+				// Spring force toward rotating target
+				p.vx += (tx - p.x) * 0.02;
+				p.vy += (ty - p.y) * 0.02;
+
+				// Cursor gravitational pull
+				const ddx = mouseX - p.x;
+				const ddy = mouseY - p.y;
+				const d = Math.sqrt(ddx * ddx + ddy * ddy) + 0.5;
+				if (d < ATTR_R) {
+					const force = 0.32 * (1 - d / ATTR_R);
+					p.vx += (ddx / d) * force;
+					p.vy += (ddy / d) * force;
 				}
-				// During forming: just hold particles in place (no physics applied below)
-			}
 
-			if (state === 'active' && idle) {
-				state = 'returning';
-				returnStart = now;
-			}
-
-			if (state === 'returning') {
-				if (!idle) {
-					// Cursor moved again mid-return
-					state = 'active';
-					returnStart = 0;
-				} else {
-					const el = now - returnStart;
-					if (el > RETURN_SHOW_DELAY) {
-						setLogoOpacity(1, '0.55s');
-					}
-					if (el > PARTICLES_HIDE_DELAY) {
-						logoPC.alpha = 0;
-						state = 'idle';
-						for (const p of greenParticles) {
-							p.x = p.ox;
-							p.y = p.oy;
-							p.vx = 0;
-							p.vy = 0;
-							p.sprite.x = p.ox;
-							p.sprite.y = p.oy;
-						}
-					}
-				}
-			}
-
-			// ── Logo particle physics ──────────────────────────
-			if (logoPC.alpha > 0 && state === 'active') {
-				for (let i = 0; i < greenParticles.length; i++) {
-					const p = greenParticles[i];
-
-					const dx = cursorX - p.x,
-						dy = cursorY - p.y;
-					const d = Math.sqrt(dx * dx + dy * dy);
-					const safe = Math.max(d, 32);
-					const invD = 1 / safe;
-					const ux = dx * invD,
-						uy = dy * invD;
-
-					const radial = d > 110 ? 1.2 : 0.28;
-					const tang = 1.5;
-					const repel = d < 46 ? (46 - d) * 0.06 : 0;
-					const nx = Math.sin(t * 0.88 + p.id * 1.71) * 0.16;
-					const ny = Math.cos(t * 0.88 + p.id * 2.39) * 0.16;
-
-					p.vx += ux * radial - uy * tang - ux * repel + nx;
-					p.vy += uy * radial + ux * tang - uy * repel + ny;
-					p.vx *= 0.88;
-					p.vy *= 0.88;
-
-					p.x += p.vx;
-					p.y += p.vy;
-					p.sprite.x = p.x;
-					p.sprite.y = p.y;
-				}
-			}
-
-			if (logoPC.alpha > 0 && state === 'returning') {
-				for (let i = 0; i < greenParticles.length; i++) {
-					const p = greenParticles[i];
-
-					p.vx += (p.ox - p.x) * 0.065;
-					p.vy += (p.oy - p.y) * 0.065;
-					p.vx *= 0.845;
-					p.vy *= 0.845;
-
-					if (!p.settled) {
-						const dox = p.ox - p.x,
-							doy = p.oy - p.y;
-						if (dox * dox + doy * doy < 4 && Math.abs(p.vx) < 0.22) {
-							p.settled = true;
-							if (Math.random() < 0.18 && textPool.length > 0) {
-								const txt = textPool.pop();
-								txt.text = Math.random() > 0.5 ? '1' : '0';
-								txt.x = p.ox;
-								txt.y = p.oy;
-								txt.alpha = 0;
-								activeTexts.push({ txt, age: 0, life: 500 + Math.random() * 440 });
-							}
-						}
-					}
-
-					p.x += p.vx;
-					p.y += p.vy;
-					p.sprite.x = p.x;
-					p.sprite.y = p.y;
-				}
-			}
-
-			// ── Binary digit settle animation ──────────────────
-			for (let i = activeTexts.length - 1; i >= 0; i--) {
-				const b = activeTexts[i];
-				b.age += dt;
-				const prog = b.age / b.life;
-				if (prog < 0.28) b.txt.alpha = (prog / 0.28) * 0.58;
-				else if (prog < 0.72) b.txt.alpha = 0.58;
-				else if (prog < 1) b.txt.alpha = ((1 - prog) / 0.28) * 0.58;
-				else {
-					b.txt.alpha = 0;
-					textPool.push(b.txt);
-					activeTexts.splice(i, 1);
-				}
+				p.vx *= 0.865;
+				p.vy *= 0.865;
+				p.x += p.vx;
+				p.y += p.vy;
+				p.sprite.x = p.x;
+				p.sprite.y = p.y;
 			}
 		});
+
+		const onResize = () => {
+			if (app?.renderer && wrap) app.renderer.resize(wrap.clientWidth, wrap.clientHeight);
+		};
+		window.addEventListener('resize', onResize);
 
 		return () => {
 			wrap?.removeEventListener('mousemove', onMove);
 			wrap?.removeEventListener('touchmove', onTouch);
+			window.removeEventListener('resize', onResize);
 			app.destroy(true, { children: true, texture: true, baseTexture: true });
 		};
 	});
@@ -339,12 +309,6 @@
 
 <div bind:this={wrap} class="hero-canvas-wrap">
 	<canvas bind:this={pixiCanvas}></canvas>
-	<img
-		bind:this={logoImg}
-		src="/img/geminislabs-nobg.png"
-		alt="Geminis Labs"
-		class="hero-logo-crisp"
-	/>
 </div>
 
 <style>
@@ -352,6 +316,7 @@
 		position: absolute;
 		inset: 0;
 		z-index: 3;
+		pointer-events: all;
 	}
 
 	.hero-canvas-wrap :global(canvas) {
@@ -360,14 +325,5 @@
 		inset: 0;
 		width: 100% !important;
 		height: 100% !important;
-	}
-
-	.hero-logo-crisp {
-		position: absolute;
-		transform: translate(-50%, -50%);
-		object-fit: contain;
-		pointer-events: none;
-		z-index: 2;
-		opacity: 0;
 	}
 </style>
