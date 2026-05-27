@@ -2,6 +2,8 @@
 	import { onMount } from 'svelte';
 	import { fade } from 'svelte/transition';
 	import Navbar from '$lib/components/Navbar.svelte';
+	import Footer from '$lib/components/Footer.svelte';
+	import HeroParticles from '$lib/components/HeroParticles.svelte';
 	import { buildApiUrl, API_CONFIG } from '$lib/config/api.js';
 
 	// Variables para efectos parallax
@@ -10,9 +12,6 @@
 
 	// Variable para detectar si estamos en móvil
 	let isMobile = false;
-
-	// Variables para los círculos animados de fondo
-	let circles = [];
 
 	// Variables para el texto de hero
 	let text = 'CONECTAMOS HUMANIDAD Y TECNOLOGÍA';
@@ -171,9 +170,6 @@
 		checkMobile();
 		window.addEventListener('resize', checkMobile);
 
-		// Iniciar generación de círculos de fondo
-		startCircleGeneration();
-
 		// Smooth scrolling para los enlaces de navegación
 		const links = document.querySelectorAll('a[href^="#"]');
 		links.forEach((link) => {
@@ -208,7 +204,7 @@
 	});
 
 	// Función para lazy loading de videos que no están en el viewport inicial
-	function lazyVideo(node, src) {
+	function _lazyVideo(node, src) {
 		const observer = new IntersectionObserver(
 			(entries) => {
 				if (entries[0].isIntersecting) {
@@ -230,47 +226,6 @@
 			destroy() {
 				observer.disconnect();
 			}
-		};
-	}
-
-	function startCircleGeneration() {
-		const generateGroup = () => {
-			const groupSize = Math.floor(Math.random() * 4) + 2; // 2-5 círculos
-
-			for (let i = 0; i < groupSize; i++) {
-				setTimeout(() => {
-					const circle = createRandomCircle();
-					circles = [...circles, circle];
-
-					// Remover el círculo después de 12 segundos
-					setTimeout(() => {
-						circles = circles.filter((c) => c.id !== circle.id);
-					}, 12000);
-				}, i * 300); // Delay escalonado
-			}
-		};
-
-		// Generar primer grupo inmediatamente
-		generateGroup();
-
-		// Generar grupos cada 5-8 segundos
-		setInterval(generateGroup, Math.random() * 3000 + 5000);
-	}
-
-	function createRandomCircle() {
-		const colors = [
-			'radial-gradient(circle, transparent 0%, transparent 40%, rgba(34, 40, 49, 0.3) 100%)',
-			'radial-gradient(circle, transparent 0%, transparent 40%, rgba(40, 59, 72, 0.4) 100%)',
-			'radial-gradient(circle, transparent 0%, transparent 40%, rgba(0, 166, 192, 0.2) 100%)',
-			'radial-gradient(circle, transparent 0%, transparent 40%, rgba(216, 215, 204, 0.1) 100%)'
-		];
-
-		return {
-			id: Date.now() + Math.random(),
-			left: Math.random() * 90 + 5, // 5% a 95%
-			top: Math.random() * 90 + 5, // 5% a 95%
-			size: Math.random() * 120 + 20, // 20px a 140px
-			color: colors[Math.floor(Math.random() * colors.length)]
 		};
 	}
 
@@ -484,157 +439,70 @@
 	<link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet" />
 </svelte:head>
 
-<!-- Video de fondo -->
-<video class="background-video" autoplay muted loop playsinline>
-	<source src="/vid/map-back.mp4" type="video/mp4" />
-	Tu navegador no soporta videos.
-</video>
-
-<!-- Overlay con degradado -->
-<div class="gradient-overlay"></div>
-
-<!-- Círculos animados de fondo -->
-{#each circles as circle (circle.id)}
-	<div
-		class="animated-circle"
-		style="
-			left: {circle.left}%; 
-			top: {circle.top}%; 
-			width: {circle.size}px; 
-			height: {circle.size}px;
-			background: {circle.color};
-		"
-	></div>
-{/each}
+<!-- Canvas decorativo de fondo (CSS puro, sin video) -->
+<div class="page-canvas" aria-hidden="true">
+	<div class="orb orb-1"></div>
+	<div class="orb orb-2"></div>
+	<div class="orb orb-3"></div>
+	<div class="orb orb-4"></div>
+	<div class="grid-lines"></div>
+</div>
 
 <!-- Navegación fija -->
 <Navbar />
 
 <!-- Sección Hero -->
-<section id="inicio" class="hero-section">
-	<div class="hero-content" style="transform: translateY({isMobile ? 0 : scrollY * 0.2}px)">
-		<div class="hero-title-container">
-			<h1 class="hero-title">
-				{display}
-				{#if showCursor}
-					<span
-						class="hero-title animate-[blink_2s_infinite]"
-						style="transition: opacity 0.6s ease;"
-					>
-						_
-					</span>
-				{/if}
-			</h1>
-		</div>
-		<p class="hero-subtitle">Creamos tecnología que potencia a la humanidad.</p>
-		<div class="hero-buttons">
+<section id="inicio" class="hero-particle-section">
+	<video class="hero-bg-video" src="/vid/cyberhuman-bg.mp4" autoplay muted loop playsinline></video>
+	<div class="hero-video-fade"></div>
+	<div class="hero-video-bottom-fade"></div>
+	<HeroParticles />
+	<div class="hero-text-overlay" style="transform: translateY({isMobile ? 0 : scrollY * 0.08}px)">
+		<h1 class="hero-particle-title">
+			{display.slice(0, 10)}{#if display.length > 10}<br />{display.slice(11)}{/if}
+			{#if showCursor}
+				<span class="hero-blink-cursor">_</span>
+			{/if}
+		</h1>
+		<p class="hero-particle-subtitle">Creamos tecnología que potencia a la humanidad.</p>
+		<div class="hero-particle-buttons">
 			<a href="#servicios" class="btn-primary">Descubre Nuestros Servicios</a>
 			<a href="#contacto" class="btn-secondary">Contactar Ahora</a>
 		</div>
 	</div>
-	<div class="hero-image" style="transform: translateY({isMobile ? 0 : scrollY * -0.1}px)">
-		<div class="floating-card">
-			<div class="card-content">
-				<h3>Monitoreo 24/7</h3>
-				<p>Seguimiento en tiempo real</p>
-			</div>
-		</div>
-	</div>
 </section>
 
-<!-- Sección Servicios -->
-<section id="servicios" class="services-section">
+<!-- Sección Nuestro Ecosistema -->
+<section id="ecosistema" class="ecosystem-section">
+	<span id="servicios" style="position:absolute; top:-80px;"></span>
 	<div class="container">
-		<h2 class="landing-section-title">Nuestros Servicios</h2>
+		<h2 class="landing-section-title">Nuestro Ecosistema</h2>
 		<div class="section-description">
-			<h3>Soluciones que evolucionan contigo</h3>
+			<h3>Dos productos complementarios.</h3>
 			<span>
-				En Geminis-Labs desarrollamos tecnología para el monitoreo inteligente de vehículos,
-				diseñada para ofrecer precisión, control y tranquilidad. Nuestro ecosistema combina hardware
-				avanzado, aplicaciones web y móviles, y un sistema de alertas que te mantiene siempre
-				conectado con lo que importa. Cada dispositivo, cada señal y cada dato nos ayudan a
-				construir una red más inteligente, preparada para anticipar riesgos y ofrecer información en
-				tiempo real.
+				Una plataforma de operación conectada para quienes necesitan visibilidad y control. Un motor
+				de inteligencia geoespacial para quienes construyen sobre datos de localización.
 			</span>
 		</div>
-		<div class="services-grid">
-			<div class="service-card">
-				<div class="service-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<path
-							d="M21.5679 11.223C21.7255 11.5066 21.8042 11.6484 21.8351 11.7985C21.8625 11.9315 21.8625 12.0685 21.8351 12.2015C21.8042 12.3516 21.7255 12.4934 21.5679 12.777L17.4568 20.177C17.2904 20.4766 17.2072 20.6263 17.0889 20.7354C16.9842 20.8318 16.8601 20.9049 16.7249 20.9495C16.5721 21 16.4008 21 16.0582 21H7.94104C7.5984 21 7.42708 21 7.27428 20.9495C7.1391 20.9049 7.01502 20.8318 6.91033 20.7354C6.79199 20.6263 6.70879 20.4766 6.54239 20.177L2.43128 12.777C2.27372 12.4934 2.19494 12.3516 2.16406 12.2015C2.13672 12.0685 2.13672 11.9315 2.16406 11.7985C2.19494 11.6484 2.27372 11.5066 2.43128 11.223L6.54239 3.82297C6.70879 3.52345 6.79199 3.37369 6.91033 3.26463C7.01502 3.16816 7.1391 3.09515 7.27428 3.05048C7.42708 3 7.5984 3 7.94104 3L16.0582 3C16.4008 3 16.5721 3 16.7249 3.05049C16.8601 3.09515 16.9842 3.16816 17.0889 3.26463C17.2072 3.37369 17.2904 3.52345 17.4568 3.82297L21.5679 11.223Z"
-						></path>
-						<circle cx="12" cy="12" r="2" />
-					</svg>
-				</div>
-				<h3>Localización por Celdas Celulares</h3>
-				<p>
-					Tecnología avanzada de triangulación celular para ubicación precisa incluso sin GPS
-					tradicional.
-				</p>
-			</div>
-
-			<div class="service-card">
-				<div class="service-icon">
-					<svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2">
-						<path
-							class="a"
-							d="M7.9851,13.2308c-.0144.3113-.0471.6179-.0471.9328a19.9695,19.9695,0,0,0,32.124,15.87Z"
-						></path>
-						<line class="a" x1="23.8898" y1="21.5621" x2="25.2102" y2="19.2587"></line>
-						<path
-							class="a"
-							d="M24.31,33.8306S24,37.9907,27.2,43.5H10.0706a89.0143,89.0143,0,0,0,5.0706-13.9688"
-						></path>
-						<path class="a" d="M39.03,15.6537a12.8128,12.8128,0,0,0-18.233-9.9"></path>
-						<path class="a" d="M35.517,16.1106a9.269,9.269,0,0,0-13.19-7.1616"></path>
-						<path class="a" d="M32.0042,16.5674a5.7249,5.7249,0,0,0-8.1466-4.4232"></path>
-						<circle class="a" cx="25.7436" cy="18.3281" r="1.0765"></circle>
-					</svg>
-				</div>
-				<h3>Monitoreo de 24/7</h3>
-				<p>
-					Seguimiento completo de flotas vehiculares con alertas inteligentes y reportes detallados.
-				</p>
-			</div>
-
-			<div class="service-card">
-				<div class="service-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-						<path
-							d="M10.0932 10.7463C10.1827 10.6184 10.2571 10.5122 10.3233 10.4213C10.3793 10.5188 10.4418 10.6324 10.517 10.7692L12.2273 13.8788C12.3933 14.1809 12.5562 14.4771 12.7197 14.6921C12.8947 14.9222 13.2023 15.2374 13.6954 15.2467C14.1884 15.2559 14.5077 14.9525 14.6912 14.7292C14.8627 14.5205 15.0365 14.2305 15.2138 13.9349L15.2692 13.8426C15.49 13.4745 15.629 13.2445 15.752 13.0783C15.8654 12.9251 15.9309 12.8752 15.9798 12.8475C16.0286 12.8198 16.1052 12.7894 16.2948 12.771C16.5006 12.751 16.7694 12.7501 17.1986 12.7501H18C18.4142 12.7501 18.75 12.4144 18.75 12.0001C18.75 11.5859 18.4142 11.2501 18 11.2501L17.1662 11.2501C16.7791 11.2501 16.4367 11.2501 16.1497 11.278C15.8385 11.3082 15.5357 11.3752 15.2407 11.5422C14.9457 11.7092 14.7325 11.9345 14.5465 12.1857C14.3749 12.4175 14.1988 12.7111 13.9996 13.0431L13.9521 13.1223C13.8654 13.2668 13.793 13.3872 13.7284 13.4906C13.6676 13.3849 13.5999 13.2618 13.5186 13.1141L11.8092 10.006C11.6551 9.72563 11.5015 9.44629 11.3458 9.2415C11.1756 9.01778 10.8839 8.72197 10.4164 8.69673C9.94887 8.67149 9.62698 8.93417 9.43373 9.13826C9.25683 9.32509 9.0741 9.58628 8.89069 9.84844L8.58131 10.2904C8.35416 10.6149 8.21175 10.8171 8.08848 10.9629C7.975 11.0972 7.91193 11.1411 7.86538 11.1654C7.81882 11.1896 7.74663 11.2161 7.57159 11.2321C7.38144 11.2494 7.13413 11.2501 6.73803 11.2501H6C5.58579 11.2501 5.25 11.5859 5.25 12.0001C5.25 12.4144 5.58579 12.7501 6 12.7501L6.76812 12.7501C7.12509 12.7502 7.44153 12.7502 7.70801 12.7258C7.99707 12.6994 8.27904 12.6411 8.55809 12.4958C8.83714 12.3506 9.04661 12.153 9.234 11.9313C9.40676 11.727 9.58821 11.4677 9.79291 11.1753L10.0932 10.7463Z"
-						></path>
-						<path
-							fill="currentColor"
-							d="M22.75 9.26043C22.75 6.07929 21.2578 3.60642 18.9755 2.65694C16.8461 1.77108 14.2743 2.30955 12 4.43676C9.72568 2.30955 7.15386 1.77113 5.02447 2.65702C2.74218 3.60652 1.25 6.07939 1.25 9.26046C1.25 11.3863 2.37926 13.4794 3.7862 15.2825C5.20736 17.1039 6.99532 18.735 8.48775 19.952L8.62247 20.062C9.82232 21.0418 10.6895 21.75 12 21.75C13.3105 21.75 14.1777 21.0418 15.3775 20.062L15.5123 19.952C17.0047 18.735 18.7926 17.104 20.2138 15.2826C21.6207 13.4794 22.75 11.3863 22.75 9.26043ZM12.5491 6.00969C14.6472 3.75481 16.827 3.38777 18.3994 4.04187C19.9921 4.70447 21.25 6.53048 21.25 9.26043C21.25 10.8822 20.3695 12.6446 19.0312 14.3598C17.7071 16.0569 16.0142 17.6072 14.5643 18.7895C13.1713 19.9255 12.7216 20.25 12 20.25C11.2785 20.25 10.8287 19.9255 9.43571 18.7895C7.98585 17.6072 6.29293 16.0568 4.96881 14.3598C3.63045 12.6445 2.75 10.8821 2.75 9.26046C2.75 6.5306 4.0079 4.70457 5.60065 4.04194C7.17297 3.38781 9.35285 3.75482 11.4509 6.00969C11.5928 6.16218 11.7917 6.2488 12 6.2488C12.2083 6.2488 12.4072 6.16218 12.5491 6.00969Z"
-						></path>
-					</svg>
-				</div>
-				<h3>Panel Web y App M&oacute;vil</h3>
-				<p>
-					Control total desde cualquier dispositivo, con historial, zonas seguras y notificaciones
-					instantáneas.
-				</p>
-			</div>
-
-			<div class="service-card">
-				<div class="service-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-						<line x1="8" y1="21" x2="16" y2="21"></line>
-						<line x1="12" y1="17" x2="12" y2="21"></line>
-						<polyline points="7 9 12 13 17 9"></polyline>
-					</svg>
-				</div>
-				<h3>Consultoría Tecnológica</h3>
-				<p>
-					Asesoría especializada en comunicaciones, innovación en software y hardware. Diseñamos
-					soluciones a medida que impulsan la transformación digital de tu organización.
-				</p>
-			</div>
+		<div class="ecosystem-products-preview">
+			<a href="/products/nexus" class="ecosystem-product-card">
+				<img src="/img/products/logo-nexus.png" alt="Nexus" class="ecosystem-logo" />
+				<h3 class="ecosystem-product-name">NEXUS</h3>
+				<p class="ecosystem-product-tagline">Plataforma de monitoreo y operación conectada</p>
+				<span class="ecosystem-cta">Explorar Nexus →</span>
+			</a>
+			<div class="ecosystem-divider"></div>
+			<a href="/products/orion" class="ecosystem-product-card">
+				<img src="/img/products/logo-orion.png" alt="Orion" class="ecosystem-logo" />
+				<h3 class="ecosystem-product-name audiowide-regular">ORION</h3>
+				<p class="ecosystem-product-tagline">Motor de inteligencia geoespacial</p>
+				<span class="ecosystem-cta">Explorar Orion →</span>
+			</a>
 		</div>
 	</div>
 </section>
+
+<div class="section-sep"></div>
 
 <!-- Sección Productos -->
 <section id="productos" class="products-section">
@@ -665,23 +533,13 @@
 				</a>
 				<!-- Nexus -->
 				<div class="product-item nexus-item fade-in cursor-default">
-					<video
-						class="product-bg-video"
-						muted
-						playsinline
-						loop
-						use:lazyVideo={'/img/products/nexus/mapa.webm'}
-					>
-						<!-- El src se carga vía lazyVideo en background -->
-					</video>
-					<div class="product-bg-overlay"></div>
-
 					<div class="product-content">
 						<div class="product-info centered-info">
-							<h4 class="nexus-slogan-title">Movilidad Inteligente .</h4>
+							<h4 class="nexus-slogan-title">Plataforma de monitoreo y operación conectada.</h4>
 							<p class="nexus-slogan-subtitle">
-								Soluci&oacute;n para el hogar, negocio y transporte.
+								GPS, telemetría, alertas, geocercas. Web, iPhone y Android.
 							</p>
+							<a href="/products/nexus" class="btn-product-cta">Explorar Nexus</a>
 						</div>
 						<div class="product-visual nexus-visual">
 							<div class="carousel-container">
@@ -769,15 +627,6 @@
 							<div class="orion-ring orion-ring-3"></div>
 						</div>
 
-						<!-- Planeta Tierra (video de fondo) -->
-						<video
-							class="orion-bg-video"
-							muted
-							loop
-							playsinline
-							use:lazyVideo={'/img/products/orion/planeta-tierra.webm'}
-						>
-						</video>
 						<a
 							href="/products/orion"
 							class="orion-logo-content"
@@ -789,6 +638,12 @@
 								class="product-logo orion-big-logo"
 							/>
 							<h3 class="audiowide-regular orion-brand-name">ORION</h3>
+							<p class="orion-tagline">Motor de inteligencia geoespacial</p>
+							<p class="orion-subtitle">
+								Localización avanzada, procesamiento probabilístico de señales, APIs de alto
+								rendimiento.
+							</p>
+							<span class="btn-product-cta orion-cta-btn">Explorar Orion</span>
 						</a>
 					</div>
 				</div>
@@ -797,6 +652,126 @@
 	</div>
 </section>
 
+<div class="section-sep"></div>
+
+<!-- Sección Capacidades Tecnológicas -->
+<section id="capacidades" class="capabilities-section">
+	<div class="container">
+		<h2 class="landing-section-title">Capacidades Tecnológicas</h2>
+		<div class="section-description">
+			<h3>Infraestructura pensada para entornos exigentes</h3>
+		</div>
+		<div class="capabilities-grid">
+			<div class="capability-card">
+				<div class="capability-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+						<rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" />
+						<path d="M2 8h20" />
+					</svg>
+				</div>
+				<h3>Infraestructura moderna</h3>
+				<p>Arquitectura cloud diseñada para escalabilidad, resiliencia y operación continua.</p>
+			</div>
+			<div class="capability-card">
+				<div class="capability-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+						<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+						<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+					</svg>
+				</div>
+				<h3>Integración API-first</h3>
+				<p>
+					Plataformas preparadas para integrarse con sistemas empresariales, automatización y
+					terceros.
+				</p>
+			</div>
+			<div class="capability-card">
+				<div class="capability-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+						<rect x="5" y="2" width="14" height="20" rx="2" />
+						<path d="M12 18h.01" />
+						<path d="M9 6h6M9 10h6" />
+					</svg>
+				</div>
+				<h3>Web y móvil</h3>
+				<p>Experiencias consistentes en navegador, iPhone y Android.</p>
+			</div>
+			<div class="capability-card">
+				<div class="capability-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+						<polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+					</svg>
+				</div>
+				<h3>Procesamiento en tiempo real</h3>
+				<p>Captura, procesamiento y análisis de eventos con baja latencia.</p>
+			</div>
+			<div class="capability-card">
+				<div class="capability-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+						<circle cx="12" cy="12" r="10" />
+						<path
+							d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
+						/>
+					</svg>
+				</div>
+				<h3>Inteligencia geoespacial</h3>
+				<p>
+					Modelado espacial, triangulación, análisis probabilístico y enriquecimiento contextual.
+				</p>
+			</div>
+			<div class="capability-card">
+				<div class="capability-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+						<rect x="3" y="11" width="18" height="11" rx="2" />
+						<path d="M7 11V7a5 5 0 0 1 10 0v4" />
+					</svg>
+				</div>
+				<h3>Seguridad y privacidad</h3>
+				<p>Diseño orientado a protección de datos, control de acceso y operación segura.</p>
+			</div>
+		</div>
+	</div>
+</section>
+
+<div class="section-sep"></div>
+
+<!-- Sección Cómo Trabajamos -->
+<section id="como-trabajamos" class="business-models-section">
+	<div class="container">
+		<h2 class="landing-section-title">Cómo Trabajamos</h2>
+		<div class="section-description">
+			<h3>Modelos de servicio adaptados a tu contexto</h3>
+		</div>
+		<div class="business-models-grid">
+			<div class="business-model-card">
+				<div class="bm-label">SaaS Platforms</div>
+				<p>Acceso por suscripción a nuestras plataformas operativas.</p>
+				<div class="bm-example">Ejemplo: <span>Nexus</span></div>
+			</div>
+			<div class="business-model-card">
+				<div class="bm-label">APIs &amp; Data Services</div>
+				<p>Servicios programables bajo consumo o volumen.</p>
+				<div class="bm-example">Ejemplo: <span>Orion</span></div>
+			</div>
+			<div class="business-model-card">
+				<div class="bm-label">Enterprise Solutions</div>
+				<p>Desarrollo e integración de soluciones personalizadas para necesidades específicas.</p>
+			</div>
+			<div class="business-model-card">
+				<div class="bm-label">Strategic Consulting</div>
+				<p>
+					Acompañamiento técnico en conectividad, IoT, infraestructura y arquitectura de producto.
+				</p>
+			</div>
+		</div>
+		<div class="bm-cta-wrapper">
+			<a href="#contacto" class="btn-secondary">Conversemos sobre tu proyecto</a>
+		</div>
+	</div>
+</section>
+
+<div class="section-sep"></div>
+
 <!-- Sección Quiénes Somos -->
 <section id="nosotros" class="about-section">
 	<div class="container">
@@ -804,33 +779,33 @@
 			<div class="about-text">
 				<h2 class="landing-section-title">Quiénes Somos</h2>
 				<div class="section-description">
-					<h3>Conectamos humanidad y tecnolog&iacute;a para crear el futuro</h3>
+					<h3>Tecnología donde convergen software, datos y conectividad</h3>
 					<p>
-						Geminis-Labs es una empresa mexicana enfocada en el desarrollo de tecnología
-						geoespacial, análisis predictivo y sistemas de localización avanzada. Nacimos con una
-						visión clara: usar la innovación para proteger y entender el movimiento, no solo
-						rastrearlo.
+						Geminis Labs es una empresa tecnológica mexicana enfocada en construir productos donde
+						convergen software, conectividad, datos e inteligencia geoespacial.
 					</p>
 					<p>
-						Creemos que la tecnología debe <b>amplificar lo humano</b>, y por eso diseñamos
-						soluciones que combinan ingeniería, ciencia de datos y propósito. Cada avance que
-						logramos busca acercarnos a un futuro donde la información no solo se procesa,
-						<b>se comprende.</b>
+						Nuestro equipo combina experiencia en telemática, telecomunicaciones, infraestructura
+						cloud, sistemas distribuidos de alta disponibilidad y desarrollo de plataformas móviles
+						y web. Diseñamos tecnología no solo para visualizar información, sino para convertir
+						datos complejos en decisiones útiles, escalables y accionables.
+					</p>
+					<p>
+						Creemos en construir productos propios con visión de largo plazo, capaces de evolucionar
+						desde soluciones concretas hasta plataformas tecnológicas de alcance global.
 					</p>
 				</div>
-				<div class="stats-grid">
-					<div class="stat-item">
-						<h3>10,000&#43;</h3>
-						<p>Vehículos Monitoreados</p>
-					</div>
-					<div class="stat-item">
-						<h3>99.9%</h3>
-						<p>Tiempo de Actividad</p>
-					</div>
-					<div class="stat-item">
-						<h3>24/7</h3>
-						<p>Soporte Técnico</p>
-					</div>
+				<p class="social-proof-line">
+					Construido por especialistas en telemática, telecomunicaciones e infraestructura cloud.
+					Arquitectura moderna diseñada para disponibilidad, escalabilidad y evolución continua.
+				</p>
+				<div class="differentiators-pills">
+					<span class="diff-pill">Inteligencia más allá del GPS</span>
+					<span class="diff-pill">API-first</span>
+					<span class="diff-pill">Tecnología propia</span>
+					<span class="diff-pill">Infraestructura moderna</span>
+					<span class="diff-pill">Soluciones enterprise</span>
+					<span class="diff-pill">Visión de largo plazo</span>
 				</div>
 			</div>
 			<div class="about-image">
@@ -888,29 +863,19 @@
 	</div>
 </section>
 
-<!-- seccion lo que viene-->
-<section id="lo-que-hacemos" class="lo-que-hacemos-section">
-	<div class="container">
-		<h2 class="landing-section-title">Lo que viene</h2>
-		<div class="section-description">
-			<h3>Una red inteligente que evoluciona contigo</h3>
-			<span>
-				Nuestra visión va más allá del monitoreo. Estamos construyendo una red que aprende del
-				entorno, que conecta vehículos, personas y territorios para crear un ecosistema de <b
-					>inteligencia geoespacial</b
-				> en constante crecimiento.
-			</span>
+<div class="section-sep"></div>
 
-			<div class="vision-statement">
-				<h3 class="vision-line-1">
-					En Geminis-Labs no solo <span class="highlight-text">seguimos</span> el movimiento.
-				</h3>
-				<h3 class="vision-line-2">
-					Lo <span class="gradient-text">entendemos</span>, lo
-					<span class="gradient-text">conocemos</span>
-					y lo <span class="gradient-text">transformamos</span>.
-				</h3>
-			</div>
+<!-- Sección El Futuro que Estamos Construyendo -->
+<section id="futuro" class="lo-que-hacemos-section">
+	<div class="container">
+		<h2 class="landing-section-title">El Futuro que Estamos Construyendo</h2>
+		<div class="section-description">
+			<h3>Lo que estamos construyendo para los próximos años</h3>
+			<span>
+				Nuestra visión va más allá del monitoreo. Desarrollamos capacidades que integran
+				inteligencia artificial, redes de conectividad y análisis avanzado para construir un
+				ecosistema tecnológico de largo plazo.
+			</span>
 		</div>
 
 		<div class="future-actions-grid">
@@ -979,9 +944,61 @@
 					resiliente frente al jamming y interferencias.
 				</p>
 			</div>
+
+			<div class="future-action-card">
+				<div class="future-action-icon">
+					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+						<path d="M12 2a10 10 0 1 0 10 10" />
+						<path d="M12 8v4l3 3" />
+						<path d="M16 2l2 2-2 2" />
+						<path d="M21 7l-2-2 2-2" />
+					</svg>
+				</div>
+				<h3>AI Analytics</h3>
+				<p>
+					Modelos de análisis inteligente sobre datos geoespaciales para detección de patrones,
+					anomalías y predicción de comportamiento.
+				</p>
+			</div>
 		</div>
 	</div>
 </section>
+
+<div class="section-sep"></div>
+
+<!-- Sección Nuestra Visión -->
+<section id="vision" class="vision-section">
+	<div class="container">
+		<div class="vision-content">
+			<h2 class="landing-section-title">Nuestra Visión</h2>
+			<div class="vision-text-block">
+				<p class="vision-lead">
+					Geminis Labs nace con una ambición simple: construir tecnología capaz de entender mejor el
+					mundo físico.
+				</p>
+				<p>
+					Comenzamos en geolocalización, conectividad y análisis espacial porque creemos que el
+					movimiento es una de las fuentes más valiosas de información.
+				</p>
+				<p>Pero nuestra visión va más allá.</p>
+				<p>
+					Queremos desarrollar productos donde converjan inteligencia artificial, infraestructura
+					digital, datos, automatización y sistemas conectados para resolver problemas reales a
+					escala.
+				</p>
+				<p class="vision-closing">
+					No estamos construyendo una sola herramienta.<br />
+					<strong>Estamos construyendo un ecosistema tecnológico.</strong>
+				</p>
+			</div>
+			<div class="vision-cta">
+				<a href="#contacto" class="btn-primary">Construye con nosotros</a>
+			</div>
+		</div>
+	</div>
+</section>
+
+<div class="section-sep"></div>
 
 <!-- Sección Contacto -->
 <section id="contacto" class="contact-section">
@@ -1163,37 +1180,7 @@
 	</div>
 </section>
 
-<!-- Footer -->
-<footer class="footer">
-	<div class="container">
-		<div class="footer-content">
-			<div class="footer-section">
-				<h3>Geminis Labs</h3>
-				<p>Tecnología avanzada de monitoreo GPS para un mundo conectado.</p>
-			</div>
-			<div class="footer-section">
-				<h4>Servicios</h4>
-				<ul>
-					<li><a href="#servicios">Localización Celular</a></li>
-					<li><a href="#servicios">Monitoreo Vehicular</a></li>
-					<li><a href="#servicios">Consultoría Tecnológica</a></li>
-					<li><a href="#servicios">Análisis de Riesgos</a></li>
-				</ul>
-			</div>
-			<div class="footer-section">
-				<h4>Empresa</h4>
-				<ul>
-					<li><a href="#nosotros">Quiénes Somos</a></li>
-					<li><a href="#contacto">Contacto</a></li>
-					<li><a href="/privacidad" aria-label="Política de Privacidad">Privacidad</a></li>
-				</ul>
-			</div>
-		</div>
-		<div class="footer-bottom">
-			<p>&copy; {new Date().getFullYear()} Geminis Labs. Todos los derechos reservados.</p>
-		</div>
-	</div>
-</footer>
+<Footer />
 
 <style>
 	.form-group {
@@ -2303,6 +2290,907 @@
 		}
 		.floating-card {
 			animation: none;
+		}
+	}
+
+	/* ===== ECOSYSTEM SECTION ===== */
+	.ecosystem-section {
+		padding: 5rem 0 3rem;
+		position: relative;
+	}
+	.ecosystem-products-preview {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0;
+		margin-top: 3rem;
+		max-width: 800px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.ecosystem-product-card {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		padding: 2.5rem 2rem;
+		text-decoration: none;
+		color: #d8d7cc;
+		border-radius: 16px;
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		background: rgba(255, 255, 255, 0.02);
+		transition: all 0.3s ease;
+		gap: 0.75rem;
+	}
+	.ecosystem-product-card:hover {
+		border-color: rgba(0, 166, 192, 0.3);
+		background: rgba(0, 166, 192, 0.05);
+		transform: translateY(-4px);
+	}
+	.ecosystem-logo {
+		height: 70px;
+		width: auto;
+		object-fit: contain;
+		filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+	}
+	.ecosystem-product-name {
+		font-size: 2rem;
+		font-weight: 800;
+		color: #ffffff;
+		margin: 0;
+		letter-spacing: 1px;
+	}
+	.ecosystem-product-tagline {
+		font-size: 0.95rem;
+		color: #9ca3af;
+		margin: 0;
+		line-height: 1.4;
+	}
+	.ecosystem-cta {
+		font-size: 0.875rem;
+		color: #00a6c0;
+		font-weight: 500;
+		margin-top: 0.5rem;
+		transition: color 0.2s;
+	}
+	.ecosystem-product-card:hover .ecosystem-cta {
+		color: #ffffff;
+	}
+	.ecosystem-divider {
+		width: 1px;
+		height: 120px;
+		background: linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.15), transparent);
+		flex-shrink: 0;
+		margin: 0 1rem;
+	}
+	@media (max-width: 600px) {
+		.ecosystem-products-preview {
+			flex-direction: column;
+			gap: 1rem;
+		}
+		.ecosystem-divider {
+			width: 80px;
+			height: 1px;
+			background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.15), transparent);
+		}
+	}
+
+	/* ===== BTN-PRODUCT-CTA ===== */
+	.btn-product-cta {
+		display: inline-block;
+		margin-top: 1.25rem;
+		padding: 0.625rem 1.5rem;
+		background: transparent;
+		border: 1px solid rgba(0, 166, 192, 0.5);
+		color: #00a6c0;
+		border-radius: 6px;
+		font-size: 0.9rem;
+		font-weight: 500;
+		text-decoration: none;
+		transition: all 0.25s ease;
+		letter-spacing: 0.03em;
+	}
+	.btn-product-cta:hover {
+		background: rgba(0, 166, 192, 0.1);
+		border-color: #00a6c0;
+		color: #ffffff;
+	}
+	.orion-tagline {
+		font-size: 1rem;
+		color: #9ca3af;
+		margin: 0.25rem 0 0;
+		font-family: 'Outfit', sans-serif;
+	}
+	.orion-subtitle {
+		font-size: 0.85rem;
+		color: #6b7280;
+		margin: 0.5rem 0 0;
+		max-width: 260px;
+		text-align: center;
+		line-height: 1.4;
+	}
+
+	/* ===== CAPABILITIES SECTION ===== */
+	.capabilities-section {
+		padding: 6rem 0;
+		background: linear-gradient(to bottom, #000000 0%, #00001a 50%, #000000 100%);
+	}
+	.capabilities-grid {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.5rem;
+		margin-top: 3.5rem;
+	}
+	.capability-card {
+		padding: 2rem;
+		border: 1px solid rgba(255, 255, 255, 0.06);
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.02);
+		transition: all 0.3s ease;
+	}
+	.capability-card:hover {
+		border-color: rgba(0, 166, 192, 0.2);
+		background: rgba(0, 166, 192, 0.03);
+		transform: translateY(-2px);
+	}
+	.capability-icon {
+		width: 40px;
+		height: 40px;
+		color: #00a6c0;
+		margin-bottom: 1.25rem;
+	}
+	.capability-icon svg {
+		width: 100%;
+		height: 100%;
+	}
+	.capability-card h3 {
+		font-size: 1rem;
+		font-weight: 600;
+		color: #ffffff;
+		margin: 0 0 0.75rem;
+	}
+	.capability-card p {
+		font-size: 0.875rem;
+		color: #6b7280;
+		line-height: 1.6;
+		margin: 0;
+	}
+	@media (max-width: 900px) {
+		.capabilities-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+	@media (max-width: 600px) {
+		.capabilities-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	/* ===== BUSINESS MODELS SECTION ===== */
+	.business-models-section {
+		padding: 6rem 0;
+	}
+	.business-models-grid {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 1.5rem;
+		margin-top: 3.5rem;
+		max-width: 900px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+	.business-model-card {
+		padding: 2rem 2rem 1.75rem;
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		border-radius: 12px;
+		background: rgba(255, 255, 255, 0.02);
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		transition: all 0.3s ease;
+	}
+	.business-model-card:hover {
+		border-color: rgba(0, 166, 192, 0.25);
+		background: rgba(0, 166, 192, 0.04);
+	}
+	.bm-label {
+		font-size: 1.05rem;
+		font-weight: 700;
+		color: #ffffff;
+		letter-spacing: 0.01em;
+	}
+	.business-model-card p {
+		font-size: 0.9rem;
+		color: #6b7280;
+		line-height: 1.6;
+		margin: 0;
+		flex: 1;
+	}
+	.bm-example {
+		font-size: 0.8rem;
+		color: #4b5563;
+		margin-top: 0.5rem;
+	}
+	.bm-example span {
+		color: #00a6c0;
+		font-weight: 500;
+	}
+	.bm-cta-wrapper {
+		text-align: center;
+		margin-top: 3rem;
+	}
+	@media (max-width: 640px) {
+		.business-models-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	/* ===== DIFFERENTIATORS (Quiénes Somos) ===== */
+	.social-proof-line {
+		font-size: 0.9rem;
+		color: #6b7280;
+		line-height: 1.7;
+		margin: 1.5rem 0 1.25rem;
+		font-style: italic;
+	}
+	.differentiators-pills {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
+	}
+	.diff-pill {
+		padding: 0.4rem 0.9rem;
+		border: 1px solid rgba(0, 166, 192, 0.3);
+		border-radius: 50px;
+		font-size: 0.8rem;
+		color: #9ca3af;
+		background: rgba(0, 166, 192, 0.04);
+		white-space: nowrap;
+	}
+
+	/* ===== VISION SECTION ===== */
+	.vision-section {
+		padding: 7rem 0;
+		background: linear-gradient(to bottom, #000000, #00001a 50%, #000000);
+	}
+	.vision-content {
+		max-width: 720px;
+		margin: 0 auto;
+		text-align: center;
+	}
+	.vision-text-block {
+		margin-top: 2.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+	.vision-text-block p {
+		font-size: 1.125rem;
+		color: #9ca3af;
+		line-height: 1.8;
+		margin: 0;
+	}
+	.vision-lead {
+		font-size: 1.3rem !important;
+		color: #d8d7cc !important;
+		font-weight: 500;
+	}
+	.vision-closing {
+		font-size: 1.2rem !important;
+		color: #d8d7cc !important;
+		margin-top: 0.75rem !important;
+	}
+	.vision-closing strong {
+		color: #ffffff;
+	}
+	.vision-cta {
+		margin-top: 3rem;
+	}
+
+	/* ═══════════════════════════════════════════════════
+	   SISTEMA VISUAL GLASS — REDISEÑO COMPLETO
+	   ═══════════════════════════════════════════════════ */
+
+	/* Fondo de página global */
+	:global(body) {
+		background: #071628 !important;
+		background-image:
+			radial-gradient(ellipse 90% 60% at 10% 5%, rgba(0, 166, 192, 0.22) 0%, transparent 50%),
+			radial-gradient(ellipse 70% 50% at 90% 70%, rgba(59, 91, 219, 0.2) 0%, transparent 50%),
+			radial-gradient(ellipse 60% 70% at 50% 45%, rgba(14, 165, 233, 0.1) 0%, transparent 65%) !important;
+	}
+
+	/* Canvas decorativo fijo */
+	.page-canvas {
+		position: fixed;
+		inset: 0;
+		z-index: 0;
+		pointer-events: none;
+		overflow: hidden;
+	}
+
+	.orb {
+		position: absolute;
+		border-radius: 50%;
+		filter: blur(70px);
+		animation: orb-drift 24s ease-in-out infinite;
+	}
+	.orb-1 {
+		width: 800px;
+		height: 800px;
+		top: -300px;
+		left: -250px;
+		background: radial-gradient(circle, rgba(0, 166, 192, 0.32) 0%, transparent 65%);
+		animation-duration: 28s;
+	}
+	.orb-2 {
+		width: 650px;
+		height: 650px;
+		top: 20%;
+		right: -180px;
+		background: radial-gradient(circle, rgba(59, 91, 219, 0.28) 0%, transparent 65%);
+		animation-duration: 34s;
+		animation-delay: -12s;
+	}
+	.orb-3 {
+		width: 500px;
+		height: 500px;
+		bottom: 25%;
+		left: 10%;
+		background: radial-gradient(circle, rgba(14, 165, 233, 0.22) 0%, transparent 65%);
+		animation-duration: 26s;
+		animation-delay: -6s;
+	}
+	.orb-4 {
+		width: 400px;
+		height: 400px;
+		bottom: 5%;
+		right: 15%;
+		background: radial-gradient(circle, rgba(0, 210, 200, 0.2) 0%, transparent 65%);
+		animation-duration: 20s;
+		animation-delay: -18s;
+	}
+	@keyframes orb-drift {
+		0%,
+		100% {
+			transform: translate(0, 0) scale(1);
+		}
+		25% {
+			transform: translate(35px, -45px) scale(1.06);
+		}
+		50% {
+			transform: translate(-25px, 35px) scale(0.94);
+		}
+		75% {
+			transform: translate(45px, 25px) scale(1.03);
+		}
+	}
+
+	.grid-lines {
+		position: absolute;
+		inset: 0;
+		background-image:
+			linear-gradient(rgba(0, 166, 192, 0.025) 1px, transparent 1px),
+			linear-gradient(90deg, rgba(0, 166, 192, 0.025) 1px, transparent 1px);
+		background-size: 64px 64px;
+		mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 20%, transparent 80%);
+		-webkit-mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 20%, transparent 80%);
+	}
+
+	/* Todas las secciones encima del canvas */
+	section {
+		position: relative;
+		z-index: 1;
+	}
+
+	/* Separadores entre secciones */
+	.section-sep {
+		height: 1px;
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(0, 166, 192, 0.3) 25%,
+			rgba(14, 165, 233, 0.35) 50%,
+			rgba(59, 91, 219, 0.3) 75%,
+			transparent 100%
+		);
+		position: relative;
+		z-index: 1;
+		box-shadow: 0 0 12px rgba(0, 166, 192, 0.15);
+	}
+
+	/* Fondos de sección */
+	.ecosystem-section {
+		padding: 5rem 0 3rem;
+		background: transparent;
+	}
+	.products-section {
+		padding: 6rem 0;
+		background: linear-gradient(
+			180deg,
+			transparent 0%,
+			rgba(0, 14, 38, 0.7) 15%,
+			rgba(2, 12, 35, 0.75) 85%,
+			transparent 100%
+		);
+	}
+	.capabilities-section {
+		padding: 6rem 0;
+		background: transparent;
+	}
+	.business-models-section {
+		padding: 6rem 0;
+		background: linear-gradient(
+			180deg,
+			transparent 0%,
+			rgba(4, 15, 40, 0.65) 20%,
+			rgba(4, 15, 40, 0.65) 80%,
+			transparent 100%
+		);
+	}
+	:global(.about-section) {
+		padding: 6rem 0 !important;
+		background: transparent !important;
+	}
+	:global(.about-section .container) {
+		background: transparent !important;
+	}
+	.lo-que-hacemos-section {
+		padding: 6rem 0;
+		background: linear-gradient(
+			180deg,
+			transparent 0%,
+			rgba(0, 10, 30, 0.7) 15%,
+			rgba(0, 10, 30, 0.7) 85%,
+			transparent 100%
+		);
+	}
+	.vision-section {
+		padding: 7rem 0;
+		background: transparent;
+	}
+	:global(.contact-section) {
+		padding: 6rem 0 !important;
+		background: transparent !important;
+	}
+
+	/* ── Tarjetas Ecosystem ──────────────────────────── */
+	.ecosystem-product-card {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
+		padding: 2.75rem 2rem;
+		text-decoration: none;
+		color: #e2e8f0;
+		border-radius: 20px;
+		background: rgba(255, 255, 255, 0.07);
+		backdrop-filter: blur(24px) saturate(180%);
+		-webkit-backdrop-filter: blur(24px) saturate(180%);
+		border: 1px solid rgba(255, 255, 255, 0.14);
+		box-shadow:
+			0 8px 40px rgba(0, 0, 0, 0.35),
+			inset 0 1px 0 rgba(255, 255, 255, 0.12);
+		transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+		gap: 0.75rem;
+	}
+	.ecosystem-product-card:hover {
+		background: rgba(0, 166, 192, 0.12);
+		border-color: rgba(0, 166, 192, 0.45);
+		box-shadow:
+			0 16px 56px rgba(0, 166, 192, 0.22),
+			inset 0 1px 0 rgba(0, 166, 192, 0.16);
+		transform: translateY(-8px);
+	}
+
+	/* ── Nexus sin video ─────────────────────────────── */
+	.nexus-item {
+		position: relative;
+		overflow: hidden;
+		border-radius: 24px;
+		background: linear-gradient(
+			135deg,
+			rgba(0, 166, 192, 0.1) 0%,
+			rgba(4, 20, 55, 0.65) 50%,
+			rgba(0, 80, 130, 0.1) 100%
+		) !important;
+		backdrop-filter: blur(16px);
+		-webkit-backdrop-filter: blur(16px);
+		border: 1px solid rgba(0, 166, 192, 0.18) !important;
+		box-shadow:
+			0 0 70px rgba(0, 166, 192, 0.07),
+			0 20px 60px rgba(0, 0, 0, 0.4),
+			inset 0 1px 0 rgba(0, 166, 192, 0.12);
+	}
+	.product-bg-overlay {
+		display: none;
+	}
+	.product-bg-video {
+		display: none;
+	}
+	.orion-bg-video {
+		display: none;
+	}
+
+	.overlay-features li {
+		background: rgba(5, 15, 40, 0.7) !important;
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+		border: 1px solid rgba(0, 166, 192, 0.18) !important;
+	}
+	.feature-title {
+		background: rgba(5, 15, 40, 0.72) !important;
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+		border-right: 3px solid rgba(0, 166, 192, 0.65) !important;
+	}
+
+	/* ── Orion sin video planeta ─────────────────────── */
+	.orion-visual-branding {
+		background: radial-gradient(
+			ellipse 80% 80% at center,
+			rgba(0, 166, 192, 0.1) 0%,
+			rgba(14, 165, 233, 0.06) 35%,
+			rgba(5, 15, 40, 0.3) 70%,
+			transparent 100%
+		) !important;
+		border: 1px solid rgba(0, 166, 192, 0.1) !important;
+		border-radius: 20px;
+		box-shadow:
+			0 0 60px rgba(0, 166, 192, 0.05),
+			inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
+	}
+
+	/* ── Capacidades glass ───────────────────────────── */
+	.capability-card {
+		padding: 2rem;
+		background: rgba(255, 255, 255, 0.065);
+		backdrop-filter: blur(20px);
+		-webkit-backdrop-filter: blur(20px);
+		border: 1px solid rgba(255, 255, 255, 0.13);
+		border-radius: 16px;
+		box-shadow:
+			0 4px 24px rgba(0, 0, 0, 0.28),
+			inset 0 1px 0 rgba(255, 255, 255, 0.1);
+		transition: all 0.3s ease;
+	}
+	.capability-card:hover {
+		background: rgba(0, 166, 192, 0.1);
+		border-color: rgba(0, 166, 192, 0.35);
+		box-shadow:
+			0 10px 36px rgba(0, 166, 192, 0.16),
+			inset 0 1px 0 rgba(0, 166, 192, 0.12);
+		transform: translateY(-4px);
+	}
+	.capability-card h3 {
+		font-size: 1rem;
+		font-weight: 600;
+		color: #f1f5f9;
+		margin: 0 0 0.625rem;
+	}
+	.capability-card p {
+		font-size: 0.875rem;
+		color: #7a8fa6;
+		line-height: 1.65;
+		margin: 0;
+	}
+
+	/* ── Modelos comerciales glass ───────────────────── */
+	.business-model-card {
+		padding: 2rem;
+		background: rgba(255, 255, 255, 0.065);
+		backdrop-filter: blur(20px);
+		-webkit-backdrop-filter: blur(20px);
+		border: 1px solid rgba(255, 255, 255, 0.13);
+		border-radius: 16px;
+		box-shadow:
+			0 4px 24px rgba(0, 0, 0, 0.28),
+			inset 0 1px 0 rgba(255, 255, 255, 0.1);
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		transition: all 0.3s ease;
+	}
+	.business-model-card:hover {
+		background: rgba(59, 91, 219, 0.12);
+		border-color: rgba(59, 91, 219, 0.35);
+		box-shadow:
+			0 10px 36px rgba(59, 91, 219, 0.16),
+			inset 0 1px 0 rgba(59, 91, 219, 0.12);
+	}
+	.bm-label {
+		font-size: 1.05rem;
+		font-weight: 700;
+		color: #f1f5f9;
+	}
+	.business-model-card p {
+		font-size: 0.875rem;
+		color: #64748b;
+		line-height: 1.6;
+		margin: 0;
+		flex: 1;
+	}
+	.bm-example {
+		font-size: 0.8rem;
+		color: #475569;
+		margin-top: 0.25rem;
+	}
+	.bm-example span {
+		color: #00a6c0;
+		font-weight: 500;
+	}
+
+	/* ── Future cards glass ──────────────────────────── */
+	.future-action-card {
+		background: rgba(255, 255, 255, 0.065) !important;
+		backdrop-filter: blur(20px) !important;
+		-webkit-backdrop-filter: blur(20px) !important;
+		border: 1px solid rgba(255, 255, 255, 0.13) !important;
+		border-radius: 16px !important;
+		box-shadow:
+			0 4px 24px rgba(0, 0, 0, 0.28),
+			inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+		transition: all 0.3s ease !important;
+	}
+	.future-action-card:hover {
+		background: rgba(0, 166, 192, 0.1) !important;
+		border-color: rgba(0, 166, 192, 0.3) !important;
+		transform: translateY(-5px) !important;
+		box-shadow:
+			0 12px 36px rgba(0, 166, 192, 0.16),
+			inset 0 1px 0 rgba(0, 166, 192, 0.1) !important;
+	}
+
+	/* ── Quiénes somos ───────────────────────────────── */
+	.diff-pill {
+		padding: 0.4rem 1rem;
+		background: rgba(0, 166, 192, 0.07);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+		border: 1px solid rgba(0, 166, 192, 0.22);
+		border-radius: 50px;
+		font-size: 0.8rem;
+		color: #94a3b8;
+		transition: all 0.2s ease;
+		white-space: nowrap;
+	}
+	.diff-pill:hover {
+		background: rgba(0, 166, 192, 0.15);
+		border-color: rgba(0, 166, 192, 0.45);
+		color: #e2e8f0;
+	}
+
+	/* ── Visión glass container ──────────────────────── */
+	.vision-content {
+		background: rgba(255, 255, 255, 0.06);
+		backdrop-filter: blur(24px);
+		-webkit-backdrop-filter: blur(24px);
+		border: 1px solid rgba(255, 255, 255, 0.14);
+		border-radius: 24px;
+		padding: 4rem 3rem;
+		box-shadow:
+			0 12px 48px rgba(0, 0, 0, 0.35),
+			inset 0 1px 0 rgba(255, 255, 255, 0.12);
+		position: relative;
+		overflow: hidden;
+		max-width: 720px;
+		margin: 0 auto;
+		text-align: center;
+	}
+	.vision-content::before {
+		content: '';
+		position: absolute;
+		top: -40%;
+		left: -15%;
+		width: 55%;
+		height: 90%;
+		background: radial-gradient(circle, rgba(0, 166, 192, 0.06) 0%, transparent 70%);
+		pointer-events: none;
+	}
+
+	/* ── Contacto glass ──────────────────────────────── */
+	:global(.contact-form) {
+		background: rgba(255, 255, 255, 0.07) !important;
+		backdrop-filter: blur(24px) saturate(180%) !important;
+		-webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+		border: 1px solid rgba(255, 255, 255, 0.14) !important;
+		border-radius: 20px !important;
+		padding: 2.5rem !important;
+		box-shadow:
+			0 10px 40px rgba(0, 0, 0, 0.32),
+			inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+	}
+	:global(.contact-info) {
+		background: rgba(255, 255, 255, 0.06) !important;
+		backdrop-filter: blur(20px) !important;
+		-webkit-backdrop-filter: blur(20px) !important;
+		border: 1px solid rgba(255, 255, 255, 0.12) !important;
+		border-radius: 20px !important;
+		padding: 2.5rem !important;
+		box-shadow:
+			0 8px 32px rgba(0, 0, 0, 0.28),
+			inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+	}
+
+	/* ── Tech showcase (Quiénes Somos visual) ────────── */
+	.tech-showcase {
+		background: radial-gradient(ellipse at center, rgba(0, 166, 192, 0.07) 0%, transparent 70%);
+	}
+
+	/* ── Overrides agresivos contra fondos oscuros del CSS global ── */
+	:global(section.about-section),
+	:global(.about-section) {
+		background: transparent !important;
+	}
+	:global(.about-section .container) {
+		background: transparent !important;
+	}
+	:global(.lo-que-hacemos-section) {
+		background: linear-gradient(
+			180deg,
+			transparent 0%,
+			rgba(0, 10, 30, 0.68) 15%,
+			rgba(0, 10, 30, 0.68) 85%,
+			transparent 100%
+		) !important;
+	}
+	:global(.contact-section) {
+		background: transparent !important;
+	}
+	:global(.contact-section .container) {
+		background: transparent !important;
+	}
+	:global(.services-section) {
+		background: transparent !important;
+	}
+
+	/* Responsive — ocultar orbes en mobile para perf */
+	@media (max-width: 768px) {
+		.orb-3,
+		.orb-4 {
+			display: none;
+		}
+		.orb-1,
+		.orb-2 {
+			filter: blur(60px);
+		}
+		.vision-content {
+			padding: 2.5rem 1.5rem;
+		}
+	}
+
+	/* ── Hero partículas ─────────────────────────────────── */
+	.hero-particle-section {
+		position: relative;
+		width: 100%;
+		min-height: 100vh;
+		overflow: hidden;
+		background: #000000;
+		display: flex;
+		align-items: flex-end;
+		justify-content: center;
+	}
+
+	.hero-bg-video {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		width: auto;
+		max-width: 60%;
+		object-fit: cover;
+		object-position: left center;
+		z-index: 1;
+		pointer-events: none;
+		opacity: 0.65;
+	}
+
+	.hero-video-fade {
+		position: absolute;
+		top: 0;
+		left: 0;
+		height: 100%;
+		width: 80%;
+		background: linear-gradient(to right, transparent 20%, #000000 52%);
+		z-index: 2;
+		pointer-events: none;
+	}
+
+	.hero-video-bottom-fade {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		height: 25%;
+		width: 65%;
+		background: linear-gradient(to top, #000000 65%, transparent 100%);
+		z-index: 2;
+		pointer-events: none;
+	}
+
+	.hero-text-overlay {
+		position: relative;
+		z-index: 10;
+		width: 100%;
+		text-align: left;
+		padding: 0 5vw 3vh;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 1.25rem;
+		pointer-events: none;
+	}
+
+	.hero-text-overlay a {
+		pointer-events: all;
+	}
+
+	.hero-particle-title {
+		font-family:
+			'Dune Rise',
+			'Inter',
+			-apple-system,
+			BlinkMacSystemFont,
+			'Segoe UI',
+			Roboto,
+			sans-serif;
+		font-size: clamp(1.4rem, 3.2vw, 2.4rem);
+		font-weight: normal;
+		background: linear-gradient(
+			135deg,
+			var(--light-cream, #f5f0e8) 0%,
+			var(--accent-cyan, #00a6c0) 100%
+		);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+		line-height: 1.25;
+		letter-spacing: 0.02em;
+		min-height: 2.6em;
+		white-space: nowrap;
+	}
+
+	.hero-blink-cursor {
+		-webkit-text-fill-color: var(--accent-cyan, #00a6c0);
+		animation: hero-blink 2s infinite;
+	}
+
+	@keyframes hero-blink {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0;
+		}
+	}
+
+	.hero-particle-subtitle {
+		font-size: 1.05rem;
+		color: rgba(216, 215, 204, 0.75);
+		line-height: 1.65;
+		max-width: 460px;
+	}
+
+	.hero-particle-buttons {
+		display: flex;
+		gap: 1.25rem;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		width: 100%;
+		margin-top: 0.25rem;
+	}
+
+	@media (max-width: 600px) {
+		.hero-text-overlay {
+			padding: 0 1.25rem 6vh;
+			gap: 1rem;
+		}
+		.hero-particle-buttons {
+			flex-direction: column;
+			align-items: center;
 		}
 	}
 </style>
