@@ -26,18 +26,18 @@
 			powerPreference: 'high-performance'
 		});
 
-		// ── CONTAINERS ────────────────────────────────────────────────
-		const bgContainer = new PIXI.Container(); // sparse ambient fabric
-		const logoContainer = new PIXI.Container(); // logo vortex
+		const bgContainer = new PIXI.Container();
+		const fxContainer = new PIXI.Container();
+		const logoContainer = new PIXI.Container();
 		app.stage.addChild(bgContainer);
+		app.stage.addChild(fxContainer);
 		app.stage.addChild(logoContainer);
 
-		// ── MOUSE ─────────────────────────────────────────────────────
-		let mouseX = W * 0.7;
-		let mouseY = H * 0.43;
-		let smoothX = mouseX;
-		let smoothY = mouseY;
-
+		// ── MOUSE ──────────────────────────────────────────────────────
+		let mouseX = W * 0.7,
+			mouseY = H * 0.44;
+		let smoothX = mouseX,
+			smoothY = mouseY;
 		const onMove = (e) => {
 			const r = wrap.getBoundingClientRect();
 			mouseX = e.clientX - r.left;
@@ -51,7 +51,7 @@
 		wrap.addEventListener('mousemove', onMove);
 		wrap.addEventListener('touchmove', onTouch, { passive: true });
 
-		// ── HELPERS ───────────────────────────────────────────────────
+		// ── HELPERS ────────────────────────────────────────────────────
 		const rng = (a, b) => a + Math.random() * (b - a);
 		const lerpColor = (c1, c2, t) => {
 			const r1 = (c1 >> 16) & 0xff,
@@ -67,9 +67,8 @@
 			);
 		};
 
-		// ── TEXTURES ──────────────────────────────────────────────────
-		// Tiny solid dot for logo particles
-		const makeDotTex = (size) => {
+		// ── TEXTURES ───────────────────────────────────────────────────
+		const makeDot = (size) => {
 			const c = document.createElement('canvas');
 			c.width = c.height = size;
 			const ctx = c.getContext('2d');
@@ -79,9 +78,7 @@
 			ctx.fill();
 			return PIXI.Texture.from(c);
 		};
-
-		// Soft glow dot for ambient network nodes
-		const makeGlowTex = (size) => {
+		const makeGlow = (size) => {
 			const c = document.createElement('canvas');
 			c.width = c.height = size;
 			const ctx = c.getContext('2d');
@@ -93,40 +90,35 @@
 			ctx.fillRect(0, 0, size, size);
 			return PIXI.Texture.from(c);
 		};
+		const partTex = makeDot(4);
+		const nodeTex = makeGlow(16);
 
-		const partTex = makeDotTex(4);
-		const nodeTex = makeGlowTex(16);
-
-		// ── AMBIENT DATA NETWORK (background) ─────────────────────────
-		const nodeCount = isMobile ? 50 : 85;
+		// ── AMBIENT DATA NETWORK ───────────────────────────────────────
+		const nodeCount = isMobile ? 35 : 60;
 		const bgNodes = Array.from({ length: nodeCount }, () => ({
 			x: rng(10, W - 10),
 			y: rng(10, H - 10),
 			size: rng(2, 5),
-			baseAlpha: rng(0.05, 0.13),
+			baseAlpha: rng(0.03, 0.08),
 			pulseOffset: rng(0, Math.PI * 2),
 			pulseSpeed: rng(0.2, 0.55)
 		}));
-
-		// Static connection lines
 		const lineG = new PIXI.Graphics();
-		const CONN_D = Math.min(W, H) * 0.15;
-		const CONN_D2 = CONN_D * CONN_D;
-		for (let i = 0; i < bgNodes.length; i++) {
+		const CONN_D = Math.min(W, H) * 0.14,
+			CONN_D2 = CONN_D * CONN_D;
+		for (let i = 0; i < bgNodes.length; i++)
 			for (let j = i + 1; j < bgNodes.length; j++) {
-				const dx = bgNodes[i].x - bgNodes[j].x;
-				const dy = bgNodes[i].y - bgNodes[j].y;
-				const d2 = dx * dx + dy * dy;
+				const dx = bgNodes[i].x - bgNodes[j].x,
+					dy = bgNodes[i].y - bgNodes[j].y,
+					d2 = dx * dx + dy * dy;
 				if (d2 < CONN_D2) {
-					const pct = 1 - Math.sqrt(d2) / CONN_D;
-					lineG.lineStyle(0.5, 0x00d4aa, pct * 0.065);
+					const p = 1 - Math.sqrt(d2) / CONN_D;
+					lineG.lineStyle(0.5, 0x00d4aa, p * 0.06);
 					lineG.moveTo(bgNodes[i].x, bgNodes[i].y);
 					lineG.lineTo(bgNodes[j].x, bgNodes[j].y);
 				}
 			}
-		}
 		bgContainer.addChild(lineG);
-
 		const bgNodePC = new PIXI.ParticleContainer(nodeCount, {
 			position: true,
 			tint: true,
@@ -135,7 +127,6 @@
 			rotation: false
 		});
 		bgContainer.addChild(bgNodePC);
-
 		const bgNodeSprites = bgNodes.map((n) => {
 			const s = new PIXI.Sprite(nodeTex);
 			s.anchor.set(0.5);
@@ -148,49 +139,45 @@
 			return { ...n, sprite: s };
 		});
 
-		// ── LOGO VORTEX — sample the logo PNG ─────────────────────────
-		// Logo is positioned in the right-center area, large enough to feel epic
+		// ── LOGO GEOMETRY ──────────────────────────────────────────────
 		const logoSize = Math.min(W, H) * (isMobile ? 0.416 : 0.52);
 		const logoCX = W * (isMobile ? 0.64 : 0.7);
 		const logoCY = H * (isMobile ? 0.38 : 0.44);
+		const maxLogoR = logoSize * 0.4;
 
-		const SAMPLE_RES = 512;
-		const STEP = isMobile ? 5 : 3;
+		let globalRot = 0;
 
+		// ── LOGO SAMPLING ──────────────────────────────────────────────
+		const SAMPLE_RES = 512,
+			STEP = isMobile ? 5 : 3;
 		const logoSrcList = [];
-
 		await new Promise((resolve) => {
 			const img = new Image();
 			img.onload = () => {
 				const sc = document.createElement('canvas');
-				sc.width = SAMPLE_RES;
-				sc.height = SAMPLE_RES;
+				sc.width = sc.height = SAMPLE_RES;
 				const sctx = sc.getContext('2d');
 				sctx.drawImage(img, 0, 0, SAMPLE_RES, SAMPLE_RES);
 				const px = sctx.getImageData(0, 0, SAMPLE_RES, SAMPLE_RES).data;
-				const lx = logoCX - logoSize / 2;
-				const ly = logoCY - logoSize / 2;
-				for (let y = 0; y < SAMPLE_RES; y += STEP) {
+				const lx = logoCX - logoSize / 2,
+					ly = logoCY - logoSize / 2;
+				for (let y = 0; y < SAMPLE_RES; y += STEP)
 					for (let x = 0; x < SAMPLE_RES; x += STEP) {
 						const idx = (y * SAMPLE_RES + x) * 4;
-						if (px[idx + 3] > 50) {
-							const wx = lx + (x / SAMPLE_RES) * logoSize;
-							const wy = ly + (y / SAMPLE_RES) * logoSize;
-							logoSrcList.push({ x: wx, y: wy });
-						}
+						if (px[idx + 3] > 50)
+							logoSrcList.push({
+								x: lx + (x / SAMPLE_RES) * logoSize,
+								y: ly + (y / SAMPLE_RES) * logoSize
+							});
 					}
-				}
 				resolve();
 			};
 			img.onerror = resolve;
 			img.src = '/img/geminislabs-nobg.png';
 		});
-
 		if (logoSrcList.length === 0) return;
 
-		// Build particle data: store polar coords relative to logo center
-		const maxLogoR = logoSize * 0.5;
-
+		// ── LOGO PARTICLES ─────────────────────────────────────────────
 		const logoPC = new PIXI.ParticleContainer(logoSrcList.length, {
 			position: true,
 			tint: true,
@@ -201,25 +188,31 @@
 		logoContainer.addChild(logoPC);
 
 		const logoParticles = logoSrcList.map((s) => {
-			const dx = s.x - logoCX;
-			const dy = s.y - logoCY;
+			const dx = s.x - logoCX,
+				dy = s.y - logoCY;
 			const r = Math.sqrt(dx * dx + dy * dy);
 			const baseAngle = Math.atan2(dy, dx);
-
-			// Emerald → cyan gradient based on radius
 			const colorT = Math.min(r / maxLogoR, 1);
-			const tint = lerpColor(0x00ff7a, 0x00c8ff, colorT);
 
-			// Brightness varies with radius: center brighter, outer dimmer
-			const alpha = Math.max(0.15, 0.75 - colorT * 0.38 + rng(-0.1, 0.18));
+			const edgeFade =
+				r > maxLogoR * 0.68
+					? Math.max(0, 1 - Math.pow((r - maxLogoR * 0.68) / (maxLogoR * 0.32), 1.1))
+					: 1.0;
+			const baseAlpha = Math.max(0.1, (0.88 - colorT * 0.22 + rng(-0.05, 0.08)) * edgeFade);
 
 			const sprite = new PIXI.Sprite(partTex);
 			sprite.anchor.set(0.5);
 			sprite.x = s.x;
 			sprite.y = s.y;
-			sprite.alpha = alpha;
-			sprite.tint = tint;
+			sprite.alpha = baseAlpha;
+			sprite.tint = lerpColor(0x00ff7a, 0x00c8ff, colorT);
 			logoPC.addChild(sprite);
+
+			// Each particle breathes independently
+			const driftAmp = rng(1.8, 5.0);
+			const driftFreq = rng(0.35, 0.95);
+			const driftPhX = rng(0, Math.PI * 2);
+			const driftPhY = rng(0, Math.PI * 2);
 
 			return {
 				sprite,
@@ -228,29 +221,62 @@
 				x: s.x,
 				y: s.y,
 				vx: 0,
-				vy: 0
+				vy: 0,
+				baseAlpha,
+				driftAmp,
+				driftFreq,
+				driftPhX,
+				driftPhY
 			};
 		});
 
-		// ── ANIMATION TICKER ──────────────────────────────────────────
-		let globalRot = 0;
-		const ATTR_R = Math.min(W, H) * 0.34;
+		// ── FLOATING DATA PARTICLES ────────────────────────────────────
+		// Sparse bright motes drifting upward across the scene
+		const DATA_COUNT = isMobile ? 28 : 55;
+		const dataPC = new PIXI.ParticleContainer(DATA_COUNT, {
+			position: true,
+			tint: true,
+			alpha: true,
+			scale: true
+		});
+		fxContainer.addChild(dataPC);
+
+		const dataBits = Array.from({ length: DATA_COUNT }, () => {
+			const s = new PIXI.Sprite(partTex);
+			s.anchor.set(0.5);
+			s.x = rng(0, W);
+			s.y = rng(0, H);
+			s.scale.set(rng(0.25, 0.8));
+			s.tint = Math.random() < 0.6 ? 0x00ffaa : 0x0099ff;
+			s.alpha = rng(0.05, 0.2);
+			dataPC.addChild(s);
+			return {
+				sprite: s,
+				x: s.x,
+				y: s.y,
+				vy: -rng(0.12, 0.45),
+				vx: rng(-0.06, 0.06),
+				phaseOff: rng(0, Math.PI * 2),
+				blinkSpeed: rng(0.4, 1.8)
+			};
+		});
+
+		// ── TICKER ─────────────────────────────────────────────────────
 		const PARALLAX = isMobile ? 0.25 : 1.0;
+		const ATTR_R = Math.min(W, H) * 0.34;
 
 		app.ticker.add(() => {
 			const t = performance.now() * 0.001;
-			// ~0.2 RPM slow rotation — pinwheel logo becomes a living vortex
 			globalRot += 0.00038;
 
-			// Smooth mouse
 			smoothX += (mouseX - smoothX) * 0.04;
 			smoothY += (mouseY - smoothY) * 0.04;
 			const nx = (smoothX / W - 0.5) * PARALLAX;
 			const ny = (smoothY / H - 0.5) * PARALLAX;
-
-			// Parallax: bg moves slower, logo faster
 			bgContainer.x = nx * -14;
 			bgContainer.y = ny * -9;
+			fxContainer.x = nx * -26;
+			fxContainer.y = ny * -16;
 			logoContainer.x = nx * -36;
 			logoContainer.y = ny * -24;
 
@@ -258,38 +284,58 @@
 			for (let i = 0; i < bgNodeSprites.length; i++) {
 				const ns = bgNodeSprites[i];
 				const pulse = (Math.sin(t * ns.pulseSpeed + ns.pulseOffset) + 1) * 0.5;
-				ns.sprite.alpha = Math.max(0, ns.baseAlpha * (0.35 + pulse * 0.65));
+				ns.sprite.alpha = Math.max(0, ns.baseAlpha * (0.3 + pulse * 0.7));
 			}
 
-			// Logo particles: spring toward rotating target + cursor gravity
+			// Floating data bits
+			for (let i = 0; i < dataBits.length; i++) {
+				const d = dataBits[i];
+				d.x += d.vx;
+				d.y += d.vy;
+				if (d.y < -10) {
+					d.y = H + 10;
+					d.x = rng(0, W);
+				}
+				if (d.x < -10 || d.x > W + 10) {
+					d.x = rng(0, W);
+					d.y = rng(0, H);
+				}
+				const blink = (Math.sin(t * d.blinkSpeed + d.phaseOff) + 1) * 0.5;
+				d.sprite.x = d.x;
+				d.sprite.y = d.y;
+				d.sprite.alpha = 0.035 + blink * 0.16;
+			}
+
+			// Logo particles — orbit + breathing drift + mouse
 			for (let i = 0; i < logoParticles.length; i++) {
 				const p = logoParticles[i];
-
-				// Rotating rest position
 				const ang = p.baseAngle + globalRot;
 				const tx = logoCX + Math.cos(ang) * p.r;
 				const ty = logoCY + Math.sin(ang) * p.r;
 
-				// Spring force toward rotating target
-				p.vx += (tx - p.x) * 0.02;
-				p.vy += (ty - p.y) * 0.02;
+				const bx = Math.sin(t * p.driftFreq + p.driftPhX) * p.driftAmp;
+				const by = Math.cos(t * p.driftFreq + p.driftPhY) * p.driftAmp;
 
-				// Cursor gravitational pull
-				const ddx = mouseX - p.x;
-				const ddy = mouseY - p.y;
-				const d = Math.sqrt(ddx * ddx + ddy * ddy) + 0.5;
-				if (d < ATTR_R) {
-					const force = 0.32 * (1 - d / ATTR_R);
-					p.vx += (ddx / d) * force;
-					p.vy += (ddy / d) * force;
+				p.vx += (tx + bx - p.x) * 0.02;
+				p.vy += (ty + by - p.y) * 0.02;
+
+				const ddx = mouseX - p.x,
+					ddy = mouseY - p.y;
+				const dist = Math.sqrt(ddx * ddx + ddy * ddy) + 0.5;
+				if (dist < ATTR_R) {
+					const f = 0.3 * (1 - dist / ATTR_R);
+					p.vx += (ddx / dist) * f;
+					p.vy += (ddy / dist) * f;
 				}
-
 				p.vx *= 0.865;
 				p.vy *= 0.865;
 				p.x += p.vx;
 				p.y += p.vy;
 				p.sprite.x = p.x;
 				p.sprite.y = p.y;
+
+				const pulse = (Math.sin(t * p.driftFreq * 0.6 + p.driftPhX) + 1) * 0.5;
+				p.sprite.alpha = p.baseAlpha * (0.72 + pulse * 0.28);
 			}
 		});
 
@@ -297,7 +343,6 @@
 			if (app?.renderer && wrap) app.renderer.resize(wrap.clientWidth, wrap.clientHeight);
 		};
 		window.addEventListener('resize', onResize);
-
 		return () => {
 			wrap?.removeEventListener('mousemove', onMove);
 			wrap?.removeEventListener('touchmove', onTouch);

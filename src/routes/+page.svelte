@@ -4,6 +4,7 @@
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import HeroParticles from '$lib/components/HeroParticles.svelte';
+	import HeroGlitch from '$lib/components/HeroGlitch.svelte';
 	import { buildApiUrl, API_CONFIG } from '$lib/config/api.js';
 
 	// Variables para efectos parallax
@@ -453,11 +454,25 @@
 
 <!-- Sección Hero -->
 <section id="inicio" class="hero-particle-section">
-	<video class="hero-bg-video" src="/vid/cyberhuman-bg.mp4" autoplay muted loop playsinline></video>
-	<div class="hero-video-fade"></div>
-	<div class="hero-video-bottom-fade"></div>
+	<!-- Video original oculto — HeroGlitch lo dibuja en canvas con el efecto -->
+	<video class="hero-bg-video" src="/vid/cyberhuman-hero.mp4" autoplay muted loop playsinline
+	></video>
+	<HeroGlitch />
+
+	<!-- Capas de atmósfera visual -->
+	<div class="hero-vignette" aria-hidden="true"></div>
+	<div class="hero-video-fade" aria-hidden="true"></div>
+	<div class="hero-video-bottom-fade" aria-hidden="true"></div>
+	<div class="hero-scanlines" aria-hidden="true"></div>
+	<div class="hero-sweep" aria-hidden="true"></div>
+	<div class="hero-right-glow" aria-hidden="true"></div>
+	<div class="hero-corner-tl" aria-hidden="true"></div>
+	<div class="hero-corner-bl" aria-hidden="true"></div>
+
 	<HeroParticles />
+
 	<div class="hero-text-overlay" style="transform: translateY({isMobile ? 0 : scrollY * 0.08}px)">
+		<div class="hero-label" aria-hidden="true">// GEMINIS LABS · AI &amp; CONNECTIVITY</div>
 		<h1 class="hero-particle-title">
 			{display.slice(0, 10)}{#if display.length > 10}<br />{display.slice(11)}{/if}
 			{#if showCursor}
@@ -468,6 +483,12 @@
 		<div class="hero-particle-buttons">
 			<a href="#servicios" class="btn-primary">Descubre Nuestros Servicios</a>
 			<a href="#contacto" class="btn-secondary">Contactar Ahora</a>
+		</div>
+		<div class="hero-status-bar" aria-hidden="true">
+			<span class="hero-status-dot"></span>
+			<span class="hero-status-text">SISTEMAS ACTIVOS</span>
+			<span class="hero-status-sep">|</span>
+			<span class="hero-status-text">MX · LATAM</span>
 		</div>
 	</div>
 </section>
@@ -3068,7 +3089,9 @@
 		width: 100%;
 		min-height: 100vh;
 		overflow: hidden;
-		background: #000000;
+		background-image: url('/img/deepspace.png');
+		background-size: cover;
+		background-position: center center;
 		display: flex;
 		align-items: flex-end;
 		justify-content: center;
@@ -3078,25 +3101,153 @@
 		position: absolute;
 		top: 0;
 		left: 0;
+		width: 100%;
 		height: 100%;
-		width: auto;
-		max-width: 60%;
 		object-fit: cover;
-		object-position: left center;
-		z-index: 1;
+		object-position: center center;
+		z-index: 0;
 		pointer-events: none;
-		opacity: 0.65;
+		opacity: 0; /* HeroGlitch canvas maneja el display */
 	}
 
+	/* Gradiente izquierda → legibilidad del texto */
 	.hero-video-fade {
 		position: absolute;
 		top: 0;
 		left: 0;
 		height: 100%;
-		width: 80%;
-		background: linear-gradient(to right, transparent 20%, #000000 52%);
+		width: 100%;
+		background: linear-gradient(
+			to right,
+			rgba(0, 0, 0, 0.82) 0%,
+			rgba(0, 0, 0, 0.55) 32%,
+			rgba(0, 0, 0, 0.18) 58%,
+			transparent 100%
+		);
 		z-index: 2;
 		pointer-events: none;
+	}
+
+	/* Viñeta radial para enfocar la atención */
+	.hero-vignette {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		pointer-events: none;
+		background: radial-gradient(
+			ellipse 110% 100% at 50% 50%,
+			transparent 40%,
+			rgba(0, 0, 0, 0.55) 100%
+		);
+	}
+
+	/* Scanlines — textura CRT sutil */
+	.hero-scanlines {
+		position: absolute;
+		inset: 0;
+		z-index: 4;
+		pointer-events: none;
+		background: repeating-linear-gradient(
+			0deg,
+			transparent 0px,
+			transparent 3px,
+			rgba(0, 0, 0, 0.06) 3px,
+			rgba(0, 0, 0, 0.06) 4px
+		);
+	}
+
+	/* Línea de barrido horizontal que recorre la pantalla */
+	.hero-sweep {
+		position: absolute;
+		left: 0;
+		width: 100%;
+		height: 2px;
+		z-index: 5;
+		pointer-events: none;
+		background: linear-gradient(
+			to right,
+			transparent 0%,
+			rgba(0, 255, 150, 0) 20%,
+			rgba(0, 255, 150, 0.35) 50%,
+			rgba(0, 200, 255, 0.25) 65%,
+			transparent 100%
+		);
+		animation: heroSweep 7s ease-in-out infinite;
+	}
+	@keyframes heroSweep {
+		0% {
+			top: -2px;
+			opacity: 0;
+		}
+		4% {
+			opacity: 1;
+		}
+		96% {
+			opacity: 0.5;
+		}
+		100% {
+			top: 100%;
+			opacity: 0;
+		}
+	}
+
+	/* Resplandor verde suave en el lado del logo */
+	.hero-right-glow {
+		position: absolute;
+		right: 0;
+		top: 0;
+		height: 100%;
+		width: 55%;
+		z-index: 2;
+		pointer-events: none;
+		background: radial-gradient(
+			ellipse at 78% 44%,
+			rgba(0, 255, 140, 0.07) 0%,
+			rgba(0, 200, 255, 0.04) 35%,
+			transparent 65%
+		);
+		animation: rightGlowPulse 4s ease-in-out infinite;
+	}
+	@keyframes rightGlowPulse {
+		0%,
+		100% {
+			opacity: 0.8;
+		}
+		50% {
+			opacity: 1;
+		}
+	}
+
+	/* Esquinas decorativas estilo HUD */
+	.hero-corner-tl,
+	.hero-corner-bl {
+		position: absolute;
+		left: 2.5vw;
+		z-index: 6;
+		pointer-events: none;
+		width: 28px;
+		height: 28px;
+	}
+	.hero-corner-tl {
+		top: 5rem;
+		border-top: 1.5px solid rgba(0, 255, 150, 0.45);
+		border-left: 1.5px solid rgba(0, 255, 150, 0.45);
+		animation: hudCornerFade 3s ease-in-out infinite;
+	}
+	.hero-corner-bl {
+		bottom: 3rem;
+		border-bottom: 1.5px solid rgba(0, 200, 255, 0.35);
+		border-left: 1.5px solid rgba(0, 200, 255, 0.35);
+		animation: hudCornerFade 3s ease-in-out infinite 1.5s;
+	}
+	@keyframes hudCornerFade {
+		0%,
+		100% {
+			opacity: 0.45;
+		}
+		50% {
+			opacity: 0.9;
+		}
 	}
 
 	.hero-video-bottom-fade {
@@ -3104,7 +3255,7 @@
 		bottom: 0;
 		left: 0;
 		height: 25%;
-		width: 65%;
+		width: 100%;
 		background: linear-gradient(to top, #000000 65%, transparent 100%);
 		z-index: 2;
 		pointer-events: none;
@@ -3115,16 +3266,39 @@
 		z-index: 10;
 		width: 100%;
 		text-align: left;
-		padding: 0 5vw 3vh;
+		padding: 0 5vw 4vh;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
-		gap: 1.25rem;
+		gap: 1.1rem;
 		pointer-events: none;
 	}
 
 	.hero-text-overlay a {
 		pointer-events: all;
+	}
+
+	/* Etiqueta pequeña tipo código sobre el título */
+	.hero-label {
+		font-family: 'Courier New', 'Consolas', monospace;
+		font-size: 0.68rem;
+		letter-spacing: 0.18em;
+		color: rgba(0, 255, 150, 0.65);
+		text-transform: uppercase;
+		animation: heroLabelFlicker 5s ease-in-out infinite;
+	}
+	@keyframes heroLabelFlicker {
+		0%,
+		89%,
+		91%,
+		93%,
+		100% {
+			opacity: 0.65;
+		}
+		90%,
+		92% {
+			opacity: 0.2;
+		}
 	}
 
 	.hero-particle-title {
@@ -3150,6 +3324,73 @@
 		letter-spacing: 0.02em;
 		min-height: 2.6em;
 		white-space: nowrap;
+		animation: titleGlitch 11s ease-in-out infinite;
+	}
+
+	/* Glitch ocasional en el título */
+	@keyframes titleGlitch {
+		0%,
+		88%,
+		100% {
+			transform: none;
+			filter: none;
+		}
+		89% {
+			transform: translateX(-3px) skewX(-1.5deg);
+			filter: brightness(1.6) hue-rotate(40deg);
+		}
+		90% {
+			transform: translateX(3px);
+			filter: brightness(0.7) hue-rotate(-40deg);
+		}
+		91% {
+			transform: translateX(-1px);
+			filter: brightness(1.2);
+		}
+		92% {
+			transform: none;
+			filter: none;
+		}
+	}
+
+	/* Barra de estado tipo HUD */
+	.hero-status-bar {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		margin-top: 0.5rem;
+	}
+	.hero-status-dot {
+		width: 6px;
+		height: 6px;
+		border-radius: 50%;
+		background: #00ff99;
+		box-shadow:
+			0 0 6px #00ff99,
+			0 0 12px rgba(0, 255, 153, 0.4);
+		animation: statusPulse 1.8s ease-in-out infinite;
+	}
+	@keyframes statusPulse {
+		0%,
+		100% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.5;
+			transform: scale(0.7);
+		}
+	}
+	.hero-status-text {
+		font-family: 'Courier New', monospace;
+		font-size: 0.62rem;
+		letter-spacing: 0.14em;
+		color: rgba(0, 255, 150, 0.5);
+		text-transform: uppercase;
+	}
+	.hero-status-sep {
+		color: rgba(255, 255, 255, 0.15);
+		font-size: 0.7rem;
 	}
 
 	.hero-blink-cursor {
