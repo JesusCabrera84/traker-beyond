@@ -5,6 +5,7 @@
 	import Footer from '$lib/components/Footer.svelte';
 	import HeroParticles from '$lib/components/HeroParticles.svelte';
 	import HeroGlitch from '$lib/components/HeroGlitch.svelte';
+	import HeroTitle from '$lib/components/HeroTitle.svelte';
 	import { buildApiUrl, API_CONFIG } from '$lib/config/api.js';
 
 	// Variables para efectos parallax
@@ -13,12 +14,6 @@
 
 	// Variable para detectar si estamos en móvil
 	let isMobile = false;
-
-	// Variables para el texto de hero
-	let text = 'CONECTAMOS HUMANIDAD Y TECNOLOGÍA';
-	let display = '';
-	let index = 0;
-	let showCursor = true;
 
 	// Variable para reCAPTCHA
 	const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
@@ -182,17 +177,6 @@
 				}
 			});
 		});
-
-		const interval = setInterval(() => {
-			if (index < text.length) {
-				display += text[index];
-				index++;
-			} else {
-				clearInterval(interval);
-				// Espera un segundo y desvanece el cursor
-				setTimeout(() => (showCursor = false), 2000);
-			}
-		}, 65);
 
 		// Cleanup
 		return () => {
@@ -455,7 +439,14 @@
 <!-- Sección Hero -->
 <section id="inicio" class="hero-particle-section">
 	<!-- Video original oculto — HeroGlitch lo dibuja en canvas con el efecto -->
-	<video class="hero-bg-video" src="/vid/cyberhuman-hero.mp4" autoplay muted loop playsinline
+	<video
+		class="hero-bg-video"
+		src="/vid/cyberhuman-hero.mp4"
+		autoplay
+		muted
+		loop
+		playsinline
+		on:loadedmetadata={(e) => (e.currentTarget.playbackRate = 0.85)}
 	></video>
 	<HeroGlitch />
 
@@ -464,31 +455,16 @@
 	<div class="hero-video-fade" aria-hidden="true"></div>
 	<div class="hero-video-bottom-fade" aria-hidden="true"></div>
 	<div class="hero-scanlines" aria-hidden="true"></div>
-	<div class="hero-sweep" aria-hidden="true"></div>
 	<div class="hero-right-glow" aria-hidden="true"></div>
-	<div class="hero-corner-tl" aria-hidden="true"></div>
-	<div class="hero-corner-bl" aria-hidden="true"></div>
 
 	<HeroParticles />
 
 	<div class="hero-text-overlay" style="transform: translateY({isMobile ? 0 : scrollY * 0.08}px)">
 		<div class="hero-label" aria-hidden="true">// GEMINIS LABS · AI &amp; CONNECTIVITY</div>
-		<h1 class="hero-particle-title">
-			{display.slice(0, 10)}{#if display.length > 10}<br />{display.slice(11)}{/if}
-			{#if showCursor}
-				<span class="hero-blink-cursor">_</span>
-			{/if}
-		</h1>
-		<p class="hero-particle-subtitle">Creamos tecnología que potencia a la humanidad.</p>
+		<HeroTitle />
 		<div class="hero-particle-buttons">
 			<a href="#servicios" class="btn-primary">Descubre Nuestros Servicios</a>
 			<a href="#contacto" class="btn-secondary">Contactar Ahora</a>
-		</div>
-		<div class="hero-status-bar" aria-hidden="true">
-			<span class="hero-status-dot"></span>
-			<span class="hero-status-text">SISTEMAS ACTIVOS</span>
-			<span class="hero-status-sep">|</span>
-			<span class="hero-status-text">MX · LATAM</span>
 		</div>
 	</div>
 </section>
