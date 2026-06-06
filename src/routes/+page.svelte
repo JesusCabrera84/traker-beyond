@@ -1,6 +1,5 @@
 <script>
 	import { onMount } from 'svelte';
-	import { fade } from 'svelte/transition';
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
 	import HeroParticles from '$lib/components/HeroParticles.svelte';
@@ -15,6 +14,61 @@
 	// Variable para detectar si estamos en móvil
 	let isMobile = false;
 
+	// Video de fondo del título: pausado, reproduce en hover, rebobina en reversa al salir
+	let titleVideo;
+	let titleRewindRAF;
+	function titlePlay() {
+		if (!titleVideo) return;
+		cancelAnimationFrame(titleRewindRAF);
+		titleVideo.play().catch(() => {});
+	}
+	function titleRewind() {
+		if (!titleVideo) return;
+		titleVideo.pause();
+		cancelAnimationFrame(titleRewindRAF);
+		const step = () => {
+			if (!titleVideo) return;
+			titleVideo.currentTime = Math.max(0, titleVideo.currentTime - 1 / 30);
+			if (titleVideo.currentTime > 0.01) titleRewindRAF = requestAnimationFrame(step);
+		};
+		titleRewindRAF = requestAnimationFrame(step);
+	}
+
+	// Áreas (badges) con efecto hover de cuadros a negro + descripción
+	let hoveredArea = null;
+	const areas = [
+		{
+			label: 'Inteligencia Artificial',
+			icon: 'brain',
+			headline: 'IA + Intuición Humana',
+			sub: 'Mejores decisiones, no reemplazo humano'
+		},
+		{
+			label: 'IoT',
+			icon: 'cpu',
+			headline: 'Mundo físico + Mundo digital',
+			sub: 'Sensores, ubicación, datos, contexto y soluciones'
+		},
+		{
+			label: 'Telecomunicaciones',
+			icon: 'radio',
+			headline: 'Humanidad + tecnología',
+			sub: 'La tecnología amplifica capacidades y alcance humano'
+		},
+		{
+			label: 'Análisis Geoespacial',
+			icon: 'satellite',
+			headline: 'Datos + Propósito',
+			sub: 'Información convertida en acción'
+		},
+		{
+			label: 'Investigación',
+			icon: 'flask',
+			headline: 'Soluciones eficientes + innovación =',
+			brand: 'Geminis Labs',
+			sub: ''
+		}
+	];
 	// Variable para reCAPTCHA
 	const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
 
@@ -93,6 +147,9 @@
 	];
 	let currentFeatureIndex = 0;
 	let nexusFeaturesInterval;
+
+	// Split products hover state
+	let splitHover = null; // 'nexus' | 'orion' | null
 
 	// Orion Features Data
 	const orionFeatures = [
@@ -462,40 +519,114 @@
 	<div class="hero-text-overlay" style="transform: translateY({isMobile ? 0 : scrollY * 0.08}px)">
 		<div class="hero-label" aria-hidden="true">// GEMINIS LABS · AI &amp; CONNECTIVITY</div>
 		<HeroTitle />
-		<div class="hero-particle-buttons">
+		<div
+			class="hero-particle-buttons"
+			style="transform: translateY({isMobile ? 0 : -scrollY * 0.08}px)"
+		>
 			<a href="#servicios" class="btn-primary">Descubre Nuestros Servicios</a>
 			<a href="#contacto" class="btn-secondary">Contactar Ahora</a>
 		</div>
 	</div>
 </section>
 
-<!-- Sección Nuestro Ecosistema -->
-<section id="ecosistema" class="ecosystem-section">
+<!-- Sección Laboratorio Tecnológico -->
+<section id="ecosistema" class="lab-section">
 	<span id="servicios" style="position:absolute; top:-80px;"></span>
-	<div class="container">
-		<h2 class="landing-section-title">Nuestro Ecosistema</h2>
-		<div class="section-description">
-			<h3>Dos productos complementarios.</h3>
-			<span>
-				Una plataforma de operación conectada para quienes necesitan visibilidad y control. Un motor
-				de inteligencia geoespacial para quienes construyen sobre datos de localización.
-			</span>
+	<div class="lab-noise" aria-hidden="true"></div>
+	<div class="lab-head">
+		<h2 class="landing-section-title lab-section-title">
+			¿Qué es <span class="brand">Geminis Labs</span>?
+		</h2>
+	</div>
+	<div class="container lab-grid">
+		<div class="lab-left">
+			<!-- svelte-ignore a11y-no-static-element-interactions -->
+			<div class="lab-title-media" on:mouseenter={titlePlay} on:mouseleave={titleRewind}>
+				<video
+					bind:this={titleVideo}
+					class="lab-title-video"
+					src="/vid/title-tech.mp4"
+					muted
+					playsinline
+					preload="auto"
+				></video>
+				<span class="lab-title-scrim" aria-hidden="true"></span>
+				<h2 class="landing-section-title lab-title">Tecnología al servicio de la humanidad</h2>
+			</div>
 		</div>
-		<div class="ecosystem-products-preview">
-			<a href="/products/nexus" class="ecosystem-product-card">
-				<img src="/img/products/logo-nexus.png" alt="Nexus" class="ecosystem-logo" />
-				<h3 class="ecosystem-product-name">NEXUS</h3>
-				<p class="ecosystem-product-tagline">Plataforma de monitoreo y operación conectada</p>
-				<span class="ecosystem-cta">Explorar Nexus →</span>
-			</a>
-			<div class="ecosystem-divider"></div>
-			<a href="/products/orion" class="ecosystem-product-card">
-				<img src="/img/products/logo-orion.png" alt="Orion" class="ecosystem-logo" />
-				<h3 class="ecosystem-product-name audiowide-regular">ORION</h3>
-				<p class="ecosystem-product-tagline">Motor de inteligencia geoespacial</p>
-				<span class="ecosystem-cta">Explorar Orion →</span>
-			</a>
+		<div class="lab-center">
+			<img
+				src="/img/foco-no-bg.png"
+				alt="Foco con tecnología y naturaleza integradas"
+				class="lab-bulb"
+			/>
 		</div>
+		<div class="lab-right">
+			<p class="lab-lead">
+				Geminis Labs es un laboratorio tecnológico dedicado a construir
+				<strong>productos e infraestructura</strong> para resolver problemas reales mediante
+				inteligencia artificial, IoT, telecomunicaciones, análisis geoespacial y sistemas
+				distribuidos — <strong>a beneficio de la humanidad</strong>.
+			</p>
+		</div>
+	</div>
+
+	<!-- Áreas: badges con icono + efecto hover -->
+	<!-- svelte-ignore a11y-no-static-element-interactions -->
+	<div
+		class="lab-areas"
+		class:focused={hoveredArea !== null}
+		on:mouseleave={() => (hoveredArea = null)}
+	>
+		{#each areas as area, i (area.label)}
+			<div
+				class="lab-cap"
+				class:active={hoveredArea === i}
+				class:dim={hoveredArea !== null && hoveredArea !== i}
+				on:mouseenter={() => (hoveredArea = i)}
+			>
+				<span class="lab-cap-icon">
+					<svg viewBox="0 0 24 24" aria-hidden="true">
+						{#if area.icon === 'brain'}
+							<path
+								d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"
+							/>
+							<path
+								d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"
+							/>
+						{:else if area.icon === 'cpu'}
+							<rect x="4" y="4" width="16" height="16" rx="2" />
+							<rect x="9" y="9" width="6" height="6" />
+							<path d="M9 1v3M15 1v3M9 20v3M15 20v3M20 9h3M20 14h3M1 9h3M1 14h3" />
+						{:else if area.icon === 'radio'}
+							<circle cx="12" cy="12" r="2" />
+							<path
+								d="M4.93 19.07a10 10 0 0 1 0-14.14M7.76 16.24a6 6 0 0 1 0-8.49M16.24 7.76a6 6 0 0 1 0 8.49M19.07 4.93a10 10 0 0 1 0 14.14"
+							/>
+						{:else if area.icon === 'satellite'}
+							<path d="M4 10a7.31 7.31 0 0 0 10 10Z" />
+							<path d="m9 15 3-3" />
+							<path d="M17 13a6 6 0 0 0-6-6" />
+							<path d="M21 13A10 10 0 0 0 11 3" />
+						{:else if area.icon === 'flask'}
+							<path d="M10 2v7.31" />
+							<path d="M14 9.3V2" />
+							<path d="M8.5 2h7" />
+							<path d="M14 9.3a6.5 6.5 0 1 1-4 0" />
+							<path d="M5.52 16h12.96" />
+						{/if}
+					</svg>
+				</span>
+				<span class="lab-cap-label">{area.label}</span>
+				<div class="lab-cap-detail">
+					<h3>
+						{area.headline}
+						{#if area.brand}<span class="brand"> {area.brand}</span>{/if}
+					</h3>
+					{#if area.sub}<p>{area.sub}</p>{/if}
+				</div>
+			</div>
+		{/each}
 	</div>
 </section>
 
@@ -512,138 +643,157 @@
 				estratégicas.
 			</span>
 		</div>
+	</div>
 
-		<div class="products-container">
-			<!-- Nexus Container Wrapper (Header + Content) -->
-			<div class="nexus-full-container">
-				<a
-					href="/products/nexus"
-					class="product-header product-header-nexus cursor-pointer"
-					style="text-decoration: none; display: flex; flex-direction: column; align-items: center; margin-bottom: 3rem;"
-				>
-					<img
-						src="/img/products/logo-nexus.png"
-						alt="Logo Nexus"
-						class="product-logo nexus-logo"
-					/>
-					<h3 class="product-title nexus-title">NEXUS</h3>
-				</a>
-				<!-- Nexus -->
-				<div class="product-item nexus-item fade-in cursor-default">
-					<div class="product-content">
-						<div class="product-info centered-info">
-							<h4 class="nexus-slogan-title">Plataforma de monitoreo y operación conectada.</h4>
-							<p class="nexus-slogan-subtitle">
-								GPS, telemetría, alertas, geocercas. Web, iPhone y Android.
-							</p>
-							<a href="/products/nexus" class="btn-product-cta">Explorar Nexus</a>
-						</div>
-						<div class="product-visual nexus-visual">
-							<div class="carousel-container">
-								{#each nexusImages as image, i (image)}
-									<div
-										class="carousel-slide"
-										class:active={i === currentNexusSlide}
-										style="background-image: url('{image}')"
-									></div>
-								{/each}
-							</div>
+	<!-- ── ORBS ECOSYSTEM ─────────────────────────────────────── -->
+	<div class="orbs-arena">
+		<div class="orbs-mesh" aria-hidden="true"></div>
 
-							<!-- Overlay Features -->
-							<div class="overlay-features-container">
-								{#key currentFeatureIndex}
-									<div class="feature-block" in:fade={{ duration: 300 }}>
-										<h5 class="feature-title">{nexusFeatures[currentFeatureIndex].title}</h5>
-										<ul class="product-features overlay-features">
-											{#each nexusFeatures[currentFeatureIndex].items as item (item)}
-												<li>
-													<svg
-														viewBox="0 0 24 24"
-														fill="none"
-														stroke="currentColor"
-														stroke-width="2"
-													>
-														<polyline points="20 6 9 17 4 12"></polyline>
-													</svg>
-													{item}
-												</li>
-											{/each}
-										</ul>
-									</div>
-								{/key}
-							</div>
-						</div>
-					</div>
-				</div>
+		<div
+			class="orbs-stage"
+			class:hover-nexus={splitHover === 'nexus'}
+			class:hover-orion={splitHover === 'orion'}
+		>
+			<!-- NEXUS SPHERE -->
+			<a
+				href="/products/nexus"
+				class="psphere orb-nexus"
+				on:mouseenter={() => (splitHover = 'nexus')}
+				on:mouseleave={() => (splitHover = null)}
+				class:dim={splitHover === 'orion'}
+			>
+				<span class="orb-shell orb-shell-far"></span>
+				<span class="orb-shell orb-shell-outer"></span>
+				<span class="orb-shell orb-shell-mid"></span>
+				<span class="orb-core">
+					<svg class="orb-tech" viewBox="0 0 200 200" aria-hidden="true">
+						<circle cx="100" cy="100" r="78" />
+						<circle cx="100" cy="100" r="58" />
+						<circle cx="100" cy="22" r="4" class="node" />
+						<circle cx="155" cy="45" r="4" class="node" />
+						<circle cx="178" cy="100" r="4" class="node" />
+						<circle cx="155" cy="155" r="4" class="node" />
+						<circle cx="100" cy="178" r="4" class="node" />
+						<circle cx="45" cy="155" r="4" class="node" />
+						<circle cx="22" cy="100" r="4" class="node" />
+						<circle cx="45" cy="45" r="4" class="node" />
+						<path d="M100 22 L178 100 L100 178 L22 100 Z M155 45 L155 155 L45 155 L45 45 Z" />
+					</svg>
+					<img src="/img/products/logo-nexus.png" alt="Nexus" class="orb-logo" />
+				</span>
+				<span class="orb-gloss"></span>
+				<span class="orb-label orb-label-nexus">
+					<strong>NEXUS</strong>
+					<em>Plataforma de operación conectada</em>
+				</span>
+				<span class="orb-cta orb-cta-nexus">Descubrir Nexus →</span>
+			</a>
+
+			<!-- ORION SPHERE -->
+			<a
+				href="/products/orion"
+				class="psphere orb-orion"
+				on:mouseenter={() => (splitHover = 'orion')}
+				on:mouseleave={() => (splitHover = null)}
+				class:dim={splitHover === 'nexus'}
+			>
+				<span class="orb-shell orb-shell-far"></span>
+				<span class="orb-shell orb-shell-outer"></span>
+				<span class="orb-shell orb-shell-mid"></span>
+				<span class="orb-core">
+					<svg class="orb-tech orb-tech-globe" viewBox="0 0 200 200" aria-hidden="true">
+						<circle cx="100" cy="100" r="78" />
+						<ellipse cx="100" cy="100" rx="30" ry="78" />
+						<ellipse cx="100" cy="100" rx="56" ry="78" />
+						<line x1="22" y1="100" x2="178" y2="100" />
+						<ellipse cx="100" cy="100" rx="78" ry="34" />
+						<ellipse cx="100" cy="100" rx="78" ry="64" />
+					</svg>
+					<img src="/img/products/logo-orion.png" alt="Orion" class="orb-logo" />
+				</span>
+				<span class="orb-gloss"></span>
+				<span class="orb-label orb-label-orion">
+					<strong class="audiowide-regular">ORION</strong>
+					<em>Motor de inteligencia geoespacial</em>
+				</span>
+				<span class="orb-cta orb-cta-orion">Explorar Orion →</span>
+			</a>
+
+			<!-- SYNERGY CENTER -->
+			<div class="orb-synergy">
+				<span class="synergy-glow" aria-hidden="true"></span>
+				<span class="synergy-spark synergy-spark-1" aria-hidden="true"></span>
+				<span class="synergy-spark synergy-spark-2" aria-hidden="true"></span>
+				<span class="synergy-spark synergy-spark-3" aria-hidden="true"></span>
+				<span class="synergy-label">Sinergia Única</span>
 			</div>
 
-			<!-- Divider -->
-			<div class="product-divider"></div>
+			<!-- NEXUS FEATURES PANEL (revealed on hover) -->
+			<div class="orb-panel orb-panel-nexus" aria-hidden="true">
+				<h3 class="orb-panel-title nx">NEXUS</h3>
+				<p class="orb-panel-sub">Plataforma de monitoreo y operación conectada</p>
+				<ul class="orb-panel-list nx">
+					<li>
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+							><polyline points="20 6 9 17 4 12" /></svg
+						>GPS y telemetría en tiempo real
+					</li>
+					<li>
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+							><polyline points="20 6 9 17 4 12" /></svg
+						>Geocercas y alertas inteligentes
+					</li>
+					<li>
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+							><polyline points="20 6 9 17 4 12" /></svg
+						>Historial y reproducción de rutas
+					</li>
+					<li>
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+							><polyline points="20 6 9 17 4 12" /></svg
+						>Web · iPhone · Android
+					</li>
+					<li>
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+							><polyline points="20 6 9 17 4 12" /></svg
+						>Reportes automáticos y analítica operativa
+					</li>
+				</ul>
+				<a href="/products/nexus" class="orb-panel-cta nx">Explorar Nexus →</a>
+			</div>
 
-			<!-- Orion -->
-			<!-- Orion -->
-			<div class="product-item orion-item fade-in" style="position: relative;">
-				<div class="product-content">
-					<!-- Left Side: Features List -->
-					<div class="product-info orion-features-container">
-						<div class="orion-features-grid">
-							<!-- Header Removed as per user request -->
-
-							<div class="orion-list-body">
-								<!-- Divider Line and Scroll Indicator -->
-								<div class="orion-divider-container">
-									<div class="orion-divider-line"></div>
-									<div
-										class="orion-scroll-indicator"
-										style="top: {currentOrionFeatureIndex *
-											(100 / orionFeatures.length)}%; height: {100 / orionFeatures.length}%"
-									></div>
-								</div>
-
-								<!-- Features Items -->
-								<div class="orion-items-column">
-									{#each orionFeatures as feature, i (feature.title)}
-										<div
-											class="orion-feature-row"
-											class:feature-active={i === currentOrionFeatureIndex}
-										>
-											<div class="orion-feature-title">{feature.title}</div>
-											<div class="orion-feature-desc">{feature.description}</div>
-										</div>
-									{/each}
-								</div>
-							</div>
-						</div>
-					</div>
-
-					<!-- Right Side: Visual (Logo + Name) -->
-					<div class="product-visual orion-visual-branding">
-						<div class="orion-planet-rings">
-							<div class="orion-ring orion-ring-1"></div>
-							<div class="orion-ring orion-ring-2"></div>
-							<div class="orion-ring orion-ring-3"></div>
-						</div>
-
-						<a
-							href="/products/orion"
-							class="orion-logo-content"
-							aria-label="Ver información de Orion"
+			<!-- ORION CAPABILITIES PANEL (revealed on hover) -->
+			<div class="orb-panel orb-panel-orion" aria-hidden="true">
+				<h3 class="orb-panel-title or audiowide-regular">ORION</h3>
+				<p class="orb-panel-sub">Motor de inteligencia geoespacial</p>
+				<div class="orb-panel-grid">
+					<div class="opg-item">
+						<strong>Localización multi-celda</strong><span
+							>Triangulación sin GPS, lógica adaptativa</span
 						>
-							<img
-								src="/img/products/logo-orion.png"
-								alt="Logo Orion"
-								class="product-logo orion-big-logo"
-							/>
-							<h3 class="audiowide-regular orion-brand-name">ORION</h3>
-							<p class="orion-tagline">Motor de inteligencia geoespacial</p>
-							<p class="orion-subtitle">
-								Localización avanzada, procesamiento probabilístico de señales, APIs de alto
-								rendimiento.
-							</p>
-							<span class="btn-product-cta orion-cta-btn">Explorar Orion</span>
-						</a>
+					</div>
+					<div class="opg-item">
+						<strong>Modelo de precisión</strong><span>Radio de confianza dinámico por densidad</span
+						>
+					</div>
+					<div class="opg-item">
+						<strong>Alto rendimiento</strong><span>Casi en tiempo real, alta disponibilidad</span>
+					</div>
+					<div class="opg-item">
+						<strong>Cobertura nacional</strong><span
+							>Transfronteriza, independiente del operador</span
+						>
+					</div>
+					<div class="opg-item">
+						<strong>Capa de inteligencia</strong><span
+							>Análisis histórico y detección de anomalías</span
+						>
+					</div>
+					<div class="opg-item">
+						<strong>Privacidad by design</strong><span>Sin rastreo, flujo cifrado</span>
 					</div>
 				</div>
+				<a href="/products/orion" class="orb-panel-cta or">Explorar Orion →</a>
 			</div>
 		</div>
 	</div>
@@ -1319,9 +1469,16 @@
 	}
 
 	.products-section {
-		padding: 6rem 0;
+		display: block !important; /* override global section { display: flex } from login-page.css */
+		padding: 0;
 		position: relative;
-		background: linear-gradient(to bottom, black 11%, #000028 34%, #000000 90%);
+		background: #000;
+		overflow: hidden;
+		min-height: unset !important;
+		contain: unset !important;
+	}
+	.products-section > .container {
+		padding: 6rem 2rem 4rem;
 	}
 	.products-container {
 		max-width: 1100px;
@@ -2291,6 +2448,332 @@
 	}
 
 	/* ===== ECOSYSTEM SECTION ===== */
+	/* ===== LAB SECTION (Laboratorio Tecnológico) ===== */
+	.lab-section {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		min-height: 100vh;
+		padding: 0;
+		position: relative;
+		overflow: hidden;
+		background-color: #000000; /* negro total y uniforme */
+	}
+	/* Ruido sutil sobre el negro */
+	.lab-noise {
+		position: absolute;
+		inset: 0;
+		z-index: 0;
+		pointer-events: none;
+		opacity: 0.04;
+		background-image:
+			radial-gradient(circle at 25% 25%, rgba(255, 255, 255, 0.7) 0.5px, transparent 0.6px),
+			radial-gradient(circle at 75% 75%, rgba(255, 255, 255, 0.7) 0.5px, transparent 0.6px);
+		background-size:
+			8px 8px,
+			11px 11px;
+	}
+	.lab-head {
+		position: relative;
+		z-index: 1;
+		text-align: center;
+		padding: clamp(2rem, 3vw, 3.5rem) 1.5rem 0;
+	}
+	.lab-section .lab-section-title {
+		margin-bottom: 0;
+	}
+	.lab-section-title .brand {
+		font-family: 'Dune Rise', 'Inter', sans-serif;
+		font-weight: 400;
+	}
+	.lab-grid {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 0;
+		/* aprovecha pantallas ultrawide (34") sin tanto hueco lateral */
+		max-width: clamp(1200px, 92vw, 2400px);
+		margin: 0 auto;
+		padding: clamp(2.5rem, 3.5vw, 5rem) clamp(1.5rem, 3vw, 5rem) clamp(2.5rem, 3vw, 4rem);
+	}
+	.lab-left {
+		flex: 0 0 52%;
+		max-width: 52%;
+		position: relative;
+		z-index: 1;
+	}
+	/* Panel del título con video de fondo: llega hasta el centro del foco */
+	.lab-title-media {
+		position: relative;
+		display: flex;
+		align-items: center;
+		/* el alto no supera el 90% del alto del foco (≈498px → 448px) */
+		min-height: clamp(340px, 28vw, 448px);
+		max-height: 448px;
+		border-radius: 18px;
+		overflow: hidden;
+		padding: 1.6rem 1.8rem;
+		cursor: default;
+	}
+	.lab-title-video {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		z-index: 0;
+	}
+	.lab-title-scrim {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		background: linear-gradient(135deg, rgba(6, 16, 28, 0.66) 0%, rgba(6, 16, 28, 0.4) 100%);
+		transition: opacity 0.5s ease;
+	}
+	/* En hover: el texto casi se desvanece y se ve el video */
+	.lab-title-media:hover .lab-title {
+		opacity: 0;
+	}
+	.lab-title-media:hover .lab-title-scrim {
+		opacity: 0.3;
+	}
+	.lab-right {
+		flex: 0 1 32%;
+		max-width: 32%;
+		margin-left: auto;
+		position: relative;
+	}
+	/* Áreas: fila de badges (acordeón) */
+	.lab-areas {
+		position: relative;
+		z-index: 1;
+		display: flex;
+		flex-wrap: nowrap;
+		justify-content: center;
+		align-items: center;
+		gap: clamp(0.75rem, 2vw, 2rem);
+		height: 200px; /* altura FIJA: la expansión nunca mueve el layout */
+		max-width: 1100px;
+		margin: 0 auto;
+		padding: 0 1.5rem;
+	}
+	/* Badge — acordeón: el activo se ensancha con su texto, los demás se atenúan */
+	.lab-cap {
+		flex: 0 0 auto;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.85rem;
+		width: 146px;
+		text-align: center;
+		overflow: hidden;
+		transition:
+			width 0.45s cubic-bezier(0.4, 0, 0.2, 1),
+			opacity 0.35s ease,
+			transform 0.35s ease;
+	}
+	.lab-cap-icon {
+		flex: 0 0 auto;
+		width: 86px;
+		height: 86px;
+		border-radius: 50%;
+		display: grid;
+		place-items: center;
+		color: #7fe3f5;
+		border: 1px solid rgba(127, 227, 245, 0.28);
+		background: radial-gradient(circle at 50% 32%, rgba(18, 38, 52, 0.9), rgba(6, 16, 28, 0.95));
+		box-shadow:
+			inset 0 0 22px rgba(0, 0, 0, 0.55),
+			0 0 0 6px rgba(127, 227, 245, 0.04);
+		transition: all 0.35s ease;
+	}
+	.lab-cap-icon svg {
+		width: 38px;
+		height: 38px;
+		fill: none;
+		stroke: currentColor;
+		stroke-width: 1.6;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+	}
+	.lab-cap-label {
+		font-size: 0.82rem;
+		font-weight: 500;
+		line-height: 1.3;
+		color: #c4d0d6;
+		overflow-wrap: break-word;
+		transition: opacity 0.25s ease;
+	}
+	.lab-cap-detail {
+		display: none;
+		width: 330px; /* ancho fijo: el texto no reflua durante la expansión */
+		max-width: 100%;
+		flex: 0 0 auto;
+	}
+	/* Atenuar los no activos */
+	.lab-areas.focused .lab-cap.dim {
+		opacity: 0.28;
+		transform: scale(0.9);
+		width: 90px;
+	}
+	.lab-areas.focused .lab-cap.dim .lab-cap-label {
+		opacity: 0;
+	}
+	/* Badge activo: fila icono + texto */
+	.lab-cap.active {
+		flex-direction: row;
+		align-items: center;
+		gap: 1.4rem;
+		width: 470px;
+		text-align: left;
+	}
+	.lab-cap.active .lab-cap-icon {
+		color: #ffffff;
+		border-color: rgba(127, 227, 245, 0.7);
+		box-shadow:
+			inset 0 0 22px rgba(0, 0, 0, 0.4),
+			0 0 26px rgba(52, 208, 192, 0.28);
+	}
+	.lab-cap.active .lab-cap-label {
+		display: none;
+	}
+	.lab-cap.active .lab-cap-detail {
+		display: block;
+		animation: detailFade 0.55s ease 0.18s both;
+	}
+	@keyframes detailFade {
+		from {
+			opacity: 0;
+		}
+		to {
+			opacity: 1;
+		}
+	}
+	.lab-cap-detail h3 {
+		margin: 0 0 0.4rem;
+		font-size: clamp(1.15rem, 1.5vw, 1.7rem);
+		font-weight: 700;
+		line-height: 1.2;
+		color: #ffffff;
+	}
+	.lab-cap-detail p {
+		margin: 0;
+		font-size: clamp(0.95rem, 1vw, 1.15rem);
+		line-height: 1.4;
+		color: #9fdbe6;
+	}
+	.lab-cap-detail :global(.brand) {
+		font-family: 'Dune Rise', 'Inter', sans-serif;
+		font-weight: 400;
+	}
+	.lab-center {
+		flex: 0 0 auto;
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-left: -10%; /* el foco se solapa sobre el panel */
+		z-index: 2;
+	}
+	.lab-bulb {
+		display: block;
+		width: 100%;
+		max-width: 290px;
+		height: auto;
+		filter: drop-shadow(0 14px 26px rgba(10, 37, 64, 0.16));
+		animation: labFloat 8s ease-in-out infinite;
+	}
+	@keyframes labFloat {
+		0%,
+		100% {
+			transform: translateY(0);
+		}
+		50% {
+			transform: translateY(-5px);
+		}
+	}
+	.lab-eyebrow {
+		font-family: 'Courier New', monospace;
+		font-size: 0.8rem;
+		letter-spacing: 3px;
+		color: #0883a0;
+		margin-bottom: 1.1rem;
+		text-transform: uppercase;
+	}
+	.lab-section .lab-title {
+		position: relative;
+		z-index: 2;
+		text-align: left;
+		margin-bottom: 0;
+		font-size: clamp(2rem, 2.8vw, 4.6rem);
+		color: #ffffff;
+		-webkit-text-fill-color: #ffffff;
+		text-shadow: 0 2px 12px rgba(0, 0, 0, 0.4);
+		transition: opacity 0.5s ease;
+		max-width: clamp(330px, 27vw, 660px); /* el texto se mantiene a la izquierda, fuera del foco */
+	}
+	.lab-lead {
+		position: relative;
+		z-index: 1;
+		font-size: clamp(1.1rem, 1.05vw, 1.5rem);
+		line-height: 1.75;
+		color: #c4d0d6;
+		margin: 0 0 2rem;
+	}
+	.lab-lead strong {
+		color: #ffffff;
+		font-weight: 700;
+	}
+	@media (prefers-reduced-motion: reduce) {
+		.lab-bulb {
+			animation: none;
+		}
+	}
+	@media (max-width: 900px) {
+		.lab-grid {
+			flex-direction: column;
+			align-items: center;
+			text-align: center;
+			gap: 2rem;
+			padding: 3.5rem 1rem 2.5rem;
+		}
+		.lab-left,
+		.lab-right {
+			flex: 1 1 100%;
+			max-width: 520px;
+		}
+		.lab-center {
+			margin-left: 0;
+		}
+		.lab-right {
+			margin-left: auto;
+			margin-right: auto;
+		}
+		.lab-section .lab-title {
+			text-align: center;
+			max-width: none;
+		}
+		.lab-title-media {
+			min-height: 200px;
+		}
+		.lab-bulb {
+			max-width: 230px;
+		}
+		.lab-areas {
+			flex-wrap: wrap;
+			height: auto;
+			gap: 1.5rem 2rem;
+		}
+		.lab-cap.active {
+			width: 100%;
+		}
+		.lab-cap-detail {
+			width: auto;
+		}
+	}
+
 	.ecosystem-section {
 		padding: 5rem 0 3rem;
 		position: relative;
@@ -3408,6 +3891,611 @@
 		.hero-particle-buttons {
 			flex-direction: column;
 			align-items: center;
+		}
+	}
+
+	/* ── ORBS ECOSYSTEM ─────────────────────────────────────────── */
+	.orbs-arena {
+		position: relative;
+		width: 100%;
+		padding: 5rem 0 5rem;
+		overflow: hidden;
+		background:
+			linear-gradient(to bottom, #060f22 0%, rgba(6, 15, 34, 0) 12%),
+			linear-gradient(to top, #060f22 0%, rgba(6, 15, 34, 0) 12%),
+			radial-gradient(ellipse 80% 70% at 50% 45%, #ffffff 0%, #f3f6f8 55%, #e9eef2 100%);
+	}
+
+	/* Faint tech network in the background */
+	.orbs-mesh {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		opacity: 0.5;
+		background-image:
+			linear-gradient(rgba(120, 150, 170, 0.12) 1px, transparent 1px),
+			linear-gradient(90deg, rgba(120, 150, 170, 0.12) 1px, transparent 1px);
+		background-size: 46px 46px;
+		-webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 80%);
+		mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 80%);
+	}
+
+	.orbs-stage {
+		position: relative;
+		width: 100%;
+		max-width: 1100px;
+		margin: 0 auto;
+		height: 540px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	/* ── Each sphere ── */
+	.psphere {
+		position: relative;
+		width: 470px;
+		height: 470px;
+		flex-shrink: 0;
+		display: block;
+		text-decoration: none;
+		cursor: pointer;
+		transition:
+			transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+			filter 0.6s ease;
+	}
+	.orb-nexus {
+		margin-right: -120px;
+		z-index: 2;
+	}
+	.orb-orion {
+		margin-left: -120px;
+		z-index: 1;
+	}
+	.psphere:hover {
+		transform: scale(1.035);
+		z-index: 5;
+	}
+	.psphere.dim {
+		filter: saturate(0.7) opacity(0.78);
+	}
+
+	/* Concentric glass shells (spheres within spheres) */
+	.orb-shell {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		border-radius: 50%;
+		transform: translate(-50%, -50%);
+		pointer-events: none;
+	}
+	.orb-shell-far {
+		width: 118%;
+		height: 118%;
+	}
+	.orb-shell-outer {
+		width: 100%;
+		height: 100%;
+	}
+	.orb-shell-mid {
+		width: 74%;
+		height: 74%;
+	}
+
+	/* Nexus = green glass — layered radial gradients build a 3D ball:
+	   specular highlight (top-left), body + terminator, reflected rim light. */
+	.orb-nexus .orb-shell-far {
+		border: 1.5px solid rgba(75, 165, 100, 0.35);
+	}
+	.orb-nexus .orb-shell-outer {
+		border: 1px solid rgba(70, 160, 95, 0.55);
+		background:
+			radial-gradient(circle at 33% 27%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 24%),
+			radial-gradient(circle at 70% 80%, rgba(150, 230, 175, 0.4) 0%, transparent 32%),
+			radial-gradient(
+				circle at 44% 42%,
+				rgba(190, 235, 200, 0.25) 0%,
+				rgba(110, 195, 135, 0.22) 52%,
+				rgba(55, 140, 85, 0.5) 100%
+			);
+		box-shadow:
+			inset 26px 28px 55px rgba(220, 255, 230, 0.4),
+			inset -34px -40px 80px rgba(40, 120, 70, 0.55),
+			inset 0 0 40px rgba(120, 205, 145, 0.25),
+			0 38px 70px rgba(45, 130, 80, 0.3);
+	}
+	.orb-nexus .orb-shell-mid {
+		border: 1px solid rgba(70, 160, 95, 0.4);
+		background:
+			radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.55) 0%, transparent 40%),
+			radial-gradient(circle at 60% 70%, rgba(95, 185, 125, 0.28) 0%, transparent 60%);
+		box-shadow:
+			inset -16px -20px 40px rgba(45, 125, 75, 0.4),
+			inset 12px 12px 30px rgba(220, 255, 230, 0.3);
+	}
+
+	/* Orion = silver glass */
+	.orb-orion .orb-shell-far {
+		border: 1.5px solid rgba(135, 152, 182, 0.35);
+	}
+	.orb-orion .orb-shell-outer {
+		border: 1px solid rgba(125, 142, 178, 0.55);
+		background:
+			radial-gradient(circle at 33% 27%, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0) 24%),
+			radial-gradient(circle at 70% 80%, rgba(205, 220, 240, 0.45) 0%, transparent 32%),
+			radial-gradient(
+				circle at 44% 42%,
+				rgba(225, 232, 242, 0.28) 0%,
+				rgba(165, 182, 208, 0.24) 52%,
+				rgba(105, 122, 158, 0.52) 100%
+			);
+		box-shadow:
+			inset 26px 28px 55px rgba(245, 250, 255, 0.5),
+			inset -34px -40px 80px rgba(85, 100, 135, 0.55),
+			inset 0 0 40px rgba(190, 205, 228, 0.3),
+			0 38px 70px rgba(95, 110, 145, 0.3);
+	}
+	.orb-orion .orb-shell-mid {
+		border: 1px solid rgba(125, 142, 178, 0.4);
+		background:
+			radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.6) 0%, transparent 40%),
+			radial-gradient(circle at 60% 70%, rgba(160, 178, 208, 0.3) 0%, transparent 60%);
+		box-shadow:
+			inset -16px -20px 40px rgba(90, 105, 140, 0.4),
+			inset 12px 12px 30px rgba(245, 250, 255, 0.35);
+	}
+
+	/* Core that holds the logo + tech pattern */
+	.orb-core {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 50%;
+		height: 50%;
+		transform: translate(-50%, -50%);
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.orb-nexus .orb-core {
+		background: radial-gradient(
+			circle at 40% 35%,
+			rgba(255, 255, 255, 0.9) 0%,
+			rgba(200, 235, 205, 0.5) 40%,
+			rgba(140, 205, 150, 0.3) 100%
+		);
+		box-shadow:
+			inset 0 0 30px rgba(90, 170, 110, 0.3),
+			0 10px 30px rgba(80, 160, 100, 0.18);
+		border: 1px solid rgba(120, 200, 135, 0.5);
+	}
+	.orb-orion .orb-core {
+		background: radial-gradient(
+			circle at 40% 35%,
+			rgba(255, 255, 255, 0.92) 0%,
+			rgba(225, 232, 240, 0.55) 40%,
+			rgba(175, 190, 210, 0.32) 100%
+		);
+		box-shadow:
+			inset 0 0 30px rgba(130, 145, 170, 0.3),
+			0 10px 30px rgba(120, 135, 160, 0.18);
+		border: 1px solid rgba(170, 185, 205, 0.55);
+	}
+
+	/* Inner tech illustration */
+	.orb-tech {
+		position: absolute;
+		width: 96%;
+		height: 96%;
+		fill: none;
+		opacity: 0.55;
+	}
+	.orb-nexus .orb-tech {
+		stroke: rgba(70, 150, 90, 0.55);
+		stroke-width: 1;
+	}
+	.orb-nexus .orb-tech .node {
+		fill: rgba(70, 160, 95, 0.7);
+		stroke: none;
+	}
+	.orb-orion .orb-tech {
+		stroke: rgba(120, 140, 170, 0.55);
+		stroke-width: 1;
+	}
+
+	.orb-logo {
+		position: relative;
+		z-index: 2;
+		width: 52%;
+		height: auto;
+		filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.18));
+	}
+
+	/* Glassy top-left highlight */
+	.orb-gloss {
+		position: absolute;
+		top: 8%;
+		left: 14%;
+		width: 46%;
+		height: 34%;
+		border-radius: 50%;
+		background: radial-gradient(
+			ellipse at center,
+			rgba(255, 255, 255, 0.75) 0%,
+			rgba(255, 255, 255, 0) 70%
+		);
+		pointer-events: none;
+		filter: blur(4px);
+	}
+
+	/* Curved labels */
+	.orb-label {
+		position: absolute;
+		top: 50%;
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+		writing-mode: vertical-rl;
+		transform: translateY(-50%) rotate(180deg);
+		white-space: nowrap;
+		pointer-events: none;
+	}
+	.orb-label strong {
+		font-size: 1.5rem;
+		font-weight: 700;
+		letter-spacing: 0.12em;
+	}
+	.orb-label em {
+		font-style: normal;
+		font-size: 0.72rem;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+	}
+	.orb-label-nexus {
+		left: 7%;
+	}
+	.orb-label-nexus strong {
+		color: #2f7a45;
+	}
+	.orb-label-nexus em {
+		color: rgba(60, 120, 80, 0.7);
+	}
+	/* Orion label mirrors on the right, reading top-to-bottom */
+	.orb-label-orion {
+		right: 7%;
+		writing-mode: vertical-rl;
+		transform: translateY(-50%) rotate(0deg);
+	}
+	.orb-label-orion strong {
+		color: #4a5870;
+	}
+	.orb-label-orion em {
+		color: rgba(90, 105, 130, 0.7);
+	}
+
+	/* CTA along the bottom curve */
+	.orb-cta {
+		position: absolute;
+		bottom: 13%;
+		font-size: 0.85rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		pointer-events: none;
+		transition: transform 0.3s ease;
+	}
+	.orb-cta-nexus {
+		left: 16%;
+		color: #2f7a45;
+	}
+	.orb-cta-orion {
+		right: 16%;
+		color: #4a5870;
+	}
+	.psphere:hover .orb-cta {
+		transform: translateX(4px);
+	}
+
+	/* ── Synergy center ── */
+	.orb-synergy {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		z-index: 3;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		pointer-events: none;
+	}
+	.synergy-glow {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 120px;
+		height: 120px;
+		transform: translate(-50%, -50%);
+		border-radius: 50%;
+		background: radial-gradient(
+			circle,
+			rgba(255, 210, 120, 0.55) 0%,
+			rgba(255, 190, 90, 0.25) 40%,
+			transparent 70%
+		);
+		animation: synergyPulse 4s ease-in-out infinite;
+	}
+	@keyframes synergyPulse {
+		0%,
+		100% {
+			opacity: 0.7;
+			transform: translate(-50%, -50%) scale(1);
+		}
+		50% {
+			opacity: 1;
+			transform: translate(-50%, -50%) scale(1.12);
+		}
+	}
+	.synergy-spark {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		width: 4px;
+		height: 4px;
+		border-radius: 50%;
+		background: #ffd27a;
+		box-shadow: 0 0 6px #ffce6e;
+	}
+	.synergy-spark-1 {
+		animation: spark1 5s ease-in-out infinite;
+	}
+	.synergy-spark-2 {
+		animation: spark2 6s ease-in-out infinite;
+	}
+	.synergy-spark-3 {
+		animation: spark3 7s ease-in-out infinite;
+	}
+	@keyframes spark1 {
+		0%,
+		100% {
+			transform: translate(-50%, -50%) translate(0, 0);
+			opacity: 0;
+		}
+		50% {
+			transform: translate(-50%, -50%) translate(-28px, -18px);
+			opacity: 1;
+		}
+	}
+	@keyframes spark2 {
+		0%,
+		100% {
+			transform: translate(-50%, -50%) translate(0, 0);
+			opacity: 0;
+		}
+		50% {
+			transform: translate(-50%, -50%) translate(24px, -22px);
+			opacity: 1;
+		}
+	}
+	@keyframes spark3 {
+		0%,
+		100% {
+			transform: translate(-50%, -50%) translate(0, 0);
+			opacity: 0;
+		}
+		50% {
+			transform: translate(-50%, -50%) translate(10px, 26px);
+			opacity: 1;
+		}
+	}
+	.synergy-label {
+		position: relative;
+		font-size: 0.8rem;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		color: #a8741f;
+		white-space: nowrap;
+		text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
+		transition: opacity 0.4s ease;
+	}
+	/* Synergy text fades out while a sphere is expanded */
+	.orbs-stage.hover-nexus .synergy-label,
+	.orbs-stage.hover-orion .synergy-label {
+		opacity: 0;
+	}
+
+	/* ── HOVER CHOREOGRAPHY ── */
+	/* hovered sphere slides toward its edge; opposite slides away + shrinks + dims */
+	.orbs-stage .psphere {
+		transition:
+			transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+			opacity 0.5s ease,
+			filter 0.5s ease;
+	}
+	.orbs-stage.hover-nexus .orb-nexus {
+		transform: translateX(-210px) scale(1.04);
+		z-index: 4;
+	}
+	.orbs-stage.hover-nexus .orb-orion {
+		transform: translateX(360px) scale(0.6);
+		opacity: 0.28;
+		filter: saturate(0.6);
+	}
+	.orbs-stage.hover-orion .orb-orion {
+		transform: translateX(210px) scale(1.04);
+		z-index: 4;
+	}
+	.orbs-stage.hover-orion .orb-nexus {
+		transform: translateX(-360px) scale(0.6);
+		opacity: 0.28;
+		filter: saturate(0.6);
+	}
+
+	/* on-sphere label + cta fade out when its panel takes over */
+	.orbs-stage.hover-nexus .orb-nexus .orb-label,
+	.orbs-stage.hover-nexus .orb-nexus .orb-cta,
+	.orbs-stage.hover-orion .orb-orion .orb-label,
+	.orbs-stage.hover-orion .orb-orion .orb-cta {
+		opacity: 0;
+		transition: opacity 0.3s ease;
+	}
+
+	/* ── FEATURE PANELS ── */
+	.orb-panel {
+		position: absolute;
+		top: 50%;
+		width: 420px;
+		transform: translateY(-50%) translateX(20px);
+		opacity: 0;
+		pointer-events: none;
+		z-index: 5;
+		transition:
+			opacity 0.5s 0.15s ease,
+			transform 0.6s 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+	}
+	.orb-panel-nexus {
+		left: 54%;
+		text-align: left;
+	}
+	.orb-panel-orion {
+		right: 54%;
+		text-align: right;
+	}
+
+	.orbs-stage.hover-nexus .orb-panel-nexus,
+	.orbs-stage.hover-orion .orb-panel-orion {
+		opacity: 1;
+		transform: translateY(-50%) translateX(0);
+		pointer-events: all;
+	}
+
+	.orb-panel-title {
+		font-size: 2.4rem;
+		font-weight: 800;
+		letter-spacing: 0.06em;
+		margin: 0 0 0.25rem;
+		line-height: 1;
+	}
+	.orb-panel-title.nx {
+		color: #2f7a45;
+	}
+	.orb-panel-title.or {
+		color: #46556f;
+	}
+	.orb-panel-sub {
+		font-size: 0.95rem;
+		color: #5a6b7a;
+		margin: 0 0 1.4rem;
+	}
+	.orb-panel-list {
+		list-style: none;
+		padding: 0;
+		margin: 0 0 1.5rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+	.orb-panel-list li {
+		display: flex;
+		align-items: center;
+		gap: 0.7rem;
+		font-size: 0.98rem;
+		color: #2c3a47;
+	}
+	.orb-panel-list li svg {
+		width: 17px;
+		height: 17px;
+		flex-shrink: 0;
+		color: #3a9a5a;
+	}
+
+	.orb-panel-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.9rem 1.3rem;
+		margin-bottom: 1.5rem;
+	}
+	.opg-item {
+		display: flex;
+		flex-direction: column;
+		gap: 0.15rem;
+	}
+	.orb-panel-orion .opg-item {
+		text-align: right;
+	}
+	.opg-item strong {
+		font-size: 0.88rem;
+		font-weight: 700;
+		color: #46556f;
+	}
+	.opg-item span {
+		font-size: 0.76rem;
+		color: #7a899a;
+		line-height: 1.35;
+	}
+
+	.orb-panel-cta {
+		display: inline-block;
+		padding: 0.7rem 1.6rem;
+		border-radius: 8px;
+		font-size: 0.9rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		text-decoration: none;
+		transition:
+			transform 0.2s,
+			box-shadow 0.2s;
+	}
+	.orb-panel-cta.nx {
+		background: linear-gradient(135deg, #3a9a5a, #5fc47e);
+		color: #fff;
+		box-shadow: 0 6px 20px rgba(70, 160, 95, 0.35);
+	}
+	.orb-panel-cta.or {
+		background: linear-gradient(135deg, #46556f, #7d8ca8);
+		color: #fff;
+		box-shadow: 0 6px 20px rgba(90, 110, 145, 0.35);
+	}
+	.orb-panel-cta:hover {
+		transform: translateY(-2px);
+	}
+
+	/* ── Mobile ── */
+	@media (max-width: 820px) {
+		.orbs-stage {
+			flex-direction: column;
+			height: auto;
+			gap: 2rem;
+			padding: 1rem 0;
+		}
+		.psphere {
+			width: 320px;
+			height: 320px;
+		}
+		.orb-nexus {
+			margin-right: 0;
+			margin-bottom: -70px;
+		}
+		.orb-orion {
+			margin-left: 0;
+			margin-top: -70px;
+		}
+		.orb-synergy {
+			display: none;
+		}
+		.orb-label {
+			writing-mode: horizontal-tb;
+			transform: translateY(0);
+			top: auto;
+		}
+		.orb-label-nexus {
+			left: 50%;
+			bottom: 4%;
+			transform: translateX(-50%);
+		}
+		.orb-label-orion {
+			right: 50%;
+			top: 4%;
+			transform: translateX(50%);
 		}
 	}
 </style>

@@ -13,9 +13,9 @@
 
 		const TILE_W = 72;
 		const TILE_H = 58;
-		const MAX_OX = 45;
-		const MAX_OY = 38;
-		const EFFECT_R = 350;
+		const MAX_OX = 220;
+		const MAX_OY = 170;
+		const EFFECT_R = 420;
 
 		let mouseX = -9999,
 			mouseY = -9999;
@@ -101,7 +101,7 @@
 			bctx.drawImage(videoEl, srcX, srcY, srcW, srcH, 0, 0, cw, ch);
 
 			// Smooth ease in/out
-			glitchActive += (glitchTarget - glitchActive) * 0.07;
+			glitchActive += (glitchTarget - glitchActive) * 0.12;
 
 			ctx.clearRect(0, 0, cw, ch);
 
@@ -124,7 +124,7 @@
 				const srcTY = Math.max(0, Math.min(t.y + t.oy * str, ch - TILE_H));
 
 				// Shrink tile slightly when displaced → visible dark gaps
-				const gap = str * 4;
+				const gap = str * 10;
 				const dstX = t.x + gap * 0.5;
 				const dstY = t.y + gap * 0.5;
 				const dstW = Math.max(1, TILE_W - gap);

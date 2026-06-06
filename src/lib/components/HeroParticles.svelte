@@ -141,8 +141,11 @@
 
 		// ── LOGO GEOMETRY ──────────────────────────────────────────────
 		const logoSize = Math.min(W, H) * (isMobile ? 0.416 : 0.52);
-		const logoCX = W * (isMobile ? 0.64 : 0.7);
-		const logoCY = H * (isMobile ? 0.38 : 0.44);
+		// Margen fijo desde el borde derecho: el logo queda siempre pegado a la derecha
+		const logoMargin = Math.min(W, H) * (isMobile ? 0.06 : 0.04);
+		const logoCYFactor = isMobile ? 0.38 : 0.44;
+		let logoCX = W - logoSize / 2 - logoMargin;
+		let logoCY = H * logoCYFactor;
 		const maxLogoR = logoSize * 0.4;
 
 		let globalRot = 0;
@@ -340,7 +343,13 @@
 		});
 
 		const onResize = () => {
-			if (app?.renderer && wrap) app.renderer.resize(wrap.clientWidth, wrap.clientHeight);
+			if (!app?.renderer || !wrap) return;
+			const nw = wrap.clientWidth,
+				nh = wrap.clientHeight;
+			app.renderer.resize(nw, nh);
+			// Mantener el logo pegado a la derecha (mismo tamaño, solo se reubica el centro)
+			logoCX = nw - logoSize / 2 - logoMargin;
+			logoCY = nh * logoCYFactor;
 		};
 		window.addEventListener('resize', onResize);
 		return () => {
