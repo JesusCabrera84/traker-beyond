@@ -14,6 +14,26 @@
 	// Variable para detectar si estamos en móvil
 	let isMobile = false;
 
+	// Selector de producto (Nexus / Orion)
+	let activeProduct = 'nexus';
+	function onProductTabKey(e) {
+		if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return;
+		e.preventDefault();
+		activeProduct = e.key === 'ArrowLeft' || e.key === 'Home' ? 'nexus' : 'orion';
+		e.currentTarget.parentElement?.querySelector('#tab-' + activeProduct)?.focus();
+	}
+
+	// Partículas del fondo de Orion (fluyen de la esquina inferior izquierda hacia el logo,
+	// cruzando también por detrás del texto de la izquierda)
+	const orionParticles = Array.from({ length: 44 }, () => ({
+		sx: -(220 + Math.random() * 820), // desplazamiento inicial a la izquierda (px)
+		sy: 60 + Math.random() * 440, // desplazamiento inicial hacia abajo (px)
+		d: +(Math.random() * 8).toFixed(2),
+		dur: +(5 + Math.random() * 5).toFixed(2),
+		s: +(1.8 + Math.random() * 2.6).toFixed(1),
+		o: +(0.35 + Math.random() * 0.5).toFixed(2)
+	}));
+
 	// Video de fondo del título: pausado, reproduce en hover, rebobina en reversa al salir
 	let titleVideo;
 	let titleRewindRAF;
@@ -148,9 +168,6 @@
 	let currentFeatureIndex = 0;
 	let nexusFeaturesInterval;
 
-	// Split products hover state
-	let splitHover = null; // 'nexus' | 'orion' | null
-
 	// Orion Features Data
 	const orionFeatures = [
 		{
@@ -270,6 +287,94 @@
 			}
 		};
 	}
+
+	// Scroll-reveal: añade la clase 'is-revealed' cuando el nodo entra en viewport.
+	// Solo anima opacity/transform (sin reflow). Seguro sin JS: el default es visible.
+	function _reveal(node) {
+		const reduce =
+			typeof window !== 'undefined' &&
+			window.matchMedia &&
+			window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		if (reduce) {
+			node.classList.add('is-revealed');
+			return {};
+		}
+		node.classList.add('tc-reveal');
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						entry.target.classList.add('is-revealed');
+						observer.unobserve(entry.target);
+					}
+				});
+			},
+			{ rootMargin: '0px 0px -10% 0px', threshold: 0.15 }
+		);
+		observer.observe(node);
+		return {
+			destroy() {
+				observer.disconnect();
+			}
+		};
+	}
+
+	// Capas de la sección "Tecnologías que convergen"
+	const tcLayers = [
+		{
+			num: '01',
+			title: 'Capa de señales',
+			accent: '#0e3a4a',
+			icon: 'signal',
+			desc: 'Capturamos el mundo físico en tiempo real.',
+			chips: [
+				'GPS',
+				'Celdas celulares',
+				'WiFi',
+				'Sensores',
+				'LoRa',
+				'Dispositivos móviles',
+				'Telemetría vehicular'
+			]
+		},
+		{
+			num: '02',
+			title: 'Capa de infraestructura',
+			accent: '#0a5266',
+			icon: 'infra',
+			desc: 'Movemos y almacenamos los datos a gran escala.',
+			chips: [
+				'Cloud',
+				'APIs',
+				'Kafka/Redpanda',
+				'Bases geoespaciales',
+				'Procesamiento en tiempo real',
+				'Sistemas distribuidos'
+			]
+		},
+		{
+			num: '03',
+			title: 'Capa de inteligencia',
+			accent: '#0a6a80',
+			icon: 'brain',
+			desc: 'Convertimos datos en patrones y predicciones.',
+			chips: [
+				'IA',
+				'Modelos predictivos',
+				'Detección de anomalías',
+				'Análisis histórico',
+				'Clasificación de eventos'
+			]
+		},
+		{
+			num: '04',
+			title: 'Capa de experiencia',
+			accent: '#0883a0',
+			icon: 'layout',
+			desc: 'Entregamos decisiones a las personas.',
+			chips: ['Panel web', 'App móvil', 'Alertas', 'Mapas', 'Reportes', 'APIs e integraciones']
+		}
+	];
 
 	// Función para cargar el script de reCAPTCHA v3
 	function loadRecaptchaScript() {
@@ -632,171 +737,311 @@
 
 <div class="section-sep"></div>
 
-<!-- Sección Productos -->
-<section id="productos" class="products-section">
-	<div class="container">
-		<h2 class="landing-section-title">Nuestros Productos</h2>
-		<div class="section-description">
-			<h3>Innovación que impulsa tu operación</h3>
-			<span>
-				Descubre nuestras plataformas especializadas, diseñadas para transformar datos en decisiones
-				estratégicas.
-			</span>
-		</div>
-	</div>
+<!-- Sección Tecnologías que convergen -->
+<section id="tecnologias" class="tc-section" aria-labelledby="tc-title">
+	<span id="tecnologias-anchor" style="position:absolute; top:-80px;"></span>
 
-	<!-- ── ORBS ECOSYSTEM ─────────────────────────────────────── -->
-	<div class="orbs-arena">
-		<div class="orbs-mesh" aria-hidden="true"></div>
+	<div class="tc-inner">
+		<header class="tc-head">
+			<h2 id="tc-title" class="landing-section-title tc-title">Tecnologías que convergen</h2>
+			<p class="tc-subhead">De la señal física a la decisión humana.</p>
+		</header>
 
-		<div
-			class="orbs-stage"
-			class:hover-nexus={splitHover === 'nexus'}
-			class:hover-orion={splitHover === 'orion'}
-		>
-			<!-- NEXUS SPHERE -->
-			<a
-				href="/products/nexus"
-				class="psphere orb-nexus"
-				on:mouseenter={() => (splitHover = 'nexus')}
-				on:mouseleave={() => (splitHover = null)}
-				class:dim={splitHover === 'orion'}
-			>
-				<span class="orb-shell orb-shell-far"></span>
-				<span class="orb-shell orb-shell-outer"></span>
-				<span class="orb-shell orb-shell-mid"></span>
-				<span class="orb-core">
-					<svg class="orb-tech" viewBox="0 0 200 200" aria-hidden="true">
-						<circle cx="100" cy="100" r="78" />
-						<circle cx="100" cy="100" r="58" />
-						<circle cx="100" cy="22" r="4" class="node" />
-						<circle cx="155" cy="45" r="4" class="node" />
-						<circle cx="178" cy="100" r="4" class="node" />
-						<circle cx="155" cy="155" r="4" class="node" />
-						<circle cx="100" cy="178" r="4" class="node" />
-						<circle cx="45" cy="155" r="4" class="node" />
-						<circle cx="22" cy="100" r="4" class="node" />
-						<circle cx="45" cy="45" r="4" class="node" />
-						<path d="M100 22 L178 100 L100 178 L22 100 Z M155 45 L155 155 L45 155 L45 45 Z" />
-					</svg>
-					<img src="/img/products/logo-nexus.png" alt="Nexus" class="orb-logo" />
-				</span>
-				<span class="orb-gloss"></span>
-				<span class="orb-label orb-label-nexus">
-					<strong>NEXUS</strong>
-					<em>Plataforma de operación conectada</em>
-				</span>
-				<span class="orb-cta orb-cta-nexus">Descubrir Nexus →</span>
-			</a>
+		<div class="tc-grid">
+			<!-- LEFT: cuadrícula 2×2 de las cuatro capas -->
+			<ol class="tc-layers">
+				{#each tcLayers as layer, i (layer.num)}
+					<li class="tc-layer-item" style="--tc-accent: {layer.accent};">
+						<article class="tc-card" use:_reveal style="--tc-delay: {i * 90}ms;">
+							<div class="tc-card-head">
+								<span class="tc-icon" aria-hidden="true">
+									<svg
+										width="24"
+										height="24"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="1.8"
+										stroke-linecap="round"
+										stroke-linejoin="round"
+									>
+										{#if layer.icon === 'signal'}
+											<path d="M2 20h.01" />
+											<path d="M7 20v-4" />
+											<path d="M12 20v-8" />
+											<path d="M17 20V8" />
+											<path d="M22 4v16" />
+										{:else if layer.icon === 'infra'}
+											<rect x="2" y="3" width="20" height="6" rx="1.5" />
+											<rect x="2" y="15" width="20" height="6" rx="1.5" />
+											<path d="M6 6h.01M6 18h.01" />
+										{:else if layer.icon === 'brain'}
+											<path
+												d="M12 5a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 6 0 3 3 0 0 0 2-5 3 3 0 0 0-2-5 3 3 0 0 0-3-3Z"
+											/>
+											<path d="M12 5v14" />
+										{:else if layer.icon === 'layout'}
+											<rect x="3" y="3" width="18" height="18" rx="2" />
+											<path d="M3 9h18M9 21V9" />
+										{/if}
+									</svg>
+								</span>
+								<span class="tc-num" aria-hidden="true">{layer.num}</span>
+								<h3 class="tc-card-title">{layer.title}</h3>
+							</div>
 
-			<!-- ORION SPHERE -->
-			<a
-				href="/products/orion"
-				class="psphere orb-orion"
-				on:mouseenter={() => (splitHover = 'orion')}
-				on:mouseleave={() => (splitHover = null)}
-				class:dim={splitHover === 'nexus'}
-			>
-				<span class="orb-shell orb-shell-far"></span>
-				<span class="orb-shell orb-shell-outer"></span>
-				<span class="orb-shell orb-shell-mid"></span>
-				<span class="orb-core">
-					<svg class="orb-tech orb-tech-globe" viewBox="0 0 200 200" aria-hidden="true">
-						<circle cx="100" cy="100" r="78" />
-						<ellipse cx="100" cy="100" rx="30" ry="78" />
-						<ellipse cx="100" cy="100" rx="56" ry="78" />
-						<line x1="22" y1="100" x2="178" y2="100" />
-						<ellipse cx="100" cy="100" rx="78" ry="34" />
-						<ellipse cx="100" cy="100" rx="78" ry="64" />
-					</svg>
-					<img src="/img/products/logo-orion.png" alt="Orion" class="orb-logo" />
-				</span>
-				<span class="orb-gloss"></span>
-				<span class="orb-label orb-label-orion">
-					<strong class="audiowide-regular">ORION</strong>
-					<em>Motor de inteligencia geoespacial</em>
-				</span>
-				<span class="orb-cta orb-cta-orion">Explorar Orion →</span>
-			</a>
+							<p class="tc-card-desc">{layer.desc}</p>
 
-			<!-- SYNERGY CENTER -->
-			<div class="orb-synergy">
-				<span class="synergy-glow" aria-hidden="true"></span>
-				<span class="synergy-spark synergy-spark-1" aria-hidden="true"></span>
-				<span class="synergy-spark synergy-spark-2" aria-hidden="true"></span>
-				<span class="synergy-spark synergy-spark-3" aria-hidden="true"></span>
-				<span class="synergy-label">Sinergia Única</span>
-			</div>
-
-			<!-- NEXUS FEATURES PANEL (revealed on hover) -->
-			<div class="orb-panel orb-panel-nexus" aria-hidden="true">
-				<h3 class="orb-panel-title nx">NEXUS</h3>
-				<p class="orb-panel-sub">Plataforma de monitoreo y operación conectada</p>
-				<ul class="orb-panel-list nx">
-					<li>
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-							><polyline points="20 6 9 17 4 12" /></svg
-						>GPS y telemetría en tiempo real
+							<ul class="tc-chips">
+								{#each layer.chips as chip (`${layer.num}-${chip}`)}
+									<li class="tc-chip">{chip}</li>
+								{/each}
+							</ul>
+						</article>
 					</li>
-					<li>
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-							><polyline points="20 6 9 17 4 12" /></svg
-						>Geocercas y alertas inteligentes
-					</li>
-					<li>
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-							><polyline points="20 6 9 17 4 12" /></svg
-						>Historial y reproducción de rutas
-					</li>
-					<li>
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-							><polyline points="20 6 9 17 4 12" /></svg
-						>Web · iPhone · Android
-					</li>
-					<li>
-						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-							><polyline points="20 6 9 17 4 12" /></svg
-						>Reportes automáticos y analítica operativa
-					</li>
-				</ul>
-				<a href="/products/nexus" class="orb-panel-cta nx">Explorar Nexus →</a>
-			</div>
+				{/each}
+			</ol>
 
-			<!-- ORION CAPABILITIES PANEL (revealed on hover) -->
-			<div class="orb-panel orb-panel-orion" aria-hidden="true">
-				<h3 class="orb-panel-title or audiowide-regular">ORION</h3>
-				<p class="orb-panel-sub">Motor de inteligencia geoespacial</p>
-				<div class="orb-panel-grid">
-					<div class="opg-item">
-						<strong>Localización multi-celda</strong><span
-							>Triangulación sin GPS, lógica adaptativa</span
-						>
-					</div>
-					<div class="opg-item">
-						<strong>Modelo de precisión</strong><span>Radio de confianza dinámico por densidad</span
-						>
-					</div>
-					<div class="opg-item">
-						<strong>Alto rendimiento</strong><span>Casi en tiempo real, alta disponibilidad</span>
-					</div>
-					<div class="opg-item">
-						<strong>Cobertura nacional</strong><span
-							>Transfronteriza, independiente del operador</span
-						>
-					</div>
-					<div class="opg-item">
-						<strong>Capa de inteligencia</strong><span
-							>Análisis histórico y detección de anomalías</span
-						>
-					</div>
-					<div class="opg-item">
-						<strong>Privacidad by design</strong><span>Sin rastreo, flujo cifrado</span>
-					</div>
+			<!-- RIGHT: spine de convergencia -->
+			<aside class="tc-spine" aria-hidden="true">
+				<div class="tc-spine-frame">
+					<span class="tc-spine-bloom"></span>
+					<video
+						class="tc-spine-video"
+						muted
+						loop
+						autoplay
+						playsinline
+						preload="metadata"
+						poster="/img/technology-man.png"
+						on:loadedmetadata={(e) => (e.currentTarget.playbackRate = 0.7)}
+					>
+						<source src="/vid/technology-man.mp4" type="video/mp4" />
+					</video>
 				</div>
-				<a href="/products/orion" class="orb-panel-cta or">Explorar Orion →</a>
-			</div>
+			</aside>
+		</div>
+
+		<p class="tc-message">
+			No construimos tecnología aislada. Construimos sistemas completos:
+			<strong>desde la señal física hasta la decisión humana.</strong>
+		</p>
+	</div>
+</section>
+
+<div class="section-sep"></div>
+
+<!-- Sección Productos -->
+<section id="productos" class="nexus-section">
+	<div class="nexus-head">
+		<h2 class="landing-section-title">Nuestros Productos</h2>
+		<div class="nx-tabs" role="tablist" aria-label="Productos">
+			<button
+				type="button"
+				role="tab"
+				id="tab-nexus"
+				class="nx-tab"
+				class:is-active={activeProduct === 'nexus'}
+				aria-selected={activeProduct === 'nexus'}
+				aria-controls="panel-nexus"
+				tabindex={activeProduct === 'nexus' ? 0 : -1}
+				on:click={() => (activeProduct = 'nexus')}
+				on:keydown={onProductTabKey}
+			>
+				Nexus
+			</button>
+			<button
+				type="button"
+				role="tab"
+				id="tab-orion"
+				class="nx-tab"
+				class:is-active={activeProduct === 'orion'}
+				aria-selected={activeProduct === 'orion'}
+				aria-controls="panel-orion"
+				tabindex={activeProduct === 'orion' ? 0 : -1}
+				on:click={() => (activeProduct = 'orion')}
+				on:keydown={onProductTabKey}
+			>
+				Orion
+			</button>
 		</div>
 	</div>
+
+	<article class="nx-card" data-product={activeProduct} use:_reveal>
+		<div class="nx-panels">
+			<!-- NEXUS -->
+			<div
+				class="nx-panel"
+				class:is-active={activeProduct === 'nexus'}
+				id="panel-nexus"
+				role="tabpanel"
+				aria-labelledby="tab-nexus"
+				aria-hidden={activeProduct !== 'nexus'}
+			>
+				<div class="nx-content">
+					<p class="nx-eyebrow">Producto</p>
+					<h3 class="nx-title">NEXUS</h3>
+					<p class="nx-subtitle">
+						Nexus es una plataforma de rastreo inteligente diseñada para proteger vehículos,
+						personas y operaciones mediante ubicación en tiempo real, alertas y análisis de
+						movilidad
+					</p>
+
+					<ul class="nx-audiences">
+						<li class="nx-aud">
+							<span class="nx-aud-label">Para familia</span>
+							<span class="nx-aud-benefit">Protege a quienes más quieres</span>
+						</li>
+						<li class="nx-aud">
+							<span class="nx-aud-label">Para flotillas</span>
+							<span class="nx-aud-benefit">Control donde quiera que estés</span>
+						</li>
+						<li class="nx-aud">
+							<span class="nx-aud-label">Para negocios</span>
+							<span class="nx-aud-benefit">Integra fácil tus datos</span>
+						</li>
+					</ul>
+
+					<div class="nx-lists">
+						<div class="nx-list-col">
+							<h3 class="nx-list-title">Características</h3>
+							<ul class="nx-chips">
+								<li class="nx-chip">Ubicación en tiempo real</li>
+								<li class="nx-chip">Historial de recorridos</li>
+								<li class="nx-chip">Geocercas personalizadas</li>
+								<li class="nx-chip">Detección de movimiento</li>
+								<li class="nx-chip">Informes de consumo de combustible y batería</li>
+								<li class="nx-chip">Notificaciones</li>
+								<li class="nx-chip">Compartir ubicación</li>
+								<li class="nx-chip">Panel web responsive</li>
+								<li class="nx-chip">App móvil</li>
+								<li class="nx-chip">API para integradores</li>
+								<li class="nx-chip">Seguridad por roles</li>
+							</ul>
+						</div>
+						<div class="nx-list-col">
+							<h3 class="nx-list-title">Casos de uso</h3>
+							<ul class="nx-chips">
+								<li class="nx-chip nx-chip--case">Protección vehicular</li>
+								<li class="nx-chip nx-chip--case">Rastreo familiar</li>
+								<li class="nx-chip nx-chip--case">Control de flotillas</li>
+								<li class="nx-chip nx-chip--case">Monitoreo operativo</li>
+								<li class="nx-chip nx-chip--case">Seguridad en campo</li>
+								<li class="nx-chip nx-chip--case">Recuperación ante robo</li>
+								<li class="nx-chip nx-chip--case">Supervisión de rutas</li>
+								<li class="nx-chip nx-chip--case">Administración de activos</li>
+								<li class="nx-chip nx-chip--case">Telemetría básica</li>
+								<li class="nx-chip nx-chip--case">Integración con terceros</li>
+							</ul>
+						</div>
+					</div>
+
+					<a class="nx-cta" href="/products/nexus">
+						Explorar Nexus <span class="nx-cta-arrow" aria-hidden="true">→</span>
+					</a>
+				</div>
+
+				<div class="nx-stage" aria-hidden="true">
+					<span class="nx-halo"></span>
+					<a
+						href="/products/nexus"
+						class="nx-logo-link"
+						tabindex={activeProduct === 'nexus' ? 0 : -1}
+					>
+						<img src="/img/logo-nexus-3x.png" alt="Logotipo de Nexus" class="nx-logo" />
+					</a>
+					<span class="nx-floor"></span>
+				</div>
+			</div>
+
+			<!-- ORION -->
+			<div
+				class="nx-panel nx-panel--orion"
+				class:is-active={activeProduct === 'orion'}
+				id="panel-orion"
+				role="tabpanel"
+				aria-labelledby="tab-orion"
+				aria-hidden={activeProduct !== 'orion'}
+			>
+				<div class="nx-orion-fx" aria-hidden="true">
+					{#each orionParticles as pt (`${pt.sx}-${pt.sy}-${pt.d}`)}
+						<span
+							style="--sx:{pt.sx}px; --sy:{pt.sy}px; --d:{pt.d}s; --dur:{pt.dur}s; --s:{pt.s}px; --o:{pt.o};"
+						></span>
+					{/each}
+				</div>
+				<div class="nx-content">
+					<p class="nx-eyebrow">Producto</p>
+					<h3 class="nx-title">ORION</h3>
+					<p class="nx-subtitle">
+						Una capa silenciosa de inteligencia geoespacial para productos que requieren
+						localización, análisis territorial y validación de eventos sin depender exclusivamente
+						del GPS.
+					</p>
+
+					<div class="nx-lists">
+						<div class="nx-list-col">
+							<h3 class="nx-list-title">Características principales</h3>
+							<ul class="nx-chips">
+								<li class="nx-chip">Localización por Cell ID</li>
+								<li class="nx-chip">API de geolocalización</li>
+								<li class="nx-chip">Enriquecimiento geoespacial</li>
+								<li class="nx-chip">Consulta por MCC / MNC / LAC / Cell ID</li>
+								<li class="nx-chip">Soporte para múltiples operadores</li>
+								<li class="nx-chip">Estimación de ubicación aproximada</li>
+								<li class="nx-chip">Integración con plataformas IoT</li>
+								<li class="nx-chip">Respuesta JSON estructurada</li>
+								<li class="nx-chip">Resolución H3 configurable</li>
+								<li class="nx-chip">Procesamiento por lotes</li>
+								<li class="nx-chip">Consultas en tiempo real</li>
+								<li class="nx-chip">Métricas de consumo API</li>
+								<li class="nx-chip">Control por planes</li>
+								<li class="nx-chip">Llaves de API</li>
+								<li class="nx-chip">Administración por cuenta</li>
+								<li class="nx-chip">Preparado para integradores</li>
+							</ul>
+						</div>
+						<div class="nx-list-col">
+							<h3 class="nx-list-title">Casos de uso</h3>
+							<ul class="nx-chips">
+								<li class="nx-chip nx-chip--case">Localización sin GPS</li>
+								<li class="nx-chip nx-chip--case">Validación de eventos IoT</li>
+								<li class="nx-chip nx-chip--case">Enriquecimiento de telemetría</li>
+								<li class="nx-chip nx-chip--case">Análisis de cobertura celular</li>
+								<li class="nx-chip nx-chip--case">Seguridad vehicular</li>
+								<li class="nx-chip nx-chip--case">Rastreo alternativo</li>
+								<li class="nx-chip nx-chip--case">Plataformas de movilidad</li>
+								<li class="nx-chip nx-chip--case">Sistemas antifraude</li>
+								<li class="nx-chip nx-chip--case">Verificación territorial</li>
+								<li class="nx-chip nx-chip--case">Análisis de riesgo geográfico</li>
+								<li class="nx-chip nx-chip--case">Integración con ERPs o CRMs</li>
+								<li class="nx-chip nx-chip--case">Monitoreo de activos</li>
+								<li class="nx-chip nx-chip--case">Inteligencia para operadores</li>
+								<li class="nx-chip nx-chip--case">Backups de ubicación</li>
+								<li class="nx-chip nx-chip--case">APIs para terceros</li>
+							</ul>
+						</div>
+					</div>
+
+					<a class="nx-cta" href="/products/orion">
+						Explorar Orion <span class="nx-cta-arrow" aria-hidden="true">→</span>
+					</a>
+				</div>
+
+				<div class="nx-stage" aria-hidden="true">
+					<span class="nx-halo"></span>
+					<a
+						href="/products/orion"
+						class="nx-logo-link"
+						tabindex={activeProduct === 'orion' ? 0 : -1}
+					>
+						<img src="/img/products/logo-orion.png" alt="Logotipo de Orion" class="nx-logo" />
+					</a>
+					<span class="nx-floor"></span>
+				</div>
+			</div>
+		</div>
+	</article>
 </section>
 
 <div class="section-sep"></div>
@@ -1466,30 +1711,6 @@
 		.hint-text {
 			font-size: 0.6875rem;
 		}
-	}
-
-	.products-section {
-		display: block !important; /* override global section { display: flex } from login-page.css */
-		padding: 0;
-		position: relative;
-		background: #000;
-		overflow: hidden;
-		min-height: unset !important;
-		contain: unset !important;
-	}
-	.products-section > .container {
-		padding: 6rem 2rem 4rem;
-	}
-	.products-container {
-		max-width: 1100px;
-		margin: 0 auto;
-		display: flex;
-		flex-direction: column;
-		gap: 0;
-	}
-
-	.product-item {
-		width: 100%;
 	}
 
 	.product-content {
@@ -2774,6 +2995,268 @@
 		}
 	}
 
+	/* ============================================================
+	   Tecnologías que convergen — pila de ascensión sobre blanco
+	   ============================================================ */
+	.tc-section {
+		display: block;
+		min-height: auto;
+		background: #eceff2; /* blanco menos brillante */
+		position: relative;
+		overflow: hidden;
+		padding: clamp(4rem, 8vw, 8rem) 0 clamp(3rem, 5vw, 6rem);
+	}
+	.tc-inner {
+		max-width: clamp(1200px, 92vw, 2400px);
+		margin: 0 auto;
+		padding-inline: clamp(1.5rem, 3vw, 5rem);
+	}
+	.tc-head {
+		text-align: center;
+		margin-bottom: clamp(2.5rem, 4vw, 4rem);
+	}
+	.tc-section .tc-title {
+		background: linear-gradient(90deg, #0a2540, #0883a0);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: #0a2540;
+		margin-bottom: 0.75rem;
+	}
+	.tc-subhead {
+		color: #475569;
+		font-size: clamp(1rem, 1.2vw, 1.35rem);
+		margin: 0;
+	}
+
+	.tc-grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+		gap: clamp(2rem, 4vw, 5rem);
+		align-items: stretch;
+	}
+
+	/* --- columna izquierda: cuadrícula 2×2 de tarjetas --- */
+	.tc-layers {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: clamp(1.25rem, 2vw, 2rem);
+		align-content: start;
+	}
+
+	.tc-layer-item {
+		position: relative;
+		display: flex;
+	}
+
+	/* --- tarjeta de capa --- */
+	.tc-card {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		background: #fff;
+		border: 1px solid #e2e8f0;
+		border-radius: 20px;
+		border-left: 3px solid var(--tc-accent);
+		padding: clamp(1.75rem, 2.2vw, 2.5rem);
+		box-shadow: 0 1px 2px rgba(10, 37, 64, 0.04);
+		transition:
+			transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+			box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+			border-left-color 0.3s ease;
+		will-change: transform;
+	}
+	.tc-card:hover {
+		transform: translateY(-4px);
+		box-shadow: 0 24px 50px -24px rgba(10, 37, 64, 0.3);
+		border-left-color: color-mix(in srgb, var(--tc-accent) 75%, #fff);
+	}
+
+	.tc-card-head {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 0.75rem;
+	}
+	.tc-icon {
+		color: var(--tc-accent);
+		display: inline-flex;
+		flex-shrink: 0;
+	}
+	.tc-num {
+		font-family: 'Audiowide', sans-serif;
+		font-size: clamp(1.5rem, 2vw, 2.4rem);
+		line-height: 1;
+		color: var(--tc-accent);
+		opacity: 0.85;
+	}
+	.tc-card-title {
+		font-size: clamp(1.15rem, 1.5vw, 1.7rem);
+		font-weight: 600;
+		color: #0f172a;
+		margin: 0;
+	}
+	.tc-card-desc {
+		color: #475569;
+		font-size: clamp(0.95rem, 1vw, 1.1rem);
+		margin: 0 0 1rem;
+		line-height: 1.5;
+	}
+
+	.tc-chips {
+		list-style: none;
+		margin: auto 0 0;
+		padding: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+	.tc-chip {
+		border: 1px solid #e2e8f0;
+		border-radius: 999px;
+		background: #f8fafc;
+		color: #334155;
+		padding: 0.4rem 0.85rem;
+		font-size: 0.85rem;
+		font-weight: 500;
+		transition: border-color 0.3s ease;
+	}
+	.tc-layer-item:hover .tc-chip {
+		border-color: color-mix(in srgb, var(--tc-accent) 55%, #e2e8f0);
+	}
+
+	/* --- columna derecha: spine de convergencia --- */
+	.tc-spine {
+		position: relative;
+		align-self: stretch;
+		display: flex;
+	}
+	.tc-spine-frame {
+		position: relative;
+		width: 100%;
+		height: 100%; /* misma altura que la cuadrícula de tarjetas */
+		border-radius: 24px;
+		overflow: hidden;
+		background: #061722;
+		border: 1px solid rgba(127, 227, 245, 0.35);
+		box-shadow: 0 40px 90px -40px rgba(10, 37, 64, 0.6);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	.tc-spine-bloom {
+		position: absolute;
+		inset: -20%;
+		background: radial-gradient(circle at 50% 45%, rgba(52, 208, 192, 0.35), transparent 60%);
+		filter: blur(40px);
+		pointer-events: none;
+		z-index: 0;
+	}
+	.tc-spine-video {
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		-webkit-mask-image: linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
+		mask-image: linear-gradient(to bottom, transparent, #000 8%, #000 92%, transparent);
+	}
+
+	/* --- mensaje clave --- */
+	.tc-message {
+		max-width: 60ch;
+		margin: clamp(3rem, 5vw, 5rem) auto 0;
+		text-align: center;
+		font-size: clamp(1.25rem, 2.2vw, 2rem);
+		line-height: 1.5;
+		color: #0f172a;
+	}
+	.tc-message strong {
+		color: #0883a0;
+		font-weight: 700;
+	}
+
+	/* --- scroll-reveal (solo opacity/transform) ---
+	   La clase .tc-reveal se aplica imperativamente vía JS (use:_reveal),
+	   por eso se marca :global para que el compilador no la considere sin uso. */
+	:global(.tc-reveal) {
+		opacity: 0;
+		transform: translateY(16px);
+		transition:
+			opacity 0.6s ease,
+			transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+		transition-delay: var(--tc-delay, 0ms);
+	}
+	:global(.tc-reveal.is-revealed) {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	/* ≥768px hasta <1024px: cuadrícula 2×2 con el spine arriba como banner */
+	@media (max-width: 1023px) {
+		.tc-grid {
+			grid-template-columns: 1fr;
+		}
+		.tc-spine {
+			order: -1;
+			margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+		}
+		.tc-spine-frame {
+			position: static;
+			aspect-ratio: 1168 / 784;
+			max-height: 360px;
+		}
+	}
+
+	/* ≤767px: una sola columna de tarjetas, sin spine video */
+	@media (max-width: 767px) {
+		.tc-spine {
+			display: none;
+		}
+		.tc-layers {
+			grid-template-columns: 1fr;
+		}
+		.tc-num {
+			font-size: clamp(1.3rem, 6vw, 1.8rem);
+		}
+		.tc-section {
+			padding-bottom: clamp(2rem, 6vw, 3rem);
+		}
+		.tc-message {
+			margin-top: 2rem;
+			font-size: clamp(1.15rem, 5vw, 1.5rem);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:global(.tc-reveal) {
+			opacity: 1;
+			transform: none;
+			transition: none;
+		}
+		.tc-card,
+		.tc-chip {
+			transition: none;
+		}
+		.tc-card:hover {
+			transform: none;
+		}
+		.tc-spine-video {
+			display: none;
+		}
+		.tc-spine-frame::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			background: url('/img/technology-man.png') center / cover no-repeat;
+			z-index: 1;
+		}
+	}
+
 	.ecosystem-section {
 		padding: 5rem 0 3rem;
 		position: relative;
@@ -3185,16 +3668,6 @@
 	.ecosystem-section {
 		padding: 5rem 0 3rem;
 		background: transparent;
-	}
-	.products-section {
-		padding: 6rem 0;
-		background: linear-gradient(
-			180deg,
-			transparent 0%,
-			rgba(0, 14, 38, 0.7) 15%,
-			rgba(2, 12, 35, 0.75) 85%,
-			transparent 100%
-		);
 	}
 	.capabilities-section {
 		padding: 6rem 0;
@@ -3894,608 +4367,530 @@
 		}
 	}
 
-	/* ── ORBS ECOSYSTEM ─────────────────────────────────────────── */
-	.orbs-arena {
-		position: relative;
-		width: 100%;
-		padding: 5rem 0 5rem;
-		overflow: hidden;
-		background:
-			linear-gradient(to bottom, #060f22 0%, rgba(6, 15, 34, 0) 12%),
-			linear-gradient(to top, #060f22 0%, rgba(6, 15, 34, 0) 12%),
-			radial-gradient(ellipse 80% 70% at 50% 45%, #ffffff 0%, #f3f6f8 55%, #e9eef2 100%);
-	}
-
-	/* Faint tech network in the background */
-	.orbs-mesh {
-		position: absolute;
-		inset: 0;
-		pointer-events: none;
-		opacity: 0.5;
-		background-image:
-			linear-gradient(rgba(120, 150, 170, 0.12) 1px, transparent 1px),
-			linear-gradient(90deg, rgba(120, 150, 170, 0.12) 1px, transparent 1px);
-		background-size: 46px 46px;
-		-webkit-mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 80%);
-		mask-image: radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 80%);
-	}
-
-	.orbs-stage {
-		position: relative;
-		width: 100%;
-		max-width: 1100px;
-		margin: 0 auto;
-		height: 540px;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-
-	/* ── Each sphere ── */
-	.psphere {
-		position: relative;
-		width: 470px;
-		height: 470px;
-		flex-shrink: 0;
-		display: block;
-		text-decoration: none;
-		cursor: pointer;
-		transition:
-			transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-			filter 0.6s ease;
-	}
-	.orb-nexus {
-		margin-right: -120px;
-		z-index: 2;
-	}
-	.orb-orion {
-		margin-left: -120px;
-		z-index: 1;
-	}
-	.psphere:hover {
-		transform: scale(1.035);
-		z-index: 5;
-	}
-	.psphere.dim {
-		filter: saturate(0.7) opacity(0.78);
-	}
-
-	/* Concentric glass shells (spheres within spheres) */
-	.orb-shell {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		border-radius: 50%;
-		transform: translate(-50%, -50%);
-		pointer-events: none;
-	}
-	.orb-shell-far {
-		width: 118%;
-		height: 118%;
-	}
-	.orb-shell-outer {
-		width: 100%;
-		height: 100%;
-	}
-	.orb-shell-mid {
-		width: 74%;
-		height: 74%;
-	}
-
-	/* Nexus = green glass — layered radial gradients build a 3D ball:
-	   specular highlight (top-left), body + terminator, reflected rim light. */
-	.orb-nexus .orb-shell-far {
-		border: 1.5px solid rgba(75, 165, 100, 0.35);
-	}
-	.orb-nexus .orb-shell-outer {
-		border: 1px solid rgba(70, 160, 95, 0.55);
-		background:
-			radial-gradient(circle at 33% 27%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 24%),
-			radial-gradient(circle at 70% 80%, rgba(150, 230, 175, 0.4) 0%, transparent 32%),
-			radial-gradient(
-				circle at 44% 42%,
-				rgba(190, 235, 200, 0.25) 0%,
-				rgba(110, 195, 135, 0.22) 52%,
-				rgba(55, 140, 85, 0.5) 100%
-			);
-		box-shadow:
-			inset 26px 28px 55px rgba(220, 255, 230, 0.4),
-			inset -34px -40px 80px rgba(40, 120, 70, 0.55),
-			inset 0 0 40px rgba(120, 205, 145, 0.25),
-			0 38px 70px rgba(45, 130, 80, 0.3);
-	}
-	.orb-nexus .orb-shell-mid {
-		border: 1px solid rgba(70, 160, 95, 0.4);
-		background:
-			radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.55) 0%, transparent 40%),
-			radial-gradient(circle at 60% 70%, rgba(95, 185, 125, 0.28) 0%, transparent 60%);
-		box-shadow:
-			inset -16px -20px 40px rgba(45, 125, 75, 0.4),
-			inset 12px 12px 30px rgba(220, 255, 230, 0.3);
-	}
-
-	/* Orion = silver glass */
-	.orb-orion .orb-shell-far {
-		border: 1.5px solid rgba(135, 152, 182, 0.35);
-	}
-	.orb-orion .orb-shell-outer {
-		border: 1px solid rgba(125, 142, 178, 0.55);
-		background:
-			radial-gradient(circle at 33% 27%, rgba(255, 255, 255, 0.98) 0%, rgba(255, 255, 255, 0) 24%),
-			radial-gradient(circle at 70% 80%, rgba(205, 220, 240, 0.45) 0%, transparent 32%),
-			radial-gradient(
-				circle at 44% 42%,
-				rgba(225, 232, 242, 0.28) 0%,
-				rgba(165, 182, 208, 0.24) 52%,
-				rgba(105, 122, 158, 0.52) 100%
-			);
-		box-shadow:
-			inset 26px 28px 55px rgba(245, 250, 255, 0.5),
-			inset -34px -40px 80px rgba(85, 100, 135, 0.55),
-			inset 0 0 40px rgba(190, 205, 228, 0.3),
-			0 38px 70px rgba(95, 110, 145, 0.3);
-	}
-	.orb-orion .orb-shell-mid {
-		border: 1px solid rgba(125, 142, 178, 0.4);
-		background:
-			radial-gradient(circle at 34% 30%, rgba(255, 255, 255, 0.6) 0%, transparent 40%),
-			radial-gradient(circle at 60% 70%, rgba(160, 178, 208, 0.3) 0%, transparent 60%);
-		box-shadow:
-			inset -16px -20px 40px rgba(90, 105, 140, 0.4),
-			inset 12px 12px 30px rgba(245, 250, 255, 0.35);
-	}
-
-	/* Core that holds the logo + tech pattern */
-	.orb-core {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 50%;
-		height: 50%;
-		transform: translate(-50%, -50%);
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	.orb-nexus .orb-core {
-		background: radial-gradient(
-			circle at 40% 35%,
-			rgba(255, 255, 255, 0.9) 0%,
-			rgba(200, 235, 205, 0.5) 40%,
-			rgba(140, 205, 150, 0.3) 100%
-		);
-		box-shadow:
-			inset 0 0 30px rgba(90, 170, 110, 0.3),
-			0 10px 30px rgba(80, 160, 100, 0.18);
-		border: 1px solid rgba(120, 200, 135, 0.5);
-	}
-	.orb-orion .orb-core {
-		background: radial-gradient(
-			circle at 40% 35%,
-			rgba(255, 255, 255, 0.92) 0%,
-			rgba(225, 232, 240, 0.55) 40%,
-			rgba(175, 190, 210, 0.32) 100%
-		);
-		box-shadow:
-			inset 0 0 30px rgba(130, 145, 170, 0.3),
-			0 10px 30px rgba(120, 135, 160, 0.18);
-		border: 1px solid rgba(170, 185, 205, 0.55);
-	}
-
-	/* Inner tech illustration */
-	.orb-tech {
-		position: absolute;
-		width: 96%;
-		height: 96%;
-		fill: none;
-		opacity: 0.55;
-	}
-	.orb-nexus .orb-tech {
-		stroke: rgba(70, 150, 90, 0.55);
-		stroke-width: 1;
-	}
-	.orb-nexus .orb-tech .node {
-		fill: rgba(70, 160, 95, 0.7);
-		stroke: none;
-	}
-	.orb-orion .orb-tech {
-		stroke: rgba(120, 140, 170, 0.55);
-		stroke-width: 1;
-	}
-
-	.orb-logo {
-		position: relative;
-		z-index: 2;
-		width: 52%;
-		height: auto;
-		filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.18));
-	}
-
-	/* Glassy top-left highlight */
-	.orb-gloss {
-		position: absolute;
-		top: 8%;
-		left: 14%;
-		width: 46%;
-		height: 34%;
-		border-radius: 50%;
-		background: radial-gradient(
-			ellipse at center,
-			rgba(255, 255, 255, 0.75) 0%,
-			rgba(255, 255, 255, 0) 70%
-		);
-		pointer-events: none;
-		filter: blur(4px);
-	}
-
-	/* Curved labels */
-	.orb-label {
-		position: absolute;
-		top: 50%;
-		display: flex;
-		align-items: center;
-		gap: 0.6rem;
-		writing-mode: vertical-rl;
-		transform: translateY(-50%) rotate(180deg);
-		white-space: nowrap;
-		pointer-events: none;
-	}
-	.orb-label strong {
-		font-size: 1.5rem;
-		font-weight: 700;
-		letter-spacing: 0.12em;
-	}
-	.orb-label em {
-		font-style: normal;
-		font-size: 0.72rem;
-		letter-spacing: 0.18em;
-		text-transform: uppercase;
-	}
-	.orb-label-nexus {
-		left: 7%;
-	}
-	.orb-label-nexus strong {
-		color: #2f7a45;
-	}
-	.orb-label-nexus em {
-		color: rgba(60, 120, 80, 0.7);
-	}
-	/* Orion label mirrors on the right, reading top-to-bottom */
-	.orb-label-orion {
-		right: 7%;
-		writing-mode: vertical-rl;
-		transform: translateY(-50%) rotate(0deg);
-	}
-	.orb-label-orion strong {
-		color: #4a5870;
-	}
-	.orb-label-orion em {
-		color: rgba(90, 105, 130, 0.7);
-	}
-
-	/* CTA along the bottom curve */
-	.orb-cta {
-		position: absolute;
-		bottom: 13%;
-		font-size: 0.85rem;
-		font-weight: 600;
-		letter-spacing: 0.04em;
-		pointer-events: none;
-		transition: transform 0.3s ease;
-	}
-	.orb-cta-nexus {
-		left: 16%;
-		color: #2f7a45;
-	}
-	.orb-cta-orion {
-		right: 16%;
-		color: #4a5870;
-	}
-	.psphere:hover .orb-cta {
-		transform: translateX(4px);
-	}
-
-	/* ── Synergy center ── */
-	.orb-synergy {
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		z-index: 3;
+	/* ── NEXUS PRODUCT SECTION ──────────────────────────────────── */
+	.nexus-section {
 		display: flex;
 		flex-direction: column;
 		align-items: center;
-		pointer-events: none;
+		justify-content: center;
+		gap: clamp(2rem, 4vw, 3.5rem);
+		padding: 6rem 0;
+		position: relative;
+		overflow: hidden;
+		background: #ffffff;
 	}
-	.synergy-glow {
+	.nexus-head {
+		position: relative;
+		z-index: 1;
+		text-align: center;
+	}
+	/* Título en fondo blanco: gradiente oscuro para contraste */
+	.nexus-section .landing-section-title {
+		background: linear-gradient(90deg, #0a2540, #0883a0);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+		color: #0a2540;
+	}
+
+	/* Selector de producto (pills) */
+	.nx-tabs {
+		display: inline-flex;
+		gap: 0.4rem;
+		margin-top: 1.5rem;
+		padding: 0.35rem;
+		border-radius: 999px;
+		background: rgba(10, 37, 64, 0.05);
+		border: 1px solid rgba(10, 37, 64, 0.1);
+	}
+	.nx-tab {
+		appearance: none;
+		border: none;
+		background: transparent;
+		cursor: pointer;
+		font-family: 'Dune Rise', system-ui, sans-serif;
+		font-size: 0.95rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #0a2540;
+		padding: 0.55rem 1.7rem;
+		border-radius: 999px;
+		transition:
+			background 0.25s ease,
+			color 0.25s ease,
+			box-shadow 0.25s ease;
+	}
+	.nx-tab:hover {
+		color: #0883a0;
+	}
+	.nx-tab.is-active {
+		background: linear-gradient(135deg, #0a2540, #0883a0);
+		color: #fff;
+		box-shadow: 0 8px 20px -8px rgba(8, 131, 160, 0.55);
+	}
+	.nx-tab:focus-visible {
+		outline: 2px solid #0883a0;
+		outline-offset: 2px;
+	}
+
+	/* Tarjeta-marco (el fondo cambia según el producto activo) */
+	.nx-card {
+		position: relative;
+		z-index: 1;
+		overflow: hidden;
+		width: min(2400px, 92vw);
+		min-height: min(86vh, 920px);
+		margin: 0 auto;
+		padding: clamp(2rem, 4vw, 4.5rem);
+		border: 1px solid rgba(244, 241, 232, 0.55);
+		border-radius: clamp(20px, 2vw, 32px);
+		transition:
+			background 0.4s ease,
+			box-shadow 0.4s ease;
+	}
+	/* Tema Nexus (grafito-teal + verde) */
+	.nx-card[data-product='nexus'] {
+		background:
+			radial-gradient(120% 90% at 78% 38%, rgba(63, 174, 58, 0.1) 0%, transparent 55%),
+			radial-gradient(90% 80% at 50% 110%, rgba(0, 166, 192, 0.07) 0%, transparent 60%),
+			linear-gradient(165deg, #11171c 0%, #141d20 45%, #0f1518 100%);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.1),
+			inset 0 0 60px rgba(244, 241, 232, 0.04),
+			0 30px 80px -40px rgba(0, 0, 0, 0.6),
+			0 0 40px -10px rgba(63, 174, 58, 0.1);
+	}
+	/* Tema Orion (negro mate + plata) */
+	.nx-card[data-product='orion'] {
+		background:
+			radial-gradient(120% 90% at 78% 38%, rgba(214, 222, 230, 0.12) 0%, transparent 55%),
+			radial-gradient(90% 80% at 50% 110%, rgba(176, 186, 198, 0.05) 0%, transparent 60%),
+			linear-gradient(165deg, #0c0d0f 0%, #101113 45%, #08090a 100%);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.1),
+			inset 0 0 60px rgba(244, 241, 232, 0.03),
+			0 30px 80px -40px rgba(0, 0, 0, 0.7),
+			0 0 40px -10px rgba(214, 222, 230, 0.12);
+	}
+	/* Ruido (noise.png) en el fondo de la tarjeta */
+	.nx-card::before {
+		content: '';
 		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 120px;
-		height: 120px;
-		transform: translate(-50%, -50%);
-		border-radius: 50%;
+		inset: 0;
+		z-index: 0;
+		border-radius: inherit;
+		pointer-events: none;
+		background-image: url('/img/noise.png');
+		background-size: 180px 180px;
+		opacity: 0.09;
+		mix-blend-mode: overlay;
+	}
+
+	/* Pila de paneles: ambos en la misma celda → altura estable, crossfade */
+	.nx-panels {
+		position: relative;
+		z-index: 1;
+		display: grid;
+	}
+	.nx-panel {
+		grid-area: 1 / 1;
+		display: grid;
+		grid-template-columns: 1.15fr 0.85fr;
+		gap: clamp(2rem, 4vw, 5rem);
+		align-items: center;
+		opacity: 0;
+		visibility: hidden;
+		transform: translateY(8px);
+		pointer-events: none;
+		transition:
+			opacity 0.28s ease,
+			transform 0.28s ease,
+			visibility 0s linear 0.28s;
+	}
+	.nx-panel.is-active {
+		opacity: 1;
+		visibility: visible;
+		transform: none;
+		pointer-events: auto;
+		transition:
+			opacity 0.28s ease,
+			transform 0.28s ease,
+			visibility 0s;
+	}
+	.nx-content,
+	.nx-stage {
+		position: relative;
+		z-index: 1;
+	}
+
+	/* Acentos Orion (plata) */
+	.nx-panel--orion .nx-eyebrow {
+		color: rgba(205, 213, 221, 0.85);
+	}
+	.nx-panel--orion .nx-title {
+		background: linear-gradient(120deg, #ffffff 0%, #dfe5ea 45%, #aeb8c2 100%);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+	.nx-panel--orion .nx-chip {
+		border-color: rgba(205, 213, 221, 0.28);
+	}
+	.nx-panel--orion .nx-chip::before {
+		background: #c3ccd6;
+	}
+	.nx-panel--orion .nx-chip--case {
+		border-color: rgba(205, 213, 221, 0.16);
+	}
+	.nx-panel--orion .nx-cta {
+		color: #d7dde4;
+	}
+	.nx-panel--orion .nx-cta:focus-visible {
+		outline-color: #d7dde4;
+	}
+	.nx-panel--orion .nx-halo {
 		background: radial-gradient(
 			circle,
-			rgba(255, 210, 120, 0.55) 0%,
-			rgba(255, 190, 90, 0.25) 40%,
-			transparent 70%
+			rgba(232, 237, 242, 0.22) 0%,
+			rgba(180, 190, 200, 0.08) 42%,
+			transparent 72%
 		);
-		animation: synergyPulse 4s ease-in-out infinite;
 	}
-	@keyframes synergyPulse {
-		0%,
-		100% {
-			opacity: 0.7;
-			transform: translate(-50%, -50%) scale(1);
-		}
-		50% {
-			opacity: 1;
-			transform: translate(-50%, -50%) scale(1.12);
-		}
+	.nx-panel--orion .nx-logo {
+		filter: drop-shadow(0 0 26px rgba(228, 234, 240, 0.5))
+			drop-shadow(0 18px 40px rgba(0, 0, 0, 0.5));
 	}
-	.synergy-spark {
+	.nx-panel--orion .nx-floor {
+		background: radial-gradient(ellipse at center, rgba(228, 234, 240, 0.14) 0%, transparent 70%);
+	}
+
+	/* Partículas de Orion: fluyen de la esquina inferior izquierda hacia el logo */
+	.nx-orion-fx {
 		position: absolute;
-		top: 50%;
-		left: 50%;
-		width: 4px;
-		height: 4px;
-		border-radius: 50%;
-		background: #ffd27a;
-		box-shadow: 0 0 6px #ffce6e;
-	}
-	.synergy-spark-1 {
-		animation: spark1 5s ease-in-out infinite;
-	}
-	.synergy-spark-2 {
-		animation: spark2 6s ease-in-out infinite;
-	}
-	.synergy-spark-3 {
-		animation: spark3 7s ease-in-out infinite;
-	}
-	@keyframes spark1 {
-		0%,
-		100% {
-			transform: translate(-50%, -50%) translate(0, 0);
-			opacity: 0;
-		}
-		50% {
-			transform: translate(-50%, -50%) translate(-28px, -18px);
-			opacity: 1;
-		}
-	}
-	@keyframes spark2 {
-		0%,
-		100% {
-			transform: translate(-50%, -50%) translate(0, 0);
-			opacity: 0;
-		}
-		50% {
-			transform: translate(-50%, -50%) translate(24px, -22px);
-			opacity: 1;
-		}
-	}
-	@keyframes spark3 {
-		0%,
-		100% {
-			transform: translate(-50%, -50%) translate(0, 0);
-			opacity: 0;
-		}
-		50% {
-			transform: translate(-50%, -50%) translate(10px, 26px);
-			opacity: 1;
-		}
-	}
-	.synergy-label {
-		position: relative;
-		font-size: 0.8rem;
-		font-weight: 700;
-		letter-spacing: 0.06em;
-		color: #a8741f;
-		white-space: nowrap;
-		text-shadow: 0 1px 3px rgba(255, 255, 255, 0.8);
-		transition: opacity 0.4s ease;
-	}
-	/* Synergy text fades out while a sphere is expanded */
-	.orbs-stage.hover-nexus .synergy-label,
-	.orbs-stage.hover-orion .synergy-label {
-		opacity: 0;
-	}
-
-	/* ── HOVER CHOREOGRAPHY ── */
-	/* hovered sphere slides toward its edge; opposite slides away + shrinks + dims */
-	.orbs-stage .psphere {
-		transition:
-			transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-			opacity 0.5s ease,
-			filter 0.5s ease;
-	}
-	.orbs-stage.hover-nexus .orb-nexus {
-		transform: translateX(-210px) scale(1.04);
-		z-index: 4;
-	}
-	.orbs-stage.hover-nexus .orb-orion {
-		transform: translateX(360px) scale(0.6);
-		opacity: 0.28;
-		filter: saturate(0.6);
-	}
-	.orbs-stage.hover-orion .orb-orion {
-		transform: translateX(210px) scale(1.04);
-		z-index: 4;
-	}
-	.orbs-stage.hover-orion .orb-nexus {
-		transform: translateX(-360px) scale(0.6);
-		opacity: 0.28;
-		filter: saturate(0.6);
-	}
-
-	/* on-sphere label + cta fade out when its panel takes over */
-	.orbs-stage.hover-nexus .orb-nexus .orb-label,
-	.orbs-stage.hover-nexus .orb-nexus .orb-cta,
-	.orbs-stage.hover-orion .orb-orion .orb-label,
-	.orbs-stage.hover-orion .orb-orion .orb-cta {
-		opacity: 0;
-		transition: opacity 0.3s ease;
-	}
-
-	/* ── FEATURE PANELS ── */
-	.orb-panel {
-		position: absolute;
-		top: 50%;
-		width: 420px;
-		transform: translateY(-50%) translateX(20px);
-		opacity: 0;
+		inset: 0;
+		z-index: 0;
 		pointer-events: none;
-		z-index: 5;
-		transition:
-			opacity 0.5s 0.15s ease,
-			transform 0.6s 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+		overflow: hidden;
 	}
-	.orb-panel-nexus {
-		left: 54%;
-		text-align: left;
+	.nx-orion-fx span {
+		position: absolute;
+		left: 74%;
+		top: 48%;
+		width: var(--s, 3px);
+		height: var(--s, 3px);
+		border-radius: 50%;
+		background: rgba(224, 231, 238, 0.95);
+		box-shadow: 0 0 6px rgba(210, 220, 230, 0.5);
+		opacity: 0;
+		animation: orionDrift var(--dur, 6s) linear var(--d, 0s) infinite;
+		will-change: transform, opacity;
 	}
-	.orb-panel-orion {
-		right: 54%;
-		text-align: right;
+	@keyframes orionDrift {
+		0% {
+			transform: translate(calc(-50% + var(--sx)), calc(-50% + var(--sy))) scale(0.5);
+			opacity: 0;
+		}
+		14% {
+			opacity: var(--o, 0.7);
+		}
+		82% {
+			opacity: calc(var(--o, 0.7) * 0.55);
+		}
+		100% {
+			transform: translate(-50%, -50%) scale(1.05);
+			opacity: 0;
+		}
 	}
 
-	.orbs-stage.hover-nexus .orb-panel-nexus,
-	.orbs-stage.hover-orion .orb-panel-orion {
-		opacity: 1;
-		transform: translateY(-50%) translateX(0);
-		pointer-events: all;
+	/* Left content */
+	.nx-content {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
 	}
-
-	.orb-panel-title {
-		font-size: 2.4rem;
-		font-weight: 800;
-		letter-spacing: 0.06em;
-		margin: 0 0 0.25rem;
+	.nx-eyebrow {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.72rem;
+		font-weight: 600;
+		color: rgba(95, 209, 88, 0.85);
+		text-transform: uppercase;
+		letter-spacing: 0.28em;
+		margin: 0 0 0.75rem;
+	}
+	.nx-title {
+		font-family: 'Dune Rise', system-ui, sans-serif;
+		font-size: clamp(2.6rem, 5vw, 4.4rem);
+		letter-spacing: 0.04em;
 		line-height: 1;
+		margin: 0 0 1.25rem;
+		background: linear-gradient(120deg, #f4f1e8 0%, #cfe9c6 45%, #5fd158 100%);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
 	}
-	.orb-panel-title.nx {
-		color: #2f7a45;
+	.nx-subtitle {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: clamp(1rem, 1.25vw, 1.18rem);
+		font-weight: 400;
+		color: rgba(244, 241, 232, 0.78);
+		line-height: 1.55;
+		max-width: 46ch;
+		margin: 0;
 	}
-	.orb-panel-title.or {
-		color: #46556f;
-	}
-	.orb-panel-sub {
-		font-size: 0.95rem;
-		color: #5a6b7a;
-		margin: 0 0 1.4rem;
-	}
-	.orb-panel-list {
+
+	/* Audiences */
+	.nx-audiences {
 		list-style: none;
-		padding: 0;
-		margin: 0 0 1.5rem;
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
+		border-top: 1px solid rgba(244, 241, 232, 0.1);
+		padding: 1.5rem 0 0;
+		margin: 1.5rem 0 0;
 	}
-	.orb-panel-list li {
+	.nx-aud {
 		display: flex;
-		align-items: center;
-		gap: 0.7rem;
-		font-size: 0.98rem;
-		color: #2c3a47;
+		align-items: baseline;
 	}
-	.orb-panel-list li svg {
-		width: 17px;
-		height: 17px;
-		flex-shrink: 0;
-		color: #3a9a5a;
+	.nx-aud::before {
+		content: '';
+		flex: 0 0 auto;
+		width: 3px;
+		height: 1.1em;
+		background: #3fae3a;
+		border-radius: 2px;
+		margin-right: 0.75rem;
+		align-self: flex-start;
+		transform: translateY(0.15em);
+	}
+	.nx-aud-label {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-weight: 700;
+		color: #eef2e9;
+		min-width: 9.5rem;
+	}
+	.nx-aud-benefit {
+		font-family: 'Inter', system-ui, sans-serif;
+		color: rgba(244, 241, 232, 0.65);
 	}
 
-	.orb-panel-grid {
+	/* Spec sheet lists */
+	.nx-lists {
 		display: grid;
 		grid-template-columns: 1fr 1fr;
-		gap: 0.9rem 1.3rem;
-		margin-bottom: 1.5rem;
+		gap: clamp(1.5rem, 3vw, 3rem);
+		margin-top: clamp(1.5rem, 3vw, 2.5rem);
 	}
-	.opg-item {
-		display: flex;
-		flex-direction: column;
-		gap: 0.15rem;
+	.nx-list-col {
+		min-width: 0;
 	}
-	.orb-panel-orion .opg-item {
-		text-align: right;
-	}
-	.opg-item strong {
-		font-size: 0.88rem;
+	.nx-list-title {
+		font-family: 'Audiowide', system-ui, sans-serif;
 		font-weight: 700;
-		color: #46556f;
+		font-size: 0.82rem;
+		text-transform: uppercase;
+		letter-spacing: 0.18em;
+		color: rgba(244, 241, 232, 0.55);
+		margin: 0 0 0.75rem;
 	}
-	.opg-item span {
-		font-size: 0.76rem;
-		color: #7a899a;
-		line-height: 1.35;
+	.nx-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 0.55rem;
+		list-style: none;
+		padding: 0;
+		margin: 0;
 	}
-
-	.orb-panel-cta {
-		display: inline-block;
-		padding: 0.7rem 1.6rem;
-		border-radius: 8px;
-		font-size: 0.9rem;
-		font-weight: 600;
-		letter-spacing: 0.04em;
-		text-decoration: none;
+	.nx-chip {
+		display: inline-flex;
+		align-items: center;
+		padding: 0.34rem 0.7rem;
+		border-radius: 999px;
+		border: 1px solid rgba(63, 174, 58, 0.28);
+		background: rgba(255, 255, 255, 0.03);
+		color: rgba(244, 241, 232, 0.82);
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.82rem;
+		font-weight: 500;
+		line-height: 1.2;
 		transition:
-			transform 0.2s,
-			box-shadow 0.2s;
+			transform 0.25s ease,
+			opacity 0.25s ease,
+			box-shadow 0.25s ease;
 	}
-	.orb-panel-cta.nx {
-		background: linear-gradient(135deg, #3a9a5a, #5fc47e);
-		color: #fff;
-		box-shadow: 0 6px 20px rgba(70, 160, 95, 0.35);
+	.nx-chip::before {
+		content: '';
+		flex: 0 0 auto;
+		width: 4px;
+		height: 4px;
+		border-radius: 50%;
+		background: #3fae3a;
+		margin-right: 0.45rem;
 	}
-	.orb-panel-cta.or {
-		background: linear-gradient(135deg, #46556f, #7d8ca8);
-		color: #fff;
-		box-shadow: 0 6px 20px rgba(90, 110, 145, 0.35);
+	.nx-chip--case {
+		border-color: rgba(0, 166, 192, 0.22);
 	}
-	.orb-panel-cta:hover {
+	.nx-chip--case::before {
+		content: none;
+	}
+	.nx-chip:hover {
 		transform: translateY(-2px);
+		opacity: 1;
+		box-shadow: 0 6px 18px -10px rgba(0, 0, 0, 0.7);
 	}
 
-	/* ── Mobile ── */
-	@media (max-width: 820px) {
-		.orbs-stage {
+	/* CTA */
+	.nx-cta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		align-self: flex-start;
+		margin-top: clamp(1.5rem, 3vw, 2.25rem);
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: #5fd158;
+		text-decoration: none;
+		border-radius: 6px;
+	}
+	.nx-cta:focus-visible {
+		outline: 2px solid #5fd158;
+		outline-offset: 3px;
+	}
+	.nx-cta-arrow {
+		display: inline-block;
+		transition: transform 0.25s ease;
+	}
+	.nx-cta:hover .nx-cta-arrow {
+		transform: translateX(4px);
+	}
+
+	/* Right stage */
+	.nx-stage {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		min-height: 100%;
+	}
+	.nx-halo {
+		position: absolute;
+		z-index: 2;
+		width: 120%;
+		aspect-ratio: 1;
+		border-radius: 50%;
+		background: radial-gradient(
+			circle,
+			rgba(63, 174, 58, 0.22) 0%,
+			rgba(0, 166, 192, 0.08) 40%,
+			transparent 70%
+		);
+		filter: blur(10px);
+		animation: nexusHaloPulse 7s ease-in-out infinite;
+		pointer-events: none;
+	}
+	.nx-logo-link {
+		display: contents;
+	}
+	.nx-logo {
+		position: relative;
+		z-index: 3;
+		width: clamp(240px, 26vw, 460px);
+		aspect-ratio: 1;
+		object-fit: contain;
+		cursor: pointer;
+		filter: drop-shadow(0 0 28px rgba(63, 174, 58, 0.35))
+			drop-shadow(0 18px 40px rgba(0, 0, 0, 0.45));
+		transition: transform 0.3s ease;
+	}
+	.nx-logo:hover {
+		transform: scale(1.04);
+	}
+	.nx-floor {
+		position: absolute;
+		bottom: 6%;
+		width: 55%;
+		height: 36px;
+		border-radius: 50%;
+		background: radial-gradient(ellipse at center, rgba(63, 174, 58, 0.16) 0%, transparent 70%);
+		filter: blur(6px);
+		pointer-events: none;
+	}
+
+	@keyframes nexusHaloPulse {
+		0%,
+		100% {
+			opacity: 0.7;
+		}
+		50% {
+			opacity: 1;
+		}
+	}
+
+	/* Tablet: single column, stage above content */
+	@media (max-width: 1023px) {
+		.nexus-section {
+			min-height: auto;
+			align-items: flex-start;
+			padding: 4rem 0;
+		}
+		.nx-card {
+			min-height: auto;
+		}
+		.nx-panel {
+			grid-template-columns: 1fr;
+		}
+		.nx-stage {
+			order: -1;
+			min-height: auto;
+		}
+		.nx-logo {
+			width: clamp(200px, 38vw, 300px);
+		}
+	}
+
+	/* Mobile */
+	@media (max-width: 639px) {
+		.nexus-section {
+			padding: 3.5rem 0;
+		}
+		.nx-card {
+			width: 94vw;
+			padding: clamp(1.25rem, 5vw, 2rem);
+			border-radius: 18px;
+		}
+		.nx-subtitle {
+			max-width: 100%;
+		}
+		.nx-logo {
+			width: clamp(150px, 50vw, 220px);
+		}
+		.nx-lists {
+			grid-template-columns: 1fr;
+		}
+		.nx-aud {
 			flex-direction: column;
-			height: auto;
-			gap: 2rem;
-			padding: 1rem 0;
 		}
-		.psphere {
-			width: 320px;
-			height: 320px;
+		.nx-aud-label {
+			min-width: 0;
 		}
-		.orb-nexus {
-			margin-right: 0;
-			margin-bottom: -70px;
+	}
+
+	/* Reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		.nx-logo,
+		.nx-halo {
+			animation: none;
 		}
-		.orb-orion {
-			margin-left: 0;
-			margin-top: -70px;
+		.nx-card,
+		.nx-chip,
+		.nx-cta-arrow,
+		.nx-panel {
+			transition: none;
 		}
-		.orb-synergy {
-			display: none;
-		}
-		.orb-label {
-			writing-mode: horizontal-tb;
-			transform: translateY(0);
-			top: auto;
-		}
-		.orb-label-nexus {
-			left: 50%;
-			bottom: 4%;
-			transform: translateX(-50%);
-		}
-		.orb-label-orion {
-			right: 50%;
-			top: 4%;
-			transform: translateX(50%);
+		.nx-orion-fx span {
+			animation: none;
+			opacity: 0;
 		}
 	}
 </style>
