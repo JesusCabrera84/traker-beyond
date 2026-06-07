@@ -1,0 +1,10 @@
+import { chromium } from 'playwright';
+const [,,url] = process.argv;
+const b = await chromium.launch();
+const p = await b.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
+await p.goto(url, { waitUntil: 'networkidle' });
+const el = await p.$('#productos'); await el.scrollIntoViewIfNeeded(); await p.waitForTimeout(700);
+await el.screenshot({ path:'/tmp/dark_nexus.png' });
+await p.click('#tab-orion'); await p.waitForTimeout(2200);
+await el.screenshot({ path:'/tmp/dark_orion.png' });
+await b.close(); console.log('done');

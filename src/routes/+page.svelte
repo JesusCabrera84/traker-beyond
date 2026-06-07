@@ -23,15 +23,27 @@
 		e.currentTarget.parentElement?.querySelector('#tab-' + activeProduct)?.focus();
 	}
 
+	// Parallax del fondo de la tarjeta (solo se mueve la capa de fondo, no la tarjeta)
+	function onNxMove(e) {
+		const card = e.currentTarget;
+		const r = card.getBoundingClientRect();
+		card.style.setProperty('--nx-mx', (e.clientX - r.left) / r.width - 0.5);
+		card.style.setProperty('--nx-my', (e.clientY - r.top) / r.height - 0.5);
+	}
+	function onNxLeave(e) {
+		e.currentTarget.style.setProperty('--nx-mx', 0);
+		e.currentTarget.style.setProperty('--nx-my', 0);
+	}
+
 	// Partículas del fondo de Orion (fluyen de la esquina inferior izquierda hacia el logo,
 	// cruzando también por detrás del texto de la izquierda)
-	const orionParticles = Array.from({ length: 44 }, () => ({
-		sx: -(220 + Math.random() * 820), // desplazamiento inicial a la izquierda (px)
-		sy: 60 + Math.random() * 440, // desplazamiento inicial hacia abajo (px)
-		d: +(Math.random() * 8).toFixed(2),
-		dur: +(5 + Math.random() * 5).toFixed(2),
-		s: +(1.8 + Math.random() * 2.6).toFixed(1),
-		o: +(0.35 + Math.random() * 0.5).toFixed(2)
+	const orionParticles = Array.from({ length: 50 }, () => ({
+		sx: -(120 + Math.random() * 1080), // desplazamiento inicial a la izquierda (px)
+		sy: -40 + Math.random() * 640, // desplazamiento inicial vertical (px)
+		d: +(Math.random() * 9).toFixed(2),
+		dur: +(4.5 + Math.random() * 5.5).toFixed(2),
+		s: +(1.6 + Math.random() * 2.8).toFixed(1),
+		o: +(0.28 + Math.random() * 0.42).toFixed(2)
 	}));
 
 	// Video de fondo del título: pausado, reproduce en hover, rebobina en reversa al salir
@@ -867,8 +879,16 @@
 		</div>
 	</div>
 
-	<article class="nx-card" data-product={activeProduct} use:_reveal>
-		<div class="nx-panels">
+	<div class="nx-card-shell" use:_reveal>
+		<!-- svelte-ignore a11y-no-static-element-interactions -->
+		<article
+			class="nx-card"
+			data-product={activeProduct}
+			on:mousemove={onNxMove}
+			on:mouseleave={onNxLeave}
+		>
+			<div class="nx-bg" aria-hidden="true"></div>
+			<div class="nx-panels">
 			<!-- NEXUS -->
 			<div
 				class="nx-panel"
@@ -909,28 +929,19 @@
 								<li class="nx-chip">Ubicación en tiempo real</li>
 								<li class="nx-chip">Historial de recorridos</li>
 								<li class="nx-chip">Geocercas personalizadas</li>
-								<li class="nx-chip">Detección de movimiento</li>
-								<li class="nx-chip">Informes de consumo de combustible y batería</li>
 								<li class="nx-chip">Notificaciones</li>
-								<li class="nx-chip">Compartir ubicación</li>
-								<li class="nx-chip">Panel web responsive</li>
-								<li class="nx-chip">App móvil</li>
+								<li class="nx-chip">Panel web + App móvil</li>
 								<li class="nx-chip">API para integradores</li>
-								<li class="nx-chip">Seguridad por roles</li>
 							</ul>
 						</div>
 						<div class="nx-list-col">
 							<h3 class="nx-list-title">Casos de uso</h3>
 							<ul class="nx-chips">
-								<li class="nx-chip nx-chip--case">Protección vehicular</li>
+<li class="nx-chip nx-chip--case">Protección vehicular</li>
 								<li class="nx-chip nx-chip--case">Rastreo familiar</li>
 								<li class="nx-chip nx-chip--case">Control de flotillas</li>
-								<li class="nx-chip nx-chip--case">Monitoreo operativo</li>
-								<li class="nx-chip nx-chip--case">Seguridad en campo</li>
 								<li class="nx-chip nx-chip--case">Recuperación ante robo</li>
-								<li class="nx-chip nx-chip--case">Supervisión de rutas</li>
-								<li class="nx-chip nx-chip--case">Administración de activos</li>
-								<li class="nx-chip nx-chip--case">Telemetría básica</li>
+								<li class="nx-chip nx-chip--case">Seguridad en campo</li>
 								<li class="nx-chip nx-chip--case">Integración con terceros</li>
 							</ul>
 						</div>
@@ -986,19 +997,9 @@
 								<li class="nx-chip">Localización por Cell ID</li>
 								<li class="nx-chip">API de geolocalización</li>
 								<li class="nx-chip">Enriquecimiento geoespacial</li>
-								<li class="nx-chip">Consulta por MCC / MNC / LAC / Cell ID</li>
 								<li class="nx-chip">Soporte para múltiples operadores</li>
-								<li class="nx-chip">Estimación de ubicación aproximada</li>
 								<li class="nx-chip">Integración con plataformas IoT</li>
-								<li class="nx-chip">Respuesta JSON estructurada</li>
-								<li class="nx-chip">Resolución H3 configurable</li>
 								<li class="nx-chip">Procesamiento por lotes</li>
-								<li class="nx-chip">Consultas en tiempo real</li>
-								<li class="nx-chip">Métricas de consumo API</li>
-								<li class="nx-chip">Control por planes</li>
-								<li class="nx-chip">Llaves de API</li>
-								<li class="nx-chip">Administración por cuenta</li>
-								<li class="nx-chip">Preparado para integradores</li>
 							</ul>
 						</div>
 						<div class="nx-list-col">
@@ -1007,18 +1008,9 @@
 								<li class="nx-chip nx-chip--case">Localización sin GPS</li>
 								<li class="nx-chip nx-chip--case">Validación de eventos IoT</li>
 								<li class="nx-chip nx-chip--case">Enriquecimiento de telemetría</li>
-								<li class="nx-chip nx-chip--case">Análisis de cobertura celular</li>
 								<li class="nx-chip nx-chip--case">Seguridad vehicular</li>
-								<li class="nx-chip nx-chip--case">Rastreo alternativo</li>
-								<li class="nx-chip nx-chip--case">Plataformas de movilidad</li>
 								<li class="nx-chip nx-chip--case">Sistemas antifraude</li>
-								<li class="nx-chip nx-chip--case">Verificación territorial</li>
-								<li class="nx-chip nx-chip--case">Análisis de riesgo geográfico</li>
 								<li class="nx-chip nx-chip--case">Integración con ERPs o CRMs</li>
-								<li class="nx-chip nx-chip--case">Monitoreo de activos</li>
-								<li class="nx-chip nx-chip--case">Inteligencia para operadores</li>
-								<li class="nx-chip nx-chip--case">Backups de ubicación</li>
-								<li class="nx-chip nx-chip--case">APIs para terceros</li>
 							</ul>
 						</div>
 					</div>
@@ -1042,6 +1034,7 @@
 			</div>
 		</div>
 	</article>
+	</div>
 </section>
 
 <div class="section-sep"></div>
@@ -4377,7 +4370,7 @@
 		padding: 6rem 0;
 		position: relative;
 		overflow: hidden;
-		background: #ffffff;
+		background: #eceff2;
 	}
 	.nexus-head {
 		position: relative;
@@ -4433,14 +4426,18 @@
 		outline-offset: 2px;
 	}
 
-	/* Tarjeta-marco (el fondo cambia según el producto activo) */
+	/* Shell: centra la tarjeta + reveal de scroll */
+	.nx-card-shell {
+		width: min(2400px, 92vw);
+		margin: 0 auto;
+	}
+	/* Tarjeta-marco (el fondo cambia según el producto) */
 	.nx-card {
 		position: relative;
 		z-index: 1;
 		overflow: hidden;
-		width: min(2400px, 92vw);
+		width: 100%;
 		min-height: min(86vh, 920px);
-		margin: 0 auto;
 		padding: clamp(2rem, 4vw, 4.5rem);
 		border: 1px solid rgba(244, 241, 232, 0.55);
 		border-radius: clamp(20px, 2vw, 32px);
@@ -4448,36 +4445,53 @@
 			background 0.4s ease,
 			box-shadow 0.4s ease;
 	}
+	/* Capa de fondo (parallax con el mouse) — sobredimensionada para no revelar bordes */
+	.nx-bg {
+		position: absolute;
+		inset: -14%;
+		z-index: 0;
+		pointer-events: none;
+		transition: transform 0.18s ease-out;
+	}
 	/* Tema Nexus (grafito-teal + verde) */
 	.nx-card[data-product='nexus'] {
-		background:
-			radial-gradient(120% 90% at 78% 38%, rgba(63, 174, 58, 0.1) 0%, transparent 55%),
-			radial-gradient(90% 80% at 50% 110%, rgba(0, 166, 192, 0.07) 0%, transparent 60%),
-			linear-gradient(165deg, #11171c 0%, #141d20 45%, #0f1518 100%);
+		background: #0f1518;
 		box-shadow:
 			inset 0 1px 0 rgba(255, 255, 255, 0.1),
 			inset 0 0 60px rgba(244, 241, 232, 0.04),
 			0 30px 80px -40px rgba(0, 0, 0, 0.6),
 			0 0 40px -10px rgba(63, 174, 58, 0.1);
 	}
+	.nx-card[data-product='nexus'] .nx-bg {
+		background:
+			linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
+			url('/img/nexus-card-bg-2.png') center / cover no-repeat,
+			#0f1518;
+		transform: translate(calc(var(--nx-mx, 0) * 70px), calc(var(--nx-my, 0) * 70px)) scale(1.08);
+	}
 	/* Tema Orion (negro mate + plata) */
 	.nx-card[data-product='orion'] {
-		background:
-			radial-gradient(120% 90% at 78% 38%, rgba(214, 222, 230, 0.12) 0%, transparent 55%),
-			radial-gradient(90% 80% at 50% 110%, rgba(176, 186, 198, 0.05) 0%, transparent 60%),
-			linear-gradient(165deg, #0c0d0f 0%, #101113 45%, #08090a 100%);
+		background: #08090a;
+		border-color: rgba(244, 241, 232, 0.28);
 		box-shadow:
 			inset 0 1px 0 rgba(255, 255, 255, 0.1),
 			inset 0 0 60px rgba(244, 241, 232, 0.03),
 			0 30px 80px -40px rgba(0, 0, 0, 0.7),
 			0 0 40px -10px rgba(214, 222, 230, 0.12);
 	}
-	/* Ruido (noise.png) en el fondo de la tarjeta */
+	.nx-card[data-product='orion'] .nx-bg {
+		background:
+			linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
+			url('/img/orion-card-bg-2.png') center / cover no-repeat,
+			#08090a;
+		transform: translate(calc(var(--nx-mx, 0) * 70px), calc(var(--nx-my, 0) * 70px)) scale(1.08);
+	}
+	/* Ruido (noise.png) sobre el fondo */
 	.nx-card::before {
 		content: '';
 		position: absolute;
 		inset: 0;
-		z-index: 0;
+		z-index: 1;
 		border-radius: inherit;
 		pointer-events: none;
 		background-image: url('/img/noise.png');
@@ -4485,11 +4499,10 @@
 		opacity: 0.09;
 		mix-blend-mode: overlay;
 	}
-
 	/* Pila de paneles: ambos en la misma celda → altura estable, crossfade */
 	.nx-panels {
 		position: relative;
-		z-index: 1;
+		z-index: 3;
 		display: grid;
 	}
 	.nx-panel {
@@ -4557,8 +4570,8 @@
 		);
 	}
 	.nx-panel--orion .nx-logo {
-		filter: drop-shadow(0 0 26px rgba(228, 234, 240, 0.5))
-			drop-shadow(0 18px 40px rgba(0, 0, 0, 0.5));
+		filter: drop-shadow(0 0 14px rgba(228, 234, 240, 0.5))
+			drop-shadow(0 14px 30px rgba(0, 0, 0, 0.5));
 	}
 	.nx-panel--orion .nx-floor {
 		background: radial-gradient(ellipse at center, rgba(228, 234, 240, 0.14) 0%, transparent 70%);
@@ -4607,6 +4620,17 @@
 		display: flex;
 		flex-direction: column;
 		min-width: 0;
+		position: relative;
+		z-index: 2;
+	}
+	.nx-panel--orion .nx-content::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: linear-gradient(to right, rgba(0, 0, 0, 0.32) 0%, rgba(0, 0, 0, 0.12) 45%, transparent 100%);
+		border-radius: inherit;
+		pointer-events: none;
 	}
 	.nx-eyebrow {
 		font-family: 'Inter', system-ui, sans-serif;
@@ -4627,6 +4651,7 @@
 		-webkit-background-clip: text;
 		background-clip: text;
 		-webkit-text-fill-color: transparent;
+		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 	}
 	.nx-subtitle {
 		font-family: 'Inter', system-ui, sans-serif;
@@ -4737,6 +4762,10 @@
 		transform: translateY(-2px);
 		opacity: 1;
 		box-shadow: 0 6px 18px -10px rgba(0, 0, 0, 0.7);
+		border-color: rgba(95, 209, 88, 0.8);
+	}
+	.nx-panel--orion .nx-chip:hover {
+		border-color: rgba(205, 213, 221, 0.8);
 	}
 
 	/* CTA */
@@ -4749,9 +4778,20 @@
 		font-family: 'Inter', system-ui, sans-serif;
 		font-size: 0.95rem;
 		font-weight: 600;
-		color: #5fd158;
+		color: #ffffff;
 		text-decoration: none;
-		border-radius: 6px;
+		border-radius: 8px;
+		padding: 0.7rem 1.4rem;
+		background: #5fd158;
+		border: 1px solid #5fd158;
+		transition: all 0.25s ease;
+		cursor: pointer;
+	}
+	.nx-cta:hover {
+		background: #6fe668;
+		border-color: #6fe668;
+		transform: translateY(-2px);
+		box-shadow: 0 8px 16px rgba(95, 209, 88, 0.28);
 	}
 	.nx-cta:focus-visible {
 		outline: 2px solid #5fd158;
@@ -4763,6 +4803,16 @@
 	}
 	.nx-cta:hover .nx-cta-arrow {
 		transform: translateX(4px);
+	}
+	.nx-panel--orion .nx-cta {
+		background: #d7dde4;
+		color: #08090a;
+		border-color: #d7dde4;
+	}
+	.nx-panel--orion .nx-cta:hover {
+		background: #ffffff;
+		border-color: #ffffff;
+		box-shadow: 0 8px 16px rgba(200, 210, 220, 0.28);
 	}
 
 	/* Right stage */
@@ -4776,13 +4826,13 @@
 	.nx-halo {
 		position: absolute;
 		z-index: 2;
-		width: 120%;
+		width: 67%;
 		aspect-ratio: 1;
 		border-radius: 50%;
 		background: radial-gradient(
 			circle,
-			rgba(63, 174, 58, 0.22) 0%,
-			rgba(0, 166, 192, 0.08) 40%,
+			rgba(63, 174, 58, 0.18) 0%,
+			rgba(0, 166, 192, 0.06) 40%,
 			transparent 70%
 		);
 		filter: blur(10px);
@@ -4795,12 +4845,12 @@
 	.nx-logo {
 		position: relative;
 		z-index: 3;
-		width: clamp(240px, 26vw, 460px);
+		width: clamp(230px, 24vw, 420px);
 		aspect-ratio: 1;
 		object-fit: contain;
 		cursor: pointer;
-		filter: drop-shadow(0 0 28px rgba(63, 174, 58, 0.35))
-			drop-shadow(0 18px 40px rgba(0, 0, 0, 0.45));
+		filter: drop-shadow(0 0 14px rgba(63, 174, 58, 0.32))
+			drop-shadow(0 14px 30px rgba(0, 0, 0, 0.45));
 		transition: transform 0.3s ease;
 	}
 	.nx-logo:hover {
@@ -4891,6 +4941,10 @@
 		.nx-orion-fx span {
 			animation: none;
 			opacity: 0;
+		}
+		.nx-bg {
+			transform: none !important;
+			transition: none;
 		}
 	}
 </style>
