@@ -728,6 +728,12 @@
 
 	<HeroParticles />
 
+	<!-- Logo estático — solo visible en móvil -->
+	<div class="hero-mobile-logo" aria-label="Geminis Labs">
+		<img src="/img/geminis-labs-logo-short.png" alt="Geminis Labs" class="hero-mobile-logo-img" />
+		<span class="hero-mobile-logo-text">GEMINIS LABS</span>
+	</div>
+
 	<div class="hero-text-overlay" style="transform: translateY({isMobile ? 0 : scrollY * 0.08}px)">
 		<div class="hero-label" aria-hidden="true">// GEMINIS LABS · AI &amp; CONNECTIVITY</div>
 		<HeroTitle />
@@ -2911,7 +2917,15 @@
 			max-width: none;
 		}
 		.lab-title-media {
-			min-height: 200px;
+			min-height: auto;
+			padding: 2rem 1.5rem;
+			border-radius: 14px;
+			background: rgba(0, 166, 192, 0.06);
+			border: 1px solid rgba(0, 166, 192, 0.15);
+		}
+		.lab-title-video,
+		.lab-title-scrim {
+			display: none;
 		}
 		.lab-bulb {
 			max-width: 230px;
@@ -4877,14 +4891,53 @@
 		margin-top: 0.25rem;
 	}
 
+	/* ── Hero móvil: solo logo centrado ──────────────────────── */
+	.hero-mobile-logo {
+		display: none; /* oculto en desktop */
+	}
+
 	@media (max-width: 600px) {
-		.hero-text-overlay {
-			padding: 0 1.25rem 6vh;
-			gap: 1rem;
+		/* Ocultar todas las capas animadas y el canvas de título */
+		:global(.glitch-canvas),
+		:global(.hero-canvas-wrap),
+		:global(.hero-title-canvas) {
+			display: none !important;
 		}
-		.hero-particle-buttons {
+		.hero-bg-video,
+		.hero-vignette,
+		.hero-video-fade,
+		.hero-video-bottom-fade,
+		.hero-scanlines,
+		.hero-right-glow,
+		.hero-text-overlay {
+			display: none !important;
+		}
+
+		/* Logo centrado */
+		.hero-mobile-logo {
+			display: flex;
 			flex-direction: column;
 			align-items: center;
+			justify-content: center;
+			gap: 1rem;
+			position: absolute;
+			inset: 0;
+			z-index: 10;
+		}
+
+		.hero-mobile-logo-img {
+			width: 72px;
+			height: 72px;
+			object-fit: contain;
+			filter: drop-shadow(0 0 18px rgba(0, 166, 192, 0.55));
+		}
+
+		.hero-mobile-logo-text {
+			font-family: 'Audiowide', sans-serif;
+			font-size: 1.35rem;
+			letter-spacing: 0.12em;
+			color: #ffffff;
+			text-shadow: 0 0 24px rgba(0, 166, 192, 0.4);
 		}
 	}
 
@@ -5806,33 +5859,67 @@
 
 	/* Mobile */
 	@media (max-width: 639px) {
+		/* Reset the global section { min-height: 100vh; align-items: center } */
 		.futuro-section {
-			padding: 3rem 0 4rem;
+			min-height: auto !important;
+			align-items: flex-start !important;
+			padding: 2.5rem 0 3rem;
 		}
 
 		.futuro-content {
 			padding: 0 1rem;
+			width: 100%;
+			flex-direction: column;
 		}
 
+		/* Ocultar solo video y overlays — el título se muestra sobre el panel */
+		.futuro-video,
+		.futuro-dark-overlay,
+		.futuro-black-cover {
+			display: none;
+		}
+
+		/* Título en flujo normal, encima del panel de texto */
 		.futuro-title-overlay {
-			right: 0;
-			bottom: auto;
-			padding: 1.5rem 1.25rem;
+			display: block !important;
+			position: static !important;
+			width: 100% !important;
+			padding: 0 0 1.25rem;
+			background: none;
 		}
 
 		.futuro-title {
-			font-size: 1.4rem;
-			max-width: 70%;
+			font-size: 1.55rem !important;
+			line-height: 1.25;
+		}
+
+		/* El contenedor colapsa sin video — lo quitamos del flow */
+		.futuro-video-container {
+			position: static !important;
+			width: 100% !important;
+			aspect-ratio: unset !important;
+			height: auto !important;
+			overflow: visible !important;
+			box-shadow: none !important;
+			border-radius: 0 !important;
 		}
 
 		.futuro-text-panel {
-			position: static;
-			width: 100%;
+			position: relative !important;
+			left: auto !important;
+			right: auto !important;
+			top: auto !important;
+			bottom: auto !important;
+			width: 100% !important;
+			max-width: 100% !important;
 			padding: 1.75rem 1.25rem;
 			border-left: none;
-			border-top: 1px solid rgba(0, 166, 192, 0.3);
+			border-top: none;
+			border-radius: 16px;
 			margin-top: 0;
-			background: rgba(10, 18, 30, 0.96);
+			background: rgba(10, 18, 30, 0.85);
+			border: 1px solid rgba(0, 166, 192, 0.18);
+			box-sizing: border-box !important;
 		}
 
 		.futuro-text-content {
