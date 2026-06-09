@@ -45,7 +45,12 @@
 		},
 		{
 			href: '#servicios',
-			label: 'Servicios',
+			label: 'Nosotros',
+			icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'
+		},
+		{
+			href: '#tecnologias',
+			label: 'Ecosistema',
 			icon: 'M13 10V3L4 14h7v7l9-11h-7z'
 		},
 		{
@@ -54,9 +59,9 @@
 			icon: 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4'
 		},
 		{
-			href: '#nosotros',
-			label: 'Nosotros',
-			icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'
+			href: '#futuro',
+			label: 'Futuro',
+			icon: 'M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z'
 		},
 		{
 			href: '#contacto',
@@ -173,7 +178,7 @@
 
 	<!-- Footer del drawer -->
 	<div class="drawer-footer">
-		<div class="drawer-footer-copy">© 2025 Geminis Labs · Todos los derechos reservados</div>
+		<div class="drawer-footer-copy">© 2026 Geminis Labs · Todos los derechos reservados</div>
 	</div>
 </aside>
 

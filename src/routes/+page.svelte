@@ -69,8 +69,35 @@
 	// Video del futuro: textos secuenciales
 	let futuroVideo;
 	let currentTextIndex = 0;
+	let exitingTextIndex = -1;
 	let futuroTextInterval;
-	let videoFadingOut = false;
+	let videoFadeState = ''; // '' | 'out' | 'in'
+	let futuroProgressKey = 0; // fuerza recrear la barra de progreso en cada cambio
+
+	function _futuroReveal(node) {
+		const show = () => node.classList.add('futuro-in-view');
+		// fallback: siempre visible después de 200ms aunque el observer no dispare
+		const fallback = setTimeout(show, 200);
+		const observer = new IntersectionObserver(
+			(entries) => {
+				entries.forEach((entry) => {
+					if (entry.isIntersecting) {
+						show();
+						clearTimeout(fallback);
+						observer.unobserve(node);
+					}
+				});
+			},
+			{ threshold: 0 }
+		);
+		observer.observe(node);
+		return {
+			destroy() {
+				observer.disconnect();
+				clearTimeout(fallback);
+			}
+		};
+	}
 
 	const futuroTextos = [
 		{
@@ -101,15 +128,23 @@
 
 	function onFuturoVideoEnded() {
 		if (!futuroVideo) return;
-		videoFadingOut = true;
 		futuroVideo.pause();
+		// 1. Fade a oscuro en 800ms
+		videoFadeState = 'out';
 		setTimeout(() => {
-			if (futuroVideo) {
-				futuroVideo.currentTime = 0;
-				videoFadingOut = false;
+			if (!futuroVideo) return;
+			// 2. Mantener oscuro 2s y rebobinar
+			futuroVideo.currentTime = 0;
+			setTimeout(() => {
+				if (!futuroVideo) return;
+				// 3. Fade-in rápido en 400ms
+				videoFadeState = 'in';
 				futuroVideo.play().catch(() => {});
-			}
-		}, 1500);
+				setTimeout(() => {
+					videoFadeState = '';
+				}, 400);
+			}, 2000);
+		}, 800);
 	}
 
 	// Áreas (badges) con efecto hover de cuadros a negro + descripción
@@ -290,8 +325,13 @@
 			futuroVideo.play().catch(() => {});
 		}
 		futuroTextInterval = setInterval(() => {
+			exitingTextIndex = currentTextIndex;
+			setTimeout(() => {
+				exitingTextIndex = -1;
+			}, 400);
 			currentTextIndex = (currentTextIndex + 1) % futuroTextos.length;
-		}, 5000); // Cambia cada 5 segundos
+			futuroProgressKey += 1;
+		}, 5000);
 
 		// Cargar el script de reCAPTCHA v3
 		if (recaptchaSiteKey) {
@@ -1065,7 +1105,7 @@
 							</div>
 						</div>
 
-						<a class="nx-cta" href="/products/orion">
+						<a class="nx-cta" href="https://orion.geminislabs.com/">
 							Explorar Orion <span class="nx-cta-arrow" aria-hidden="true">→</span>
 						</a>
 					</div>
@@ -1073,7 +1113,7 @@
 					<div class="nx-stage" aria-hidden="true">
 						<span class="nx-halo"></span>
 						<a
-							href="/products/orion"
+							href="https://orion.geminislabs.com/"
 							class="nx-logo-link"
 							tabindex={activeProduct === 'orion' ? 0 : -1}
 						>
@@ -1157,38 +1197,85 @@
 
 <!-- Sección El Futuro que Estamos Construyendo -->
 <section id="futuro" class="futuro-section">
+	<div class="futuro-bg" aria-hidden="true">
+		<div class="futuro-orb futuro-orb-1"></div>
+		<div class="futuro-orb futuro-orb-2"></div>
+		<div class="futuro-orb futuro-orb-3"></div>
+		<div class="futuro-noise"></div>
+	</div>
 	<div class="futuro-content">
-		<!-- Video Container with Title and Text Overlay -->
-		<div class="futuro-video-container">
-			<!-- Video -->
+		<!-- Video Container with all overlays -->
+		<div class="futuro-video-container" use:_futuroReveal>
+			<!-- Video (sin loop — manejamos el loop manualmente para el fade) -->
 			<video
 				bind:this={futuroVideo}
 				class="futuro-video"
-				class:fade-to-black={videoFadingOut}
 				muted
-				loop
 				playsinline
 				on:ended={onFuturoVideoEnded}
 			>
 				<source src="/vid/futuro-mapa.mp4" type="video/mp4" />
 			</video>
 
-			<!-- Dark Overlay Layer -->
-			<div class="futuro-dark-overlay" class:fade-to-black={videoFadingOut}></div>
+			<!-- Dark Overlay Layer: vignette + gradients -->
+			<div class="futuro-dark-overlay"></div>
 
-			<!-- Title Overlay -->
+			<!-- Cover image que aparece al terminar el video -->
+			<div
+				class="futuro-black-cover"
+				style="opacity: {videoFadeState === 'out' ? 1 : 0}; transition: opacity {videoFadeState ===
+				'out'
+					? '0.8s ease-in'
+					: '0.4s ease-out'};"
+			>
+				<img src="/img/future-bg-2.png" alt="" class="futuro-cover-img" />
+			</div>
+
+			<!-- Title Overlay (top-left) -->
 			<div class="futuro-title-overlay">
 				<h2 class="landing-section-title futuro-title">El Futuro que Estamos Construyendo</h2>
 			</div>
 
-			<!-- Sequential Text Panel -->
+			<!-- Sequential Text Panel (right, over video) -->
 			<div class="futuro-text-panel">
+				<!-- Counter -->
+				<span class="futuro-counter"
+					>{String(currentTextIndex + 1).padStart(2, '0')} / {String(futuroTextos.length).padStart(
+						2,
+						'0'
+					)}</span
+				>
+
+				<!-- Rotating text -->
 				<div class="futuro-text-content">
 					{#each futuroTextos as texto, i (i)}
-						<div class="futuro-text-item" class:is-active={currentTextIndex === i} key={i}>
+						<div
+							class="futuro-text-item"
+							class:is-active={currentTextIndex === i}
+							class:is-exiting={exitingTextIndex === i}
+						>
 							<h3 class="futuro-text-title">{texto.title}</h3>
 							<p class="futuro-text-desc">{texto.desc}</p>
 						</div>
+					{/each}
+				</div>
+
+				<!-- Progress bar: 6 interactive segments -->
+				<div class="futuro-progress-bar" aria-label="Progreso de contenido">
+					{#each futuroTextos as _, i (i)}
+						<button
+							class="futuro-progress-seg"
+							class:is-active={currentTextIndex === i}
+							on:click={() => {
+								currentTextIndex = i;
+								futuroProgressKey += 1;
+							}}
+							aria-label="Ir al elemento {i + 1}"
+						>
+							{#if currentTextIndex === i}
+								<span class="futuro-progress-fill" key={futuroProgressKey}></span>
+							{/if}
+						</button>
 					{/each}
 				</div>
 			</div>
@@ -1196,42 +1283,26 @@
 	</div>
 </section>
 
-<!-- Sección Nuestra Visión -->
-<section id="vision" class="vision-section">
-	<div class="container">
-		<div class="vision-content">
-			<h2 class="landing-section-title">Nuestra Visión</h2>
-			<div class="vision-text-block">
-				<p class="vision-lead">
-					Geminis Labs nace con una ambición simple: construir tecnología capaz de entender mejor el
-					mundo físico.
-				</p>
-				<p>
-					Comenzamos en geolocalización, conectividad y análisis espacial porque creemos que el
-					movimiento es una de las fuentes más valiosas de información.
-				</p>
-				<p>Pero nuestra visión va más allá.</p>
-				<p>
-					Queremos desarrollar productos donde converjan inteligencia artificial, infraestructura
-					digital, datos, automatización y sistemas conectados para resolver problemas reales a
-					escala.
-				</p>
-				<p class="vision-closing">
-					No estamos construyendo una sola herramienta.<br />
-					<strong>Estamos construyendo un ecosistema tecnológico.</strong>
-				</p>
-			</div>
-			<div class="vision-cta">
-				<a href="#contacto" class="btn-primary">Construye con nosotros</a>
-			</div>
-		</div>
-	</div>
-</section>
-
 <!-- Sección Contacto -->
 <section id="contacto" class="contact-section">
+	<!-- Fondo imagen flujos de luz (overlay sutil) -->
+	<div class="contact-bg" aria-hidden="true"></div>
+	<!-- Orb ambiental cyan -->
+	<div class="contact-orb" aria-hidden="true"></div>
+	<!-- Scan-line decorativa -->
+	<div class="contact-scan-line" aria-hidden="true"></div>
+
 	<div class="container">
-		<h2 class="landing-section-title">Contacto</h2>
+		<div class="contact-header">
+			<span class="contact-eyebrow">// INICIA UNA CONVERSACIÓN</span>
+			<h2 class="landing-section-title contact-heading">
+				De la señal a la decisión<br />— empieza aquí
+			</h2>
+			<p class="contact-intro">
+				Cuéntanos tu proyecto. Nuestro equipo responde en menos de 24 horas.
+			</p>
+		</div>
+
 		<div class="contact-content">
 			<div class="contact-info">
 				<h3>Información de Contacto</h3>
@@ -1248,7 +1319,7 @@
 							d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
 						/>
 					</svg>
-					<p>+52 55 1234 5678</p>
+					<p>+52 442 46 77 127</p>
 				</div>
 				<div class="contact-item">
 					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -1300,6 +1371,19 @@
 								/>
 							</svg>
 						</a>
+						<a
+							href="https://www.instagram.com/geminislabs_official/"
+							class="social-link"
+							aria-label="Síguenos en Instagram"
+							target="_blank"
+							rel="noopener noreferrer"
+						>
+							<svg viewBox="0 0 24 24" fill="currentColor">
+								<path
+									d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"
+								/>
+							</svg>
+						</a>
 					</div>
 				</div>
 			</div>
@@ -1319,32 +1403,33 @@
 					</div>
 				{/if}
 
-				<div class="form-group">
-					<input
-						type="text"
-						placeholder="Nombre completo *"
-						bind:value={formData.nombre}
-						maxlength="200"
-						class:error={formErrors.nombre}
-						disabled={isSubmitting}
-					/>
-					{#if formErrors.nombre}
-						<span class="error-text">{formErrors.nombre}</span>
-					{/if}
-					<span class="char-count">{formData.nombre.length}/200</span>
-				</div>
+				<div class="form-row">
+					<div class="form-group">
+						<input
+							type="text"
+							placeholder="Nombre completo *"
+							bind:value={formData.nombre}
+							maxlength="200"
+							class:error={formErrors.nombre}
+							disabled={isSubmitting}
+						/>
+						{#if formErrors.nombre}
+							<span class="error-text">{formErrors.nombre}</span>
+						{/if}
+					</div>
 
-				<div class="form-group">
-					<input
-						type="email"
-						placeholder="Correo electrónico"
-						bind:value={formData.correo_electronico}
-						class:error={formErrors.correo_electronico}
-						disabled={isSubmitting}
-					/>
-					{#if formErrors.correo_electronico}
-						<span class="error-text">{formErrors.correo_electronico}</span>
-					{/if}
+					<div class="form-group">
+						<input
+							type="email"
+							placeholder="Correo electrónico"
+							bind:value={formData.correo_electronico}
+							class:error={formErrors.correo_electronico}
+							disabled={isSubmitting}
+						/>
+						{#if formErrors.correo_electronico}
+							<span class="error-text">{formErrors.correo_electronico}</span>
+						{/if}
+					</div>
 				</div>
 
 				<div class="form-group">
@@ -1377,11 +1462,24 @@
 				</div>
 
 				<div class="submit-wrapper">
-					<button type="submit" class="btn-primary" disabled={isSubmitting}>
+					<button type="submit" class="btn-contact-submit" disabled={isSubmitting}>
 						{#if isSubmitting}
+							<svg
+								class="spin-icon"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								aria-hidden="true"
+							>
+								<path
+									d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"
+								/>
+							</svg>
 							Enviando...
 						{:else}
-							Enviar Mensaje
+							Iniciar conversación
+							<span class="btn-arrow" aria-hidden="true">→</span>
 						{/if}
 					</button>
 				</div>
@@ -2836,11 +2934,9 @@
 	   ============================================================ */
 	.tc-section {
 		display: block;
-		min-height: auto;
 		background: #eceff2; /* blanco menos brillante */
 		position: relative;
 		overflow: hidden;
-		padding: clamp(4rem, 8vw, 8rem) 0 clamp(3rem, 5vw, 6rem);
 	}
 	.tc-inner {
 		max-width: clamp(1200px, 92vw, 2400px);
@@ -3058,9 +3154,6 @@
 		}
 		.tc-num {
 			font-size: clamp(1.3rem, 6vw, 1.8rem);
-		}
-		.tc-section {
-			padding-bottom: clamp(2rem, 6vw, 3rem);
 		}
 		.tc-message {
 			margin-top: 2rem;
@@ -3893,8 +3986,11 @@
 		background: transparent;
 	}
 	:global(.contact-section) {
-		padding: 6rem 0 !important;
+		padding: 8rem 0 6rem !important;
 		background: transparent !important;
+		position: relative !important;
+		isolation: isolate !important;
+		overflow: hidden !important;
 	}
 
 	/* ── Tarjetas Ecosystem ──────────────────────────── */
@@ -4134,26 +4230,36 @@
 
 	/* ── Contacto glass ──────────────────────────────── */
 	:global(.contact-form) {
-		background: rgba(255, 255, 255, 0.07) !important;
-		backdrop-filter: blur(24px) saturate(180%) !important;
-		-webkit-backdrop-filter: blur(24px) saturate(180%) !important;
-		border: 1px solid rgba(255, 255, 255, 0.14) !important;
-		border-radius: 20px !important;
+		background: rgba(8, 13, 24, 0.55) !important;
+		backdrop-filter: blur(28px) saturate(180%) !important;
+		-webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+		border: 1px solid rgba(255, 255, 255, 0.1) !important;
+		border-top: 1px solid rgba(0, 166, 192, 0.4) !important;
+		border-radius: 24px !important;
 		padding: 2.5rem !important;
 		box-shadow:
-			0 10px 40px rgba(0, 0, 0, 0.32),
-			inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+			0 20px 60px rgba(0, 0, 0, 0.4),
+			0 0 0 1px rgba(0, 166, 192, 0.06),
+			inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+		transition: box-shadow 0.3s ease !important;
+	}
+	:global(.contact-form:focus-within) {
+		box-shadow:
+			0 20px 60px rgba(0, 0, 0, 0.45),
+			0 0 40px rgba(0, 166, 192, 0.08),
+			inset 0 1px 0 rgba(0, 166, 192, 0.12) !important;
 	}
 	:global(.contact-info) {
-		background: rgba(255, 255, 255, 0.06) !important;
+		background: rgba(8, 13, 24, 0.5) !important;
 		backdrop-filter: blur(20px) !important;
 		-webkit-backdrop-filter: blur(20px) !important;
-		border: 1px solid rgba(255, 255, 255, 0.12) !important;
+		border: 1px solid rgba(255, 255, 255, 0.09) !important;
+		border-top: 1px solid rgba(0, 166, 192, 0.3) !important;
 		border-radius: 20px !important;
 		padding: 2.5rem !important;
 		box-shadow:
-			0 8px 32px rgba(0, 0, 0, 0.28),
-			inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+			0 8px 32px rgba(0, 0, 0, 0.3),
+			inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 	}
 
 	/* ── Tech showcase (Quiénes Somos visual) ────────── */
@@ -4186,6 +4292,233 @@
 	}
 	:global(.services-section) {
 		background: transparent !important;
+	}
+
+	/* ── Contacto: elementos decorativos y header ────── */
+	.contact-bg {
+		position: absolute;
+		inset: 0;
+		background-image: url('/img/contact-bg.png');
+		background-size: cover;
+		background-position: center center;
+		/* fixed: la imagen se ancla al viewport, no escala con la altura de la sección */
+		background-attachment: fixed;
+		opacity: 0.1;
+		mix-blend-mode: screen;
+		z-index: -1;
+		pointer-events: none;
+	}
+	/* background-attachment: fixed no funciona en iOS — desactivar en mobile */
+	@media (max-width: 768px) {
+		.contact-bg {
+			background-attachment: scroll;
+			background-position: center 30%;
+		}
+	}
+	.contact-orb {
+		position: absolute;
+		width: 600px;
+		height: 600px;
+		border-radius: 50%;
+		background: radial-gradient(circle, rgba(0, 166, 192, 0.1) 0%, transparent 70%);
+		filter: blur(80px);
+		top: -150px;
+		right: -100px;
+		z-index: -1;
+		pointer-events: none;
+		animation: contact-orb-float 12s ease-in-out infinite alternate;
+	}
+	@keyframes contact-orb-float {
+		from {
+			transform: translate(0, 0) scale(1);
+		}
+		to {
+			transform: translate(-40px, 50px) scale(1.1);
+		}
+	}
+	@keyframes contact-scan-move {
+		0% {
+			transform: translateY(-100%);
+			opacity: 0;
+		}
+		8% {
+			opacity: 1;
+		}
+		92% {
+			opacity: 1;
+		}
+		100% {
+			transform: translateY(120vh);
+			opacity: 0;
+		}
+	}
+	.contact-scan-line {
+		position: absolute;
+		left: 0;
+		right: 0;
+		height: 1px;
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(0, 166, 192, 0.4) 20%,
+			rgba(0, 200, 230, 0.7) 50%,
+			rgba(0, 166, 192, 0.4) 80%,
+			transparent 100%
+		);
+		animation: contact-scan-move 10s linear infinite;
+		pointer-events: none;
+		z-index: 0;
+	}
+	/* Línea superior divisora */
+	:global(.contact-section)::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 10%;
+		right: 10%;
+		height: 1px;
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(0, 166, 192, 0.35) 30%,
+			rgba(0, 166, 192, 0.6) 50%,
+			rgba(0, 166, 192, 0.35) 70%,
+			transparent 100%
+		);
+		z-index: 1;
+	}
+	.contact-header {
+		text-align: center;
+		margin-bottom: 4rem;
+	}
+	.contact-eyebrow {
+		display: inline-block;
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.2em;
+		text-transform: uppercase;
+		color: #00a6c0;
+		margin-bottom: 1.25rem;
+		border-left: 2px solid #00a6c0;
+		padding-left: 0.75rem;
+	}
+	.contact-heading {
+		font-size: clamp(2rem, 4vw, 3.2rem) !important;
+		margin-bottom: 1rem !important;
+	}
+	.contact-intro {
+		font-size: 1.05rem;
+		color: rgba(216, 215, 204, 0.7);
+		max-width: 480px;
+		margin: 0 auto;
+		line-height: 1.6;
+	}
+
+	/* ── Fila doble nombre + correo ────────────────── */
+	.form-row {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+	}
+	@media (max-width: 600px) {
+		.form-row {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	/* ── Botón submit mejorado ─────────────────────── */
+	.btn-contact-submit {
+		width: 100%;
+		padding: 1rem 2rem;
+		background: linear-gradient(135deg, #00a6c0 0%, #0086a0 100%);
+		color: #fff;
+		font-family: inherit;
+		font-size: 1rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		border: none;
+		border-radius: 10px;
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.6rem;
+		position: relative;
+		overflow: hidden;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
+		box-shadow:
+			0 4px 20px rgba(0, 166, 192, 0.35),
+			inset 0 1px 0 rgba(255, 255, 255, 0.18);
+	}
+	.btn-contact-submit:hover:not(:disabled) {
+		background: linear-gradient(135deg, #00c0dd 0%, #00a6c0 100%);
+		transform: translateY(-2px);
+		box-shadow:
+			0 8px 32px rgba(0, 166, 192, 0.5),
+			inset 0 1px 0 rgba(255, 255, 255, 0.22);
+	}
+	.btn-contact-submit:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+		transform: none;
+	}
+	/* Shimmer sweep en hover */
+	.btn-contact-submit::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: -100%;
+		width: 60%;
+		height: 100%;
+		background: linear-gradient(
+			90deg,
+			transparent 0%,
+			rgba(255, 255, 255, 0.14) 50%,
+			transparent 100%
+		);
+		transform: skewX(-20deg);
+		transition: left 0.5s ease;
+		pointer-events: none;
+	}
+	.btn-contact-submit:hover::after {
+		left: 160%;
+	}
+	.btn-arrow {
+		font-size: 1.1rem;
+		transition: transform 0.2s ease;
+	}
+	.btn-contact-submit:hover .btn-arrow {
+		transform: translateX(4px);
+	}
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	.spin-icon {
+		width: 18px;
+		height: 18px;
+		animation: spin 1s linear infinite;
+	}
+
+	/* ── Inputs mejorados: focus con glow cyan ──────── */
+	.form-group input:focus,
+	.form-group textarea:focus {
+		border-color: rgba(0, 166, 192, 0.6) !important;
+		background: rgba(0, 166, 192, 0.06) !important;
+		box-shadow:
+			0 0 0 3px rgba(0, 166, 192, 0.1),
+			0 4px 16px rgba(0, 166, 192, 0.12) !important;
+	}
+	.form-group input,
+	.form-group textarea {
+		background: rgba(8, 13, 24, 0.6) !important;
+		caret-color: #00a6c0;
 	}
 
 	/* Responsive — ocultar orbes en mobile para perf */
@@ -4562,7 +4895,6 @@
 		align-items: center;
 		justify-content: center;
 		gap: clamp(2rem, 4vw, 3.5rem);
-		padding: 6rem 0;
 		position: relative;
 		overflow: hidden;
 		background: #eceff2;
@@ -5148,15 +5480,96 @@
 		}
 	}
 
-	/* Futuro Section */
+	/* ── Futuro Section ─────────────────────────────────────── */
 	.futuro-section {
-		background: #f5f7f9;
-		padding: 4rem 0;
+		background: #0b1220;
+		padding: 5rem 0 6rem;
 		position: relative;
+		overflow: hidden;
+	}
+
+	/* Background: orbs + noise */
+	.futuro-bg {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		z-index: 0;
+	}
+
+	.futuro-orb {
+		position: absolute;
+		border-radius: 50%;
+		filter: blur(90px);
+	}
+
+	.futuro-orb-1 {
+		width: 700px;
+		height: 700px;
+		top: -200px;
+		left: -150px;
+		background: radial-gradient(circle, rgba(0, 166, 192, 0.22) 0%, transparent 65%);
+		animation: futuro-drift-1 22s ease-in-out infinite;
+	}
+
+	.futuro-orb-2 {
+		width: 500px;
+		height: 500px;
+		bottom: -100px;
+		right: -80px;
+		background: radial-gradient(circle, rgba(33, 230, 140, 0.14) 0%, transparent 65%);
+		animation: futuro-drift-2 28s ease-in-out infinite;
+		animation-delay: -10s;
+	}
+
+	.futuro-orb-3 {
+		width: 400px;
+		height: 400px;
+		top: 40%;
+		left: 40%;
+		background: radial-gradient(circle, rgba(59, 91, 219, 0.12) 0%, transparent 65%);
+		animation: futuro-drift-1 34s ease-in-out infinite reverse;
+		animation-delay: -18s;
+	}
+
+	@keyframes futuro-drift-1 {
+		0%,
+		100% {
+			transform: translate(0, 0) scale(1);
+		}
+		33% {
+			transform: translate(40px, -50px) scale(1.07);
+		}
+		66% {
+			transform: translate(-30px, 40px) scale(0.93);
+		}
+	}
+
+	@keyframes futuro-drift-2 {
+		0%,
+		100% {
+			transform: translate(0, 0) scale(1);
+		}
+		40% {
+			transform: translate(-50px, 30px) scale(1.05);
+		}
+		70% {
+			transform: translate(35px, -40px) scale(0.96);
+		}
+	}
+
+	.futuro-noise {
+		position: absolute;
+		inset: 0;
+		background-image: url('/img/noise.png');
+		background-repeat: repeat;
+		background-size: 180px 180px;
+		opacity: 0.045;
+		mix-blend-mode: overlay;
 	}
 
 	.futuro-content {
 		position: relative;
+		z-index: 1;
 		max-width: 1400px;
 		margin: 0 auto;
 		padding: 0 2rem;
@@ -5168,7 +5581,19 @@
 		aspect-ratio: 16 / 9;
 		border-radius: 16px;
 		overflow: hidden;
-		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 32px 80px rgba(0, 0, 0, 0.5);
+		animation: futuroReveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+	}
+
+	@keyframes futuroReveal {
+		from {
+			opacity: 0;
+			transform: translateY(24px) scale(0.98);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0) scale(1);
+		}
 	}
 
 	.futuro-video {
@@ -5176,70 +5601,73 @@
 		height: 100%;
 		object-fit: cover;
 		display: block;
-		opacity: 1;
 		transition: opacity 1.5s ease;
 	}
 
-	.futuro-video.fade-to-black {
-		opacity: 0;
+	.futuro-black-cover {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		pointer-events: none;
+		overflow: hidden;
 	}
 
-	/* Dark Overlay - Edges Vignette + Ambient */
-	.futuro-dark-overlay {
-		position: absolute;
-		top: 0;
-		left: 0;
+	.futuro-cover-img {
 		width: 100%;
 		height: 100%;
+		object-fit: cover;
+		object-position: center;
+		display: block;
+	}
+
+	/* Dark Overlay: vignette perimetral + gradiente derecho denso + tono de marca */
+	.futuro-dark-overlay {
+		position: absolute;
+		inset: 0;
 		background:
-			radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0.5) 100%),
-			linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, transparent 40%),
-			linear-gradient(225deg, rgba(0, 0, 0, 0.3) 0%, transparent 40%),
-			linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, transparent 20%);
+			radial-gradient(ellipse at center, transparent 20%, rgba(0, 0, 0, 0.55) 100%),
+			linear-gradient(
+				to left,
+				rgba(0, 15, 25, 0.78) 0%,
+				rgba(0, 15, 25, 0.12) 50%,
+				transparent 65%
+			),
+			linear-gradient(135deg, rgba(0, 30, 40, 0.45) 0%, transparent 45%),
+			linear-gradient(to bottom, rgba(0, 0, 0, 0.25) 0%, transparent 18%);
 		pointer-events: none;
 		z-index: 1;
+		transition: background-color 1.5s ease;
 	}
 
-	.futuro-dark-overlay.fade-to-black {
-		animation: fadeToBlack 1.5s ease-in-out forwards;
-	}
-
-	@keyframes fadeToBlack {
-		0% {
-			background-color: transparent;
-		}
-		100% {
-			background-color: rgba(0, 0, 0, 1);
-		}
-	}
-
-	/* Title Overlay */
+	/* Title Overlay – top-left */
 	.futuro-title-overlay {
 		position: absolute;
 		top: 0;
 		left: 0;
-		width: 100%;
-		height: 100%;
+		right: 55%;
+		bottom: 0;
 		display: flex;
+		flex-direction: column;
 		align-items: flex-start;
-		justify-content: flex-start;
-		padding: 4rem 3rem;
-		z-index: 2;
+		gap: 1.5rem;
+		padding: 3.5rem 3rem;
+		z-index: 4;
 		pointer-events: none;
 	}
 
 	.futuro-title {
-		font-size: clamp(2rem, 4vw, 3.2rem);
+		font-size: clamp(1.8rem, 3.5vw, 3rem);
 		font-weight: 700;
-		letter-spacing: -1px;
+		letter-spacing: -0.5px;
 		margin: 0;
-		max-width: 50%;
 		color: #ffffff;
-		text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-		line-height: 1.2;
+		text-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+		line-height: 1.15;
+		border-left: 3px solid #00a6c0;
+		padding-left: 1rem;
 	}
 
-	/* Text Panel */
+	/* Text Panel – right side, over video */
 	.futuro-text-panel {
 		position: absolute;
 		right: 0;
@@ -5250,20 +5678,33 @@
 		flex-direction: column;
 		justify-content: center;
 		padding: 3rem;
-		z-index: 3;
+		z-index: 4;
+		border-left: 1px solid rgba(0, 166, 192, 0.2);
+	}
+
+	.futuro-counter {
+		display: block;
+		font-size: 0.75rem;
+		font-weight: 500;
+		letter-spacing: 0.1em;
+		color: rgba(255, 255, 255, 0.4);
+		margin-bottom: 1.25rem;
+		font-variant-numeric: tabular-nums;
 	}
 
 	.futuro-text-content {
 		position: relative;
-		height: 200px;
+		min-height: 160px;
 	}
 
 	.futuro-text-item {
 		position: absolute;
 		width: 100%;
 		opacity: 0;
-		transform: translateY(20px);
-		transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+		transform: translateY(12px);
+		transition:
+			opacity 0.5s ease,
+			transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 		pointer-events: none;
 	}
 
@@ -5273,28 +5714,80 @@
 		pointer-events: auto;
 	}
 
+	.futuro-text-item.is-exiting {
+		opacity: 0;
+		transform: translateY(-12px);
+		transition:
+			opacity 0.35s ease,
+			transform 0.35s ease-in;
+	}
+
 	.futuro-text-title {
-		font-size: clamp(1.4rem, 2.5vw, 1.8rem);
+		font-size: clamp(1.3rem, 2.2vw, 1.7rem);
 		font-weight: 700;
-		color: #ffffff;
-		margin: 0 0 0.8rem 0;
-		letter-spacing: -0.3px;
-		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+		color: #21e68c;
+		margin: 0 0 0.75rem 0;
+		letter-spacing: 0.02em;
+		text-shadow:
+			0 0 20px rgba(33, 230, 140, 0.3),
+			0 2px 8px rgba(0, 0, 0, 0.7);
 	}
 
 	.futuro-text-desc {
-		font-size: clamp(0.9rem, 1.5vw, 1rem);
-		color: #f0f0f0;
-		line-height: 1.6;
+		font-size: clamp(0.88rem, 1.4vw, 0.98rem);
+		color: rgba(240, 240, 240, 0.88);
+		line-height: 1.65;
 		margin: 0;
-		text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+		text-shadow:
+			0 1px 4px rgba(0, 0, 0, 0.8),
+			0 0 12px rgba(0, 0, 0, 0.6);
+	}
+
+	/* Progress bar: 6 interactive segments */
+	.futuro-progress-bar {
+		display: flex;
+		gap: 5px;
+		margin-top: 1.75rem;
+	}
+
+	.futuro-progress-seg {
+		flex: 1;
+		height: 3px;
+		background: rgba(255, 255, 255, 0.15);
+		border: none;
+		cursor: pointer;
+		border-radius: 2px;
+		padding: 0;
+		position: relative;
+		overflow: hidden;
+		transition: background 0.3s;
+	}
+
+	.futuro-progress-seg:hover {
+		background: rgba(255, 255, 255, 0.3);
+	}
+
+	.futuro-progress-fill {
+		position: absolute;
+		inset: 0;
+		background: #00a6c0;
+		transform-origin: left;
+		animation: seg-fill 5s linear forwards;
+	}
+
+	@keyframes seg-fill {
+		from {
+			transform: scaleX(0);
+		}
+		to {
+			transform: scaleX(1);
+		}
 	}
 
 	/* Tablet */
 	@media (max-width: 1023px) {
 		.futuro-title {
-			font-size: 2rem;
-			max-width: 60%;
+			font-size: 1.8rem;
 		}
 
 		.futuro-text-panel {
@@ -5303,18 +5796,18 @@
 		}
 
 		.futuro-text-title {
-			font-size: 1.4rem;
+			font-size: 1.3rem;
 		}
 
 		.futuro-text-desc {
-			font-size: 0.9rem;
+			font-size: 0.88rem;
 		}
 	}
 
 	/* Mobile */
 	@media (max-width: 639px) {
 		.futuro-section {
-			padding: 2rem 0;
+			padding: 3rem 0 4rem;
 		}
 
 		.futuro-content {
@@ -5322,34 +5815,32 @@
 		}
 
 		.futuro-title-overlay {
-			padding: 2rem 1.5rem;
+			right: 0;
+			bottom: auto;
+			padding: 1.5rem 1.25rem;
 		}
 
 		.futuro-title {
-			font-size: 1.5rem;
-			max-width: 100%;
-		}
-
-		.futuro-video-container {
-			aspect-ratio: 16 / 9;
-			border-radius: 12px;
+			font-size: 1.4rem;
+			max-width: 70%;
 		}
 
 		.futuro-text-panel {
 			position: static;
 			width: 100%;
-			padding: 2rem;
-			background: rgba(10, 30, 40, 0.95);
-			margin-top: 2rem;
+			padding: 1.75rem 1.25rem;
+			border-left: none;
+			border-top: 1px solid rgba(0, 166, 192, 0.3);
+			margin-top: 0;
+			background: rgba(10, 18, 30, 0.96);
 		}
 
 		.futuro-text-content {
-			height: 130px;
+			min-height: 120px;
 		}
 
 		.futuro-text-title {
-			font-size: 1.2rem;
-			margin-bottom: 0.5rem;
+			font-size: 1.15rem;
 		}
 
 		.futuro-text-desc {

@@ -24,7 +24,11 @@
 				<h4 class="footer-col-title">Productos</h4>
 				<ul class="footer-links">
 					<li><a href="/products/nexus">Nexus</a></li>
-					<li><a href="/products/orion">Orion</a></li>
+					<li>
+						<a href="https://orion.geminislabs.com/" target="_blank" rel="noopener noreferrer"
+							>Orion</a
+						>
+					</li>
 				</ul>
 			</div>
 
@@ -32,7 +36,7 @@
 			<div class="footer-col">
 				<h4 class="footer-col-title">Empresa</h4>
 				<ul class="footer-links">
-					<li><a href={getLinkHref('#nosotros')}>Quiénes Somos</a></li>
+					<li><a href={getLinkHref('#existimos')}>Quiénes Somos</a></li>
 					<li><a href={getLinkHref('#contacto')}>Contacto</a></li>
 				</ul>
 			</div>
