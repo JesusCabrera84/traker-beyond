@@ -66,6 +66,51 @@
 		titleRewindRAF = requestAnimationFrame(step);
 	}
 
+	// Video del futuro: textos secuenciales
+	let futuroVideo;
+	let currentTextIndex = 0;
+	let futuroTextInterval;
+	let videoFadingOut = false;
+
+	const futuroTextos = [
+		{
+			title: 'Señales móviles',
+			desc: 'Capturamos señales del mundo real para ampliar cobertura, precisión y contexto.'
+		},
+		{
+			title: 'Localización híbrida',
+			desc: 'Ubicación basada en GPS, celdas, WiFi y contexto geoespacial.'
+		},
+		{
+			title: 'Contexto geoespacial',
+			desc: 'Convertimos coordenadas en significado: zonas, patrones, cercanía y comportamiento.'
+		},
+		{
+			title: 'Inteligencia de riesgo',
+			desc: 'Detectamos anomalías, zonas críticas y señales relevantes antes de que sea tarde.'
+		},
+		{
+			title: 'Red resiliente',
+			desc: 'Infraestructura IoT de largo alcance para escenarios donde la conectividad tradicional no basta.'
+		},
+		{
+			title: 'Modelos predictivos',
+			desc: 'Anticipamos eventos y transformamos comportamiento en decisiones accionables.'
+		}
+	];
+
+	function onFuturoVideoEnded() {
+		if (!futuroVideo) return;
+		videoFadingOut = true;
+		setTimeout(() => {
+			if (futuroVideo) {
+				futuroVideo.currentTime = 0;
+				videoFadingOut = false;
+				futuroVideo.play().catch(() => {});
+			}
+		}, 1500);
+	}
+
 	// Áreas (badges) con efecto hover de cuadros a negro + descripción
 	let hoveredArea = null;
 	const areas = [
@@ -239,6 +284,14 @@
 			currentFeatureIndex = (currentFeatureIndex + 1) % nexusFeatures.length;
 		}, 8000); // Cambia cada 8 segundos
 
+		// Futuro Video & Text Rotation
+		if (futuroVideo) {
+			futuroVideo.play().catch(() => {});
+		}
+		futuroTextInterval = setInterval(() => {
+			currentTextIndex = (currentTextIndex + 1) % futuroTextos.length;
+		}, 5000); // Cambia cada 5 segundos
+
 		// Cargar el script de reCAPTCHA v3
 		if (recaptchaSiteKey) {
 			loadRecaptchaScript();
@@ -271,6 +324,7 @@
 			if (nexusCarouselInterval) clearInterval(nexusCarouselInterval);
 			if (nexusFeaturesInterval) clearInterval(nexusFeaturesInterval);
 			if (orionInterval) clearInterval(orionInterval);
+			if (futuroTextInterval) clearInterval(futuroTextInterval);
 		};
 	});
 
@@ -747,7 +801,6 @@
 	</div>
 </section>
 
-<div class="section-sep"></div>
 
 <!-- Sección Tecnologías que convergen -->
 <section id="tecnologias" class="tc-section" aria-labelledby="tc-title">
@@ -841,7 +894,6 @@
 	</div>
 </section>
 
-<div class="section-sep"></div>
 
 <!-- Sección Productos -->
 <section id="productos" class="nexus-section">
@@ -1037,319 +1089,112 @@
 	</div>
 </section>
 
-<div class="section-sep"></div>
 
-<!-- Sección Capacidades Tecnológicas -->
-<section id="capacidades" class="capabilities-section">
-	<div class="container">
-		<h2 class="landing-section-title">Capacidades Tecnológicas</h2>
-		<div class="section-description">
-			<h3>Infraestructura pensada para entornos exigentes</h3>
-		</div>
-		<div class="capabilities-grid">
-			<div class="capability-card">
-				<div class="capability-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-						<rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" />
-						<path d="M2 8h20" />
-					</svg>
-				</div>
-				<h3>Infraestructura moderna</h3>
-				<p>Arquitectura cloud diseñada para escalabilidad, resiliencia y operación continua.</p>
-			</div>
-			<div class="capability-card">
-				<div class="capability-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-						<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-						<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-					</svg>
-				</div>
-				<h3>Integración API-first</h3>
-				<p>
-					Plataformas preparadas para integrarse con sistemas empresariales, automatización y
-					terceros.
-				</p>
-			</div>
-			<div class="capability-card">
-				<div class="capability-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-						<rect x="5" y="2" width="14" height="20" rx="2" />
-						<path d="M12 18h.01" />
-						<path d="M9 6h6M9 10h6" />
-					</svg>
-				</div>
-				<h3>Web y móvil</h3>
-				<p>Experiencias consistentes en navegador, iPhone y Android.</p>
-			</div>
-			<div class="capability-card">
-				<div class="capability-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-						<polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-					</svg>
-				</div>
-				<h3>Procesamiento en tiempo real</h3>
-				<p>Captura, procesamiento y análisis de eventos con baja latencia.</p>
-			</div>
-			<div class="capability-card">
-				<div class="capability-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-						<circle cx="12" cy="12" r="10" />
-						<path
-							d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"
-						/>
-					</svg>
-				</div>
-				<h3>Inteligencia geoespacial</h3>
-				<p>
-					Modelado espacial, triangulación, análisis probabilístico y enriquecimiento contextual.
-				</p>
-			</div>
-			<div class="capability-card">
-				<div class="capability-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-						<rect x="3" y="11" width="18" height="11" rx="2" />
-						<path d="M7 11V7a5 5 0 0 1 10 0v4" />
-					</svg>
-				</div>
-				<h3>Seguridad y privacidad</h3>
-				<p>Diseño orientado a protección de datos, control de acceso y operación segura.</p>
-			</div>
-		</div>
-	</div>
-</section>
+<!-- Sección ¿Por qué existimos? -->
+<section id="existimos" class="existimos-section">
+	<div class="existimos-inner">
+		<h2 class="existimos-title">¿Por qué existimos?</h2>
 
-<div class="section-sep"></div>
+		<p class="existimos-text existimos-text-1">
+			Porque el mundo genera más señales de las que las personas pueden interpretar.
+		</p>
 
-<!-- Sección Cómo Trabajamos -->
-<section id="como-trabajamos" class="business-models-section">
-	<div class="container">
-		<h2 class="landing-section-title">Cómo Trabajamos</h2>
-		<div class="section-description">
-			<h3>Modelos de servicio adaptados a tu contexto</h3>
-		</div>
-		<div class="business-models-grid">
-			<div class="business-model-card">
-				<div class="bm-label">SaaS Platforms</div>
-				<p>Acceso por suscripción a nuestras plataformas operativas.</p>
-				<div class="bm-example">Ejemplo: <span>Nexus</span></div>
-			</div>
-			<div class="business-model-card">
-				<div class="bm-label">APIs &amp; Data Services</div>
-				<p>Servicios programables bajo consumo o volumen.</p>
-				<div class="bm-example">Ejemplo: <span>Orion</span></div>
-			</div>
-			<div class="business-model-card">
-				<div class="bm-label">Enterprise Solutions</div>
-				<p>Desarrollo e integración de soluciones personalizadas para necesidades específicas.</p>
-			</div>
-			<div class="business-model-card">
-				<div class="bm-label">Strategic Consulting</div>
-				<p>
-					Acompañamiento técnico en conectividad, IoT, infraestructura y arquitectura de producto.
-				</p>
-			</div>
-		</div>
-		<div class="bm-cta-wrapper">
-			<a href="#contacto" class="btn-secondary">Conversemos sobre tu proyecto</a>
-		</div>
-	</div>
-</section>
+		<div class="existimos-text-columns">
+			<p class="existimos-text existimos-text-2">
+				Datos, ubicaciones, eventos, movimiento, riesgo y comportamiento ocurren todo el tiempo, pero rara vez llegan con suficiente contexto para tomar buenas decisiones.
+			</p>
 
-<div class="section-sep"></div>
+			<p class="existimos-text existimos-text-3">
+				<strong>Geminis Labs existe</strong> para transformar esas señales en conocimiento útil: tecnología que ayuda a comprender mejor el entorno, proteger lo que importa y actuar con mayor claridad.
+			</p>
+		</div>
 
-<!-- Sección Quiénes Somos -->
-<section id="nosotros" class="about-section">
-	<div class="container">
-		<div class="about-content">
-			<div class="about-text">
-				<h2 class="landing-section-title">Quiénes Somos</h2>
-				<div class="section-description">
-					<h3>Tecnología donde convergen software, datos y conectividad</h3>
-					<p>
-						Geminis Labs es una empresa tecnológica mexicana enfocada en construir productos donde
-						convergen software, conectividad, datos e inteligencia geoespacial.
-					</p>
-					<p>
-						Nuestro equipo combina experiencia en telemática, telecomunicaciones, infraestructura
-						cloud, sistemas distribuidos de alta disponibilidad y desarrollo de plataformas móviles
-						y web. Diseñamos tecnología no solo para visualizar información, sino para convertir
-						datos complejos en decisiones útiles, escalables y accionables.
-					</p>
-					<p>
-						Creemos en construir productos propios con visión de largo plazo, capaces de evolucionar
-						desde soluciones concretas hasta plataformas tecnológicas de alcance global.
-					</p>
-				</div>
-				<p class="social-proof-line">
-					Construido por especialistas en telemática, telecomunicaciones e infraestructura cloud.
-					Arquitectura moderna diseñada para disponibilidad, escalabilidad y evolución continua.
-				</p>
-				<div class="differentiators-pills">
-					<span class="diff-pill">Inteligencia más allá del GPS</span>
-					<span class="diff-pill">API-first</span>
-					<span class="diff-pill">Tecnología propia</span>
-					<span class="diff-pill">Infraestructura moderna</span>
-					<span class="diff-pill">Soluciones enterprise</span>
-					<span class="diff-pill">Visión de largo plazo</span>
-				</div>
+		<div class="existimos-layout">
+			<div class="existimos-image-side">
+				<img
+					src="/img/existimos-white-2.png"
+					alt="Visión de Geminis Labs: Comprender, Proteger, Actuar"
+					class="existimos-image"
+				/>
 			</div>
-			<div class="about-image">
-				<div class="tech-showcase">
-					<!-- Partículas flotantes de fondo -->
-					<div class="floating-particles">
-						<div class="particle particle-1"></div>
-						<div class="particle particle-2"></div>
-						<div class="particle particle-3"></div>
-						<div class="particle particle-4"></div>
-						<div class="particle particle-5"></div>
-						<div class="particle particle-6"></div>
+
+			<div class="existimos-concepts-side">
+				<div class="concept-item">
+					<div class="concept-icon">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<circle cx="12" cy="12" r="1"/>
+							<path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 0l4.24-4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08 0l4.24 4.24"/>
+						</svg>
 					</div>
+					<h3>Comprender</h3>
+					<p>Convertir datos dispersos en contexto.</p>
+				</div>
 
-					<!-- Anillos externos decorativos (fondo lejano) -->
-					<div class="tech-ring-wrap tech-ring-wrap-1"><div class="tech-ring ring-1"></div></div>
-					<div class="tech-ring-wrap tech-ring-wrap-2"><div class="tech-ring ring-2"></div></div>
-					<div class="tech-ring-wrap tech-ring-wrap-3"><div class="tech-ring ring-3"></div></div>
-
-					<!-- Logo central con órbitas -->
-					<div class="logo-container">
-						<div class="logo-aura aura-1"></div>
-						<div class="logo-aura aura-2"></div>
-						<div class="logo-aura aura-3"></div>
-
-						<!-- Anillos orbitales inmediatos al logo -->
-						<div class="orbital-ring ring-inner"></div>
-						<div class="orbital-ring ring-middle"></div>
-						<div class="orbital-ring ring-outer"></div>
-
-						<!-- Puntos que orbitan -->
-						<div class="orbital-dot dot-1"></div>
-						<div class="orbital-dot dot-2"></div>
-						<div class="orbital-dot dot-3"></div>
-						<div class="orbital-dot dot-4"></div>
-
-						<!-- Logo -->
-						<div class="logo-floating animate-[rotateSlow_30s_linear_infinite]">
-							<picture>
-								<source srcset="/img/geminis-labs-logo-short.png" media="(max-width: 768px)" />
-								<img src="/img/geminis-labs-logo.png" alt="" />
-							</picture>
-						</div>
-
-						<!-- Ondas de energía -->
-						<div class="energy-waves">
-							<div class="energy-wave wave-1"></div>
-							<div class="energy-wave wave-2"></div>
-							<div class="energy-wave wave-3"></div>
-						</div>
+				<div class="concept-item">
+					<div class="concept-icon">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+						</svg>
 					</div>
+					<h3>Proteger</h3>
+					<p>Detectar señales relevantes antes de que sea tarde.</p>
+				</div>
+
+				<div class="concept-item">
+					<div class="concept-icon">
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+							<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+						</svg>
+					</div>
+					<h3>Actuar</h3>
+					<p>Convertir el contexto en decisiones claras.</p>
 				</div>
 			</div>
 		</div>
 	</div>
 </section>
 
-<div class="section-sep"></div>
 
 <!-- Sección El Futuro que Estamos Construyendo -->
-<section id="futuro" class="lo-que-hacemos-section">
-	<div class="container">
-		<h2 class="landing-section-title">El Futuro que Estamos Construyendo</h2>
-		<div class="section-description">
-			<h3>Lo que estamos construyendo para los próximos años</h3>
-			<span>
-				Nuestra visión va más allá del monitoreo. Desarrollamos capacidades que integran
-				inteligencia artificial, redes de conectividad y análisis avanzado para construir un
-				ecosistema tecnológico de largo plazo.
-			</span>
+<section id="futuro" class="futuro-section">
+	<div class="futuro-header">
+		<h2 class="landing-section-title futuro-title">El Futuro que Estamos Construyendo</h2>
+	</div>
+
+	<div class="futuro-content">
+		<!-- Video Container -->
+		<div class="futuro-video-container">
+			<div class="futuro-video-overlay" class:fade-out={videoFadingOut}></div>
+			<video
+				bind:this={futuroVideo}
+				class="futuro-video"
+				muted
+				loop
+				playsinline
+				on:ended={onFuturoVideoEnded}
+			>
+				<source src="/vid/futuro-mapa.mp4" type="video/mp4" />
+			</video>
 		</div>
 
-		<div class="future-actions-grid">
-			<div class="future-action-card">
-				<div class="future-action-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<path d="M12 2L2 7l10 5 10-5-10-5z" />
-						<path d="M2 17l10 5 10-5" />
-						<path d="M2 12l10 5 10-5" />
-					</svg>
-				</div>
-				<h3>Telemetría Móvil</h3>
-				<p>
-					Recopilamos información de redes celulares y WiFi, siempre con consentimiento del usuario,
-					para ampliar nuestra cobertura y crear una red más inteligente.
-				</p>
-			</div>
-
-			<div class="future-action-card">
-				<div class="future-action-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<circle cx="12" cy="12" r="3" />
-						<path d="M12 1v6m0 6v6" />
-						<path d="M21 12h-6m-6 0H3" />
-						<path d="M18.36 6.64l-4.24 4.24m-4.24 0L5.64 6.64" />
-						<path d="M18.36 17.36l-4.24-4.24m-4.24 0L5.64 17.36" />
-					</svg>
-				</div>
-				<h3>Localización por Celdas y WiFi</h3>
-				<p>
-					Ofreceremos una API avanzada para ubicar dispositivos sin GPS, con datos ya mapeados en
-					todo México para mayor precisión y cobertura.
-				</p>
-			</div>
-
-			<div class="future-action-card">
-				<div class="future-action-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<path d="M9 12l2 2 4-4" />
-						<path
-							d="M21 12c.552 0 1-.448 1-1V5c0-.552-.448-1-1-1H3c-.552 0-1 .448-1 1v6c0 .552.448 1 1 1"
-						/>
-						<path d="M3 12v6c0 .552.448 1 1 1h16c.552 0 1-.448 1-1v-6" />
-						<circle cx="12" cy="8" r="2" />
-					</svg>
-				</div>
-				<h3>Análisis de Riesgo</h3>
-				<p>
-					Aplicaremos inteligencia artificial y datos de ingeniería civil para evaluar zonas,
-					hábitos de conducción y patrones de riesgo en tiempo real.
-				</p>
-			</div>
-
-			<div class="future-action-card">
-				<div class="future-action-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
-						<path d="M8 12l2 2 4-4" />
-						<circle cx="12" cy="12" r="8" />
-						<path d="M16 8l-4 4-2-2" />
-					</svg>
-				</div>
-				<h3>Red LoRa Nacional</h3>
-				<p>
-					Desplegaremos gateways en puntos estratégicos del país para brindar localización segura y
-					resiliente frente al jamming y interferencias.
-				</p>
-			</div>
-
-			<div class="future-action-card">
-				<div class="future-action-icon">
-					<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<path d="M12 2a10 10 0 1 0 10 10" />
-						<path d="M12 8v4l3 3" />
-						<path d="M16 2l2 2-2 2" />
-						<path d="M21 7l-2-2 2-2" />
-					</svg>
-				</div>
-				<h3>AI Analytics</h3>
-				<p>
-					Modelos de análisis inteligente sobre datos geoespaciales para detección de patrones,
-					anomalías y predicción de comportamiento.
-				</p>
+		<!-- Sequential Text Panel -->
+		<div class="futuro-text-panel">
+			<div class="futuro-text-content">
+				{#each futuroTextos as texto, i (i)}
+					<div
+						class="futuro-text-item"
+						class:is-active={currentTextIndex === i}
+						key={i}
+					>
+						<h3 class="futuro-text-title">{texto.title}</h3>
+						<p class="futuro-text-desc">{texto.desc}</p>
+					</div>
+				{/each}
 			</div>
 		</div>
 	</div>
 </section>
 
-<div class="section-sep"></div>
 
 <!-- Sección Nuestra Visión -->
 <section id="vision" class="vision-section">
@@ -1383,7 +1228,6 @@
 	</div>
 </section>
 
-<div class="section-sep"></div>
 
 <!-- Sección Contacto -->
 <section id="contacto" class="contact-section">
@@ -1664,7 +1508,7 @@
 		font-size: 0.75rem;
 		color: rgba(255, 255, 255, 0.5);
 		text-align: center;
-		line-height: 1.5;
+		line-height: 1.4;
 	}
 	.recaptcha-notice a {
 		color: #00a6c0;
@@ -3096,7 +2940,7 @@
 		color: #475569;
 		font-size: clamp(0.95rem, 1vw, 1.1rem);
 		margin: 0 0 1rem;
-		line-height: 1.5;
+		line-height: 1.4;
 	}
 
 	.tc-chips {
@@ -3165,7 +3009,7 @@
 		margin: clamp(3rem, 5vw, 5rem) auto 0;
 		text-align: center;
 		font-size: clamp(1.25rem, 2.2vw, 2rem);
-		line-height: 1.5;
+		line-height: 1.4;
 		color: #0f172a;
 	}
 	.tc-message strong {
@@ -3504,6 +3348,358 @@
 		color: #9ca3af;
 		background: rgba(0, 166, 192, 0.04);
 		white-space: nowrap;
+	}
+
+	/* ===== EXISTIMOS SECTION ===== */
+	.existimos-section {
+		padding: 6rem 0;
+		background: linear-gradient(180deg, #eceff2 0%, #f5f7f9 100%);
+		position: relative;
+	}
+
+	.existimos-inner {
+		max-width: 1380px;
+		margin: 0 auto;
+		padding: 0 2rem;
+	}
+
+	.existimos-title {
+		font-size: 2.5rem;
+		font-weight: 600;
+		color: #1a1a1a;
+		margin: 0 0 3rem;
+		text-align: center;
+		letter-spacing: -0.01em;
+		line-height: 1.3;
+	}
+
+	.existimos-text {
+		font-size: 1.125rem;
+		color: #4a4a4a;
+		line-height: 1.7;
+		font-weight: 400;
+	}
+
+	.existimos-text-1 {
+		font-size: 1.5rem;
+		font-weight: 500;
+		color: #2a2a2a;
+		margin: 0 0 3.5rem;
+		letter-spacing: -0.01em;
+		text-align: center;
+		max-width: 100%;
+		padding: 0 2rem;
+	}
+
+	.existimos-text-columns {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 3rem;
+		margin: 0 0 4rem;
+		max-width: 1100px;
+		margin-left: auto;
+		margin-right: auto;
+		padding: 0 2rem;
+	}
+
+	.existimos-text-2,
+	.existimos-text-3 {
+		text-align: left;
+		max-width: 100%;
+		margin: 0;
+		font-size: 1.05rem;
+		line-height: 1.75;
+	}
+
+	.existimos-text-2 {
+		color: #4a4a4a;
+	}
+
+	.existimos-text-3 {
+		color: #4a4a4a;
+	}
+
+	.existimos-text-3 strong {
+		color: #1a1a1a;
+		font-weight: 600;
+		background: linear-gradient(135deg, #007a5c 0%, #005a47 100%);
+		-webkit-background-clip: text;
+		-webkit-text-fill-color: transparent;
+		background-clip: text;
+	}
+
+	.existimos-layout {
+		position: relative;
+		display: grid;
+		grid-template-columns: 1.4fr 0.85fr;
+		gap: 2.5rem;
+		align-items: stretch;
+		min-height: auto;
+		overflow: visible;
+	}
+
+	.existimos-image-side {
+		position: relative;
+		border-radius: 12px;
+		box-shadow: 0 12px 32px rgba(0, 168, 120, 0.08);
+		overflow: hidden;
+		transition: all 500ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.existimos-image-side::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: 12px;
+		background:
+			radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.2) 0%, transparent 50%),
+			radial-gradient(circle at 85% 85%, rgba(0, 168, 120, 0.08) 0%, transparent 60%);
+		pointer-events: none;
+		z-index: 2;
+		transition: all 500ms ease;
+	}
+
+	.existimos-image-side:hover::after {
+		background:
+			radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.25) 0%, transparent 50%),
+			radial-gradient(circle at 85% 85%, rgba(0, 168, 120, 0.12) 0%, transparent 60%);
+	}
+
+	.existimos-image {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		border-radius: 12px;
+		position: relative;
+		z-index: 1;
+	}
+
+	.existimos-concepts-side {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		gap: 0.75rem;
+		position: relative;
+		z-index: 10;
+		padding-left: 0;
+	}
+
+	.concept-item {
+		flex: 1;
+		padding: 1.2rem 1.2rem 1.2rem 1.5rem;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+
+		background: white;
+		border-radius: 8px;
+		border-left: 3px solid transparent;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+		transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+		position: relative;
+	}
+
+	.concept-item::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		width: 3px;
+		background: #007a5c;
+		border-radius: 8px 0 0 8px;
+		opacity: 0;
+		transition: opacity 300ms ease;
+	}
+
+	.concept-item:hover {
+		box-shadow: 0 8px 24px rgba(0, 168, 120, 0.12);
+		transform: translateY(-2px);
+		background: linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(0, 168, 120, 0.02) 100%);
+	}
+
+	.concept-item:hover::before {
+		opacity: 1;
+	}
+
+	.concept-icon {
+		width: 38px;
+		height: 38px;
+		margin: 0 0 0.6rem 0;
+		color: #007a5c;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	.concept-icon svg {
+		width: 100%;
+		height: 100%;
+		stroke-width: 2;
+	}
+
+	.concept-item:hover .concept-icon {
+		transform: scale(1.08) rotateZ(5deg);
+		filter: drop-shadow(0 4px 12px rgba(0, 168, 120, 0.3));
+	}
+
+	.concept-item h3 {
+		font-size: 1rem;
+		font-weight: 700;
+		color: #1a1a1a;
+		margin: 0 0 0.4rem 0;
+		letter-spacing: 0.01em;
+		transition: color 300ms ease;
+	}
+
+	.concept-item:hover h3 {
+		color: #007a5c;
+	}
+
+	.concept-item p {
+		font-size: 0.85rem;
+		color: #5a5a5a;
+		line-height: 1.4;
+		margin: 0;
+		font-weight: 400;
+		transition: color 300ms ease;
+	}
+
+	.concept-item:hover p {
+		color: #4a4a4a;
+	}
+
+	@media (max-width: 1024px) {
+		.existimos-section {
+			padding: 5rem 0;
+		}
+
+		.existimos-text-columns {
+			grid-template-columns: 1fr;
+			gap: 2rem;
+			margin: 0 0 3rem;
+		}
+
+		.existimos-layout {
+			grid-template-columns: 1fr;
+			gap: 2rem;
+			min-height: auto;
+			overflow: visible;
+		}
+
+		.existimos-title {
+			font-size: 2.5rem;
+		}
+
+		.existimos-text-1 {
+			font-size: 1.35rem;
+			margin-bottom: 2.5rem;
+		}
+	}
+
+	@media (max-width: 768px) {
+		.existimos-section {
+			padding: 4rem 0;
+		}
+
+		.existimos-inner {
+			padding: 0 1.5rem;
+		}
+
+		.existimos-title {
+			font-size: 2rem;
+			margin-bottom: 1.5rem;
+		}
+
+		.existimos-text-1 {
+			font-size: 1.2rem;
+			margin-bottom: 2rem;
+			padding: 0 1rem;
+		}
+
+		.existimos-text-columns {
+			padding: 0 1rem;
+			gap: 2rem;
+		}
+
+		.existimos-text-2,
+		.existimos-text-3 {
+			font-size: 0.95rem;
+		}
+
+		.existimos-layout {
+			min-height: auto;
+		}
+
+		.concept-item {
+			padding: 1.5rem 1.5rem 1.5rem 2rem;
+		}
+
+		.concept-item h3 {
+			font-size: 1.05rem;
+		}
+
+		.concept-item p {
+			font-size: 0.9rem;
+		}
+	}
+
+	@media (max-width: 640px) {
+		.existimos-section {
+			padding: 3.5rem 0;
+		}
+
+		.existimos-inner {
+			padding: 0 1rem;
+		}
+
+		.existimos-title {
+			font-size: 1.75rem;
+			margin-bottom: 1rem;
+		}
+
+		.existimos-text-1 {
+			font-size: 1.05rem;
+			margin-bottom: 1.5rem;
+			padding: 0;
+		}
+
+		.existimos-text-columns {
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+			padding: 0;
+		}
+
+		.existimos-text-2,
+		.existimos-text-3 {
+			font-size: 0.9rem;
+		}
+
+		.existimos-layout {
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+		}
+
+		.concept-item {
+			padding: 1.25rem 1.25rem 1.25rem 1.75rem;
+		}
+
+		.concept-item h3 {
+			font-size: 0.95rem;
+		}
+
+		.concept-item p {
+			font-size: 0.85rem;
+		}
+
+		.concept-icon {
+			width: 40px;
+			height: 40px;
+			margin-bottom: 0.75rem;
+		}
 	}
 
 	/* ===== VISION SECTION ===== */
@@ -4945,6 +5141,190 @@
 		.nx-bg {
 			transform: none !important;
 			transition: none;
+		}
+	}
+
+	/* Futuro Section */
+	.futuro-section {
+		background: #ffffff;
+		padding: 6rem 0;
+		position: relative;
+	}
+
+	.futuro-header {
+		text-align: center;
+		margin-bottom: 4rem;
+		padding: 0 2rem;
+	}
+
+	.futuro-title {
+		color: #1a1a1a;
+		font-size: clamp(2rem, 5vw, 3.5rem);
+		font-weight: 700;
+		letter-spacing: -1px;
+		margin: 0;
+	}
+
+	.futuro-content {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 4rem;
+		align-items: center;
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 2rem;
+	}
+
+	.futuro-video-container {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		border-radius: 16px;
+		overflow: hidden;
+		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+	}
+
+	.futuro-video {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		display: block;
+		opacity: 1;
+		transition: opacity 1.5s ease;
+	}
+
+	.futuro-video-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+		pointer-events: none;
+		z-index: 1;
+		opacity: 0.3;
+	}
+
+	.futuro-video-overlay.fade-out {
+		opacity: 0.8;
+		animation: fadeInOut 1.5s ease-in-out forwards;
+	}
+
+	@keyframes fadeInOut {
+		0% {
+			opacity: 0.3;
+		}
+		50% {
+			opacity: 0.8;
+		}
+		100% {
+			opacity: 0.3;
+		}
+	}
+
+	.futuro-text-panel {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		height: 100%;
+		min-height: 400px;
+	}
+
+	.futuro-text-content {
+		position: relative;
+		height: 200px;
+	}
+
+	.futuro-text-item {
+		position: absolute;
+		width: 100%;
+		opacity: 0;
+		transform: translateY(20px);
+		transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+		pointer-events: none;
+	}
+
+	.futuro-text-item.is-active {
+		opacity: 1;
+		transform: translateY(0);
+		pointer-events: auto;
+	}
+
+	.futuro-text-title {
+		font-size: clamp(1.5rem, 3vw, 2.2rem);
+		font-weight: 700;
+		color: #0a3a4a;
+		margin: 0 0 1rem 0;
+		letter-spacing: -0.5px;
+	}
+
+	.futuro-text-desc {
+		font-size: clamp(0.95rem, 2vw, 1.1rem);
+		color: #333333;
+		line-height: 1.6;
+		margin: 0;
+	}
+
+	/* Tablet */
+	@media (max-width: 1023px) {
+		.futuro-content {
+			grid-template-columns: 1fr;
+			gap: 3rem;
+		}
+
+		.futuro-video-container {
+			aspect-ratio: 16 / 9;
+		}
+
+		.futuro-text-panel {
+			min-height: 300px;
+		}
+
+		.futuro-text-content {
+			height: 150px;
+		}
+	}
+
+	/* Mobile */
+	@media (max-width: 639px) {
+		.futuro-section {
+			padding: 3rem 0;
+		}
+
+		.futuro-header {
+			margin-bottom: 2.5rem;
+			padding: 0 1rem;
+		}
+
+		.futuro-title {
+			font-size: 1.75rem;
+		}
+
+		.futuro-content {
+			gap: 2rem;
+			padding: 0 1rem;
+		}
+
+		.futuro-video-container {
+			aspect-ratio: 16 / 9;
+			border-radius: 12px;
+		}
+
+		.futuro-text-panel {
+			min-height: 280px;
+		}
+
+		.futuro-text-content {
+			height: 130px;
+		}
+
+		.futuro-text-title {
+			font-size: 1.25rem;
+			margin-bottom: 0.75rem;
+		}
+
+		.futuro-text-desc {
+			font-size: 0.95rem;
 		}
 	}
 </style>
