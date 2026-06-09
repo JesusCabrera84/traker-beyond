@@ -102,6 +102,7 @@
 	function onFuturoVideoEnded() {
 		if (!futuroVideo) return;
 		videoFadingOut = true;
+		futuroVideo.pause();
 		setTimeout(() => {
 			if (futuroVideo) {
 				futuroVideo.currentTime = 0;
@@ -801,7 +802,6 @@
 	</div>
 </section>
 
-
 <!-- Sección Tecnologías que convergen -->
 <section id="tecnologias" class="tc-section" aria-labelledby="tc-title">
 	<span id="tecnologias-anchor" style="position:absolute; top:-80px;"></span>
@@ -894,7 +894,6 @@
 	</div>
 </section>
 
-
 <!-- Sección Productos -->
 <section id="productos" class="nexus-section">
 	<div class="nexus-head">
@@ -932,7 +931,6 @@
 	</div>
 
 	<div class="nx-card-shell" use:_reveal>
-		<!-- svelte-ignore a11y-no-static-element-interactions -->
 		<article
 			class="nx-card"
 			data-product={activeProduct}
@@ -941,154 +939,153 @@
 		>
 			<div class="nx-bg" aria-hidden="true"></div>
 			<div class="nx-panels">
-			<!-- NEXUS -->
-			<div
-				class="nx-panel"
-				class:is-active={activeProduct === 'nexus'}
-				id="panel-nexus"
-				role="tabpanel"
-				aria-labelledby="tab-nexus"
-				aria-hidden={activeProduct !== 'nexus'}
-			>
-				<div class="nx-content">
-					<p class="nx-eyebrow">Producto</p>
-					<h3 class="nx-title">NEXUS</h3>
-					<p class="nx-subtitle">
-						Nexus es una plataforma de rastreo inteligente diseñada para proteger vehículos,
-						personas y operaciones mediante ubicación en tiempo real, alertas y análisis de
-						movilidad
-					</p>
+				<!-- NEXUS -->
+				<div
+					class="nx-panel"
+					class:is-active={activeProduct === 'nexus'}
+					id="panel-nexus"
+					role="tabpanel"
+					aria-labelledby="tab-nexus"
+					aria-hidden={activeProduct !== 'nexus'}
+				>
+					<div class="nx-content">
+						<p class="nx-eyebrow">Producto</p>
+						<h3 class="nx-title">NEXUS</h3>
+						<p class="nx-subtitle">
+							Nexus es una plataforma de rastreo inteligente diseñada para proteger vehículos,
+							personas y operaciones mediante ubicación en tiempo real, alertas y análisis de
+							movilidad
+						</p>
 
-					<ul class="nx-audiences">
-						<li class="nx-aud">
-							<span class="nx-aud-label">Para familia</span>
-							<span class="nx-aud-benefit">Protege a quienes más quieres</span>
-						</li>
-						<li class="nx-aud">
-							<span class="nx-aud-label">Para flotillas</span>
-							<span class="nx-aud-benefit">Control donde quiera que estés</span>
-						</li>
-						<li class="nx-aud">
-							<span class="nx-aud-label">Para negocios</span>
-							<span class="nx-aud-benefit">Integra fácil tus datos</span>
-						</li>
-					</ul>
+						<ul class="nx-audiences">
+							<li class="nx-aud">
+								<span class="nx-aud-label">Para familia</span>
+								<span class="nx-aud-benefit">Protege a quienes más quieres</span>
+							</li>
+							<li class="nx-aud">
+								<span class="nx-aud-label">Para flotillas</span>
+								<span class="nx-aud-benefit">Control donde quiera que estés</span>
+							</li>
+							<li class="nx-aud">
+								<span class="nx-aud-label">Para negocios</span>
+								<span class="nx-aud-benefit">Integra fácil tus datos</span>
+							</li>
+						</ul>
 
-					<div class="nx-lists">
-						<div class="nx-list-col">
-							<h3 class="nx-list-title">Características</h3>
-							<ul class="nx-chips">
-								<li class="nx-chip">Ubicación en tiempo real</li>
-								<li class="nx-chip">Historial de recorridos</li>
-								<li class="nx-chip">Geocercas personalizadas</li>
-								<li class="nx-chip">Notificaciones</li>
-								<li class="nx-chip">Panel web + App móvil</li>
-								<li class="nx-chip">API para integradores</li>
-							</ul>
+						<div class="nx-lists">
+							<div class="nx-list-col">
+								<h3 class="nx-list-title">Características</h3>
+								<ul class="nx-chips">
+									<li class="nx-chip">Ubicación en tiempo real</li>
+									<li class="nx-chip">Historial de recorridos</li>
+									<li class="nx-chip">Geocercas personalizadas</li>
+									<li class="nx-chip">Notificaciones</li>
+									<li class="nx-chip">Panel web + App móvil</li>
+									<li class="nx-chip">API para integradores</li>
+								</ul>
+							</div>
+							<div class="nx-list-col">
+								<h3 class="nx-list-title">Casos de uso</h3>
+								<ul class="nx-chips">
+									<li class="nx-chip nx-chip--case">Protección vehicular</li>
+									<li class="nx-chip nx-chip--case">Rastreo familiar</li>
+									<li class="nx-chip nx-chip--case">Control de flotillas</li>
+									<li class="nx-chip nx-chip--case">Recuperación ante robo</li>
+									<li class="nx-chip nx-chip--case">Seguridad en campo</li>
+									<li class="nx-chip nx-chip--case">Integración con terceros</li>
+								</ul>
+							</div>
 						</div>
-						<div class="nx-list-col">
-							<h3 class="nx-list-title">Casos de uso</h3>
-							<ul class="nx-chips">
-<li class="nx-chip nx-chip--case">Protección vehicular</li>
-								<li class="nx-chip nx-chip--case">Rastreo familiar</li>
-								<li class="nx-chip nx-chip--case">Control de flotillas</li>
-								<li class="nx-chip nx-chip--case">Recuperación ante robo</li>
-								<li class="nx-chip nx-chip--case">Seguridad en campo</li>
-								<li class="nx-chip nx-chip--case">Integración con terceros</li>
-							</ul>
-						</div>
+
+						<a class="nx-cta" href="/products/nexus">
+							Explorar Nexus <span class="nx-cta-arrow" aria-hidden="true">→</span>
+						</a>
 					</div>
 
-					<a class="nx-cta" href="/products/nexus">
-						Explorar Nexus <span class="nx-cta-arrow" aria-hidden="true">→</span>
-					</a>
+					<div class="nx-stage" aria-hidden="true">
+						<span class="nx-halo"></span>
+						<a
+							href="/products/nexus"
+							class="nx-logo-link"
+							tabindex={activeProduct === 'nexus' ? 0 : -1}
+						>
+							<img src="/img/logo-nexus-3x.png" alt="Logotipo de Nexus" class="nx-logo" />
+						</a>
+						<span class="nx-floor"></span>
+					</div>
 				</div>
 
-				<div class="nx-stage" aria-hidden="true">
-					<span class="nx-halo"></span>
-					<a
-						href="/products/nexus"
-						class="nx-logo-link"
-						tabindex={activeProduct === 'nexus' ? 0 : -1}
-					>
-						<img src="/img/logo-nexus-3x.png" alt="Logotipo de Nexus" class="nx-logo" />
-					</a>
-					<span class="nx-floor"></span>
-				</div>
-			</div>
+				<!-- ORION -->
+				<div
+					class="nx-panel nx-panel--orion"
+					class:is-active={activeProduct === 'orion'}
+					id="panel-orion"
+					role="tabpanel"
+					aria-labelledby="tab-orion"
+					aria-hidden={activeProduct !== 'orion'}
+				>
+					<div class="nx-orion-fx" aria-hidden="true">
+						{#each orionParticles as pt (`${pt.sx}-${pt.sy}-${pt.d}`)}
+							<span
+								style="--sx:{pt.sx}px; --sy:{pt.sy}px; --d:{pt.d}s; --dur:{pt.dur}s; --s:{pt.s}px; --o:{pt.o};"
+							></span>
+						{/each}
+					</div>
+					<div class="nx-content">
+						<p class="nx-eyebrow">Producto</p>
+						<h3 class="nx-title">ORION</h3>
+						<p class="nx-subtitle">
+							Una capa silenciosa de inteligencia geoespacial para productos que requieren
+							localización, análisis territorial y validación de eventos sin depender exclusivamente
+							del GPS.
+						</p>
 
-			<!-- ORION -->
-			<div
-				class="nx-panel nx-panel--orion"
-				class:is-active={activeProduct === 'orion'}
-				id="panel-orion"
-				role="tabpanel"
-				aria-labelledby="tab-orion"
-				aria-hidden={activeProduct !== 'orion'}
-			>
-				<div class="nx-orion-fx" aria-hidden="true">
-					{#each orionParticles as pt (`${pt.sx}-${pt.sy}-${pt.d}`)}
-						<span
-							style="--sx:{pt.sx}px; --sy:{pt.sy}px; --d:{pt.d}s; --dur:{pt.dur}s; --s:{pt.s}px; --o:{pt.o};"
-						></span>
-					{/each}
-				</div>
-				<div class="nx-content">
-					<p class="nx-eyebrow">Producto</p>
-					<h3 class="nx-title">ORION</h3>
-					<p class="nx-subtitle">
-						Una capa silenciosa de inteligencia geoespacial para productos que requieren
-						localización, análisis territorial y validación de eventos sin depender exclusivamente
-						del GPS.
-					</p>
-
-					<div class="nx-lists">
-						<div class="nx-list-col">
-							<h3 class="nx-list-title">Características principales</h3>
-							<ul class="nx-chips">
-								<li class="nx-chip">Localización por Cell ID</li>
-								<li class="nx-chip">API de geolocalización</li>
-								<li class="nx-chip">Enriquecimiento geoespacial</li>
-								<li class="nx-chip">Soporte para múltiples operadores</li>
-								<li class="nx-chip">Integración con plataformas IoT</li>
-								<li class="nx-chip">Procesamiento por lotes</li>
-							</ul>
+						<div class="nx-lists">
+							<div class="nx-list-col">
+								<h3 class="nx-list-title">Características principales</h3>
+								<ul class="nx-chips">
+									<li class="nx-chip">Localización por Cell ID</li>
+									<li class="nx-chip">API de geolocalización</li>
+									<li class="nx-chip">Enriquecimiento geoespacial</li>
+									<li class="nx-chip">Soporte para múltiples operadores</li>
+									<li class="nx-chip">Integración con plataformas IoT</li>
+									<li class="nx-chip">Procesamiento por lotes</li>
+								</ul>
+							</div>
+							<div class="nx-list-col">
+								<h3 class="nx-list-title">Casos de uso</h3>
+								<ul class="nx-chips">
+									<li class="nx-chip nx-chip--case">Localización sin GPS</li>
+									<li class="nx-chip nx-chip--case">Validación de eventos IoT</li>
+									<li class="nx-chip nx-chip--case">Enriquecimiento de telemetría</li>
+									<li class="nx-chip nx-chip--case">Seguridad vehicular</li>
+									<li class="nx-chip nx-chip--case">Sistemas antifraude</li>
+									<li class="nx-chip nx-chip--case">Integración con ERPs o CRMs</li>
+								</ul>
+							</div>
 						</div>
-						<div class="nx-list-col">
-							<h3 class="nx-list-title">Casos de uso</h3>
-							<ul class="nx-chips">
-								<li class="nx-chip nx-chip--case">Localización sin GPS</li>
-								<li class="nx-chip nx-chip--case">Validación de eventos IoT</li>
-								<li class="nx-chip nx-chip--case">Enriquecimiento de telemetría</li>
-								<li class="nx-chip nx-chip--case">Seguridad vehicular</li>
-								<li class="nx-chip nx-chip--case">Sistemas antifraude</li>
-								<li class="nx-chip nx-chip--case">Integración con ERPs o CRMs</li>
-							</ul>
-						</div>
+
+						<a class="nx-cta" href="/products/orion">
+							Explorar Orion <span class="nx-cta-arrow" aria-hidden="true">→</span>
+						</a>
 					</div>
 
-					<a class="nx-cta" href="/products/orion">
-						Explorar Orion <span class="nx-cta-arrow" aria-hidden="true">→</span>
-					</a>
-				</div>
-
-				<div class="nx-stage" aria-hidden="true">
-					<span class="nx-halo"></span>
-					<a
-						href="/products/orion"
-						class="nx-logo-link"
-						tabindex={activeProduct === 'orion' ? 0 : -1}
-					>
-						<img src="/img/products/logo-orion.png" alt="Logotipo de Orion" class="nx-logo" />
-					</a>
-					<span class="nx-floor"></span>
+					<div class="nx-stage" aria-hidden="true">
+						<span class="nx-halo"></span>
+						<a
+							href="/products/orion"
+							class="nx-logo-link"
+							tabindex={activeProduct === 'orion' ? 0 : -1}
+						>
+							<img src="/img/products/logo-orion.png" alt="Logotipo de Orion" class="nx-logo" />
+						</a>
+						<span class="nx-floor"></span>
+					</div>
 				</div>
 			</div>
-		</div>
-	</article>
+		</article>
 	</div>
 </section>
-
 
 <!-- Sección ¿Por qué existimos? -->
 <section id="existimos" class="existimos-section">
@@ -1101,11 +1098,13 @@
 
 		<div class="existimos-text-columns">
 			<p class="existimos-text existimos-text-2">
-				Datos, ubicaciones, eventos, movimiento, riesgo y comportamiento ocurren todo el tiempo, pero rara vez llegan con suficiente contexto para tomar buenas decisiones.
+				Datos, ubicaciones, eventos, movimiento, riesgo y comportamiento ocurren todo el tiempo,
+				pero rara vez llegan con suficiente contexto para tomar buenas decisiones.
 			</p>
 
 			<p class="existimos-text existimos-text-3">
-				<strong>Geminis Labs existe</strong> para transformar esas señales en conocimiento útil: tecnología que ayuda a comprender mejor el entorno, proteger lo que importa y actuar con mayor claridad.
+				<strong>Geminis Labs existe</strong> para transformar esas señales en conocimiento útil: tecnología
+				que ayuda a comprender mejor el entorno, proteger lo que importa y actuar con mayor claridad.
 			</p>
 		</div>
 
@@ -1122,8 +1121,10 @@
 				<div class="concept-item">
 					<div class="concept-icon">
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<circle cx="12" cy="12" r="1"/>
-							<path d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 0l4.24-4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08 0l4.24 4.24"/>
+							<circle cx="12" cy="12" r="1" />
+							<path
+								d="M12 1v6m0 6v6M4.22 4.22l4.24 4.24m5.08 0l4.24-4.24M1 12h6m6 0h6M4.22 19.78l4.24-4.24m5.08 0l4.24 4.24"
+							/>
 						</svg>
 					</div>
 					<h3>Comprender</h3>
@@ -1133,7 +1134,7 @@
 				<div class="concept-item">
 					<div class="concept-icon">
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+							<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
 						</svg>
 					</div>
 					<h3>Proteger</h3>
@@ -1143,7 +1144,7 @@
 				<div class="concept-item">
 					<div class="concept-icon">
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-							<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+							<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
 						</svg>
 					</div>
 					<h3>Actuar</h3>
@@ -1154,20 +1155,16 @@
 	</div>
 </section>
 
-
 <!-- Sección El Futuro que Estamos Construyendo -->
 <section id="futuro" class="futuro-section">
-	<div class="futuro-header">
-		<h2 class="landing-section-title futuro-title">El Futuro que Estamos Construyendo</h2>
-	</div>
-
 	<div class="futuro-content">
-		<!-- Video Container -->
+		<!-- Video Container with Title and Text Overlay -->
 		<div class="futuro-video-container">
-			<div class="futuro-video-overlay" class:fade-out={videoFadingOut}></div>
+			<!-- Video -->
 			<video
 				bind:this={futuroVideo}
 				class="futuro-video"
+				class:fade-to-black={videoFadingOut}
 				muted
 				loop
 				playsinline
@@ -1175,26 +1172,29 @@
 			>
 				<source src="/vid/futuro-mapa.mp4" type="video/mp4" />
 			</video>
-		</div>
 
-		<!-- Sequential Text Panel -->
-		<div class="futuro-text-panel">
-			<div class="futuro-text-content">
-				{#each futuroTextos as texto, i (i)}
-					<div
-						class="futuro-text-item"
-						class:is-active={currentTextIndex === i}
-						key={i}
-					>
-						<h3 class="futuro-text-title">{texto.title}</h3>
-						<p class="futuro-text-desc">{texto.desc}</p>
-					</div>
-				{/each}
+			<!-- Dark Overlay Layer -->
+			<div class="futuro-dark-overlay" class:fade-to-black={videoFadingOut}></div>
+
+			<!-- Title Overlay -->
+			<div class="futuro-title-overlay">
+				<h2 class="landing-section-title futuro-title">El Futuro que Estamos Construyendo</h2>
+			</div>
+
+			<!-- Sequential Text Panel -->
+			<div class="futuro-text-panel">
+				<div class="futuro-text-content">
+					{#each futuroTextos as texto, i (i)}
+						<div class="futuro-text-item" class:is-active={currentTextIndex === i} key={i}>
+							<h3 class="futuro-text-title">{texto.title}</h3>
+							<p class="futuro-text-desc">{texto.desc}</p>
+						</div>
+					{/each}
+				</div>
 			</div>
 		</div>
 	</div>
 </section>
-
 
 <!-- Sección Nuestra Visión -->
 <section id="vision" class="vision-section">
@@ -1227,7 +1227,6 @@
 		</div>
 	</div>
 </section>
-
 
 <!-- Sección Contacto -->
 <section id="contacto" class="contact-section">
@@ -3517,7 +3516,7 @@
 	.concept-item:hover {
 		box-shadow: 0 8px 24px rgba(0, 168, 120, 0.12);
 		transform: translateY(-2px);
-		background: linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(0, 168, 120, 0.02) 100%);
+		background: linear-gradient(135deg, rgba(255, 255, 255, 1) 0%, rgba(0, 168, 120, 0.02) 100%);
 	}
 
 	.concept-item:hover::before {
@@ -4824,7 +4823,12 @@
 		position: absolute;
 		inset: 0;
 		z-index: -1;
-		background: linear-gradient(to right, rgba(0, 0, 0, 0.32) 0%, rgba(0, 0, 0, 0.12) 45%, transparent 100%);
+		background: linear-gradient(
+			to right,
+			rgba(0, 0, 0, 0.32) 0%,
+			rgba(0, 0, 0, 0.12) 45%,
+			transparent 100%
+		);
 		border-radius: inherit;
 		pointer-events: none;
 	}
@@ -5146,31 +5150,14 @@
 
 	/* Futuro Section */
 	.futuro-section {
-		background: #ffffff;
-		padding: 6rem 0;
+		background: #f5f7f9;
+		padding: 4rem 0;
 		position: relative;
 	}
 
-	.futuro-header {
-		text-align: center;
-		margin-bottom: 4rem;
-		padding: 0 2rem;
-	}
-
-	.futuro-title {
-		color: #1a1a1a;
-		font-size: clamp(2rem, 5vw, 3.5rem);
-		font-weight: 700;
-		letter-spacing: -1px;
-		margin: 0;
-	}
-
 	.futuro-content {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 4rem;
-		align-items: center;
-		max-width: 1200px;
+		position: relative;
+		max-width: 1400px;
 		margin: 0 auto;
 		padding: 0 2rem;
 	}
@@ -5181,7 +5168,7 @@
 		aspect-ratio: 16 / 9;
 		border-radius: 16px;
 		overflow: hidden;
-		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+		box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
 	}
 
 	.futuro-video {
@@ -5193,41 +5180,77 @@
 		transition: opacity 1.5s ease;
 	}
 
-	.futuro-video-overlay {
+	.futuro-video.fade-to-black {
+		opacity: 0;
+	}
+
+	/* Dark Overlay - Edges Vignette + Ambient */
+	.futuro-dark-overlay {
 		position: absolute;
 		top: 0;
 		left: 0;
 		width: 100%;
 		height: 100%;
-		background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+		background:
+			radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 25%, rgba(0, 0, 0, 0.5) 100%),
+			linear-gradient(135deg, rgba(0, 0, 0, 0.3) 0%, transparent 40%),
+			linear-gradient(225deg, rgba(0, 0, 0, 0.3) 0%, transparent 40%),
+			linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, transparent 20%);
 		pointer-events: none;
 		z-index: 1;
-		opacity: 0.3;
 	}
 
-	.futuro-video-overlay.fade-out {
-		opacity: 0.8;
-		animation: fadeInOut 1.5s ease-in-out forwards;
+	.futuro-dark-overlay.fade-to-black {
+		animation: fadeToBlack 1.5s ease-in-out forwards;
 	}
 
-	@keyframes fadeInOut {
+	@keyframes fadeToBlack {
 		0% {
-			opacity: 0.3;
-		}
-		50% {
-			opacity: 0.8;
+			background-color: transparent;
 		}
 		100% {
-			opacity: 0.3;
+			background-color: rgba(0, 0, 0, 1);
 		}
 	}
 
+	/* Title Overlay */
+	.futuro-title-overlay {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		display: flex;
+		align-items: flex-start;
+		justify-content: flex-start;
+		padding: 4rem 3rem;
+		z-index: 2;
+		pointer-events: none;
+	}
+
+	.futuro-title {
+		font-size: clamp(2rem, 4vw, 3.2rem);
+		font-weight: 700;
+		letter-spacing: -1px;
+		margin: 0;
+		max-width: 50%;
+		color: #ffffff;
+		text-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+		line-height: 1.2;
+	}
+
+	/* Text Panel */
 	.futuro-text-panel {
+		position: absolute;
+		right: 0;
+		top: 0;
+		bottom: 0;
+		width: 45%;
 		display: flex;
 		flex-direction: column;
 		justify-content: center;
-		height: 100%;
-		min-height: 400px;
+		padding: 3rem;
+		z-index: 3;
 	}
 
 	.futuro-text-content {
@@ -5251,58 +5274,60 @@
 	}
 
 	.futuro-text-title {
-		font-size: clamp(1.5rem, 3vw, 2.2rem);
+		font-size: clamp(1.4rem, 2.5vw, 1.8rem);
 		font-weight: 700;
-		color: #0a3a4a;
-		margin: 0 0 1rem 0;
-		letter-spacing: -0.5px;
+		color: #ffffff;
+		margin: 0 0 0.8rem 0;
+		letter-spacing: -0.3px;
+		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 	}
 
 	.futuro-text-desc {
-		font-size: clamp(0.95rem, 2vw, 1.1rem);
-		color: #333333;
+		font-size: clamp(0.9rem, 1.5vw, 1rem);
+		color: #f0f0f0;
 		line-height: 1.6;
 		margin: 0;
+		text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
 	}
 
 	/* Tablet */
 	@media (max-width: 1023px) {
-		.futuro-content {
-			grid-template-columns: 1fr;
-			gap: 3rem;
-		}
-
-		.futuro-video-container {
-			aspect-ratio: 16 / 9;
+		.futuro-title {
+			font-size: 2rem;
+			max-width: 60%;
 		}
 
 		.futuro-text-panel {
-			min-height: 300px;
+			width: 50%;
+			padding: 2.5rem;
 		}
 
-		.futuro-text-content {
-			height: 150px;
+		.futuro-text-title {
+			font-size: 1.4rem;
+		}
+
+		.futuro-text-desc {
+			font-size: 0.9rem;
 		}
 	}
 
 	/* Mobile */
 	@media (max-width: 639px) {
 		.futuro-section {
-			padding: 3rem 0;
-		}
-
-		.futuro-header {
-			margin-bottom: 2.5rem;
-			padding: 0 1rem;
-		}
-
-		.futuro-title {
-			font-size: 1.75rem;
+			padding: 2rem 0;
 		}
 
 		.futuro-content {
-			gap: 2rem;
 			padding: 0 1rem;
+		}
+
+		.futuro-title-overlay {
+			padding: 2rem 1.5rem;
+		}
+
+		.futuro-title {
+			font-size: 1.5rem;
+			max-width: 100%;
 		}
 
 		.futuro-video-container {
@@ -5311,7 +5336,11 @@
 		}
 
 		.futuro-text-panel {
-			min-height: 280px;
+			position: static;
+			width: 100%;
+			padding: 2rem;
+			background: rgba(10, 30, 40, 0.95);
+			margin-top: 2rem;
 		}
 
 		.futuro-text-content {
@@ -5319,12 +5348,12 @@
 		}
 
 		.futuro-text-title {
-			font-size: 1.25rem;
-			margin-bottom: 0.75rem;
+			font-size: 1.2rem;
+			margin-bottom: 0.5rem;
 		}
 
 		.futuro-text-desc {
-			font-size: 0.95rem;
+			font-size: 0.85rem;
 		}
 	}
 </style>
