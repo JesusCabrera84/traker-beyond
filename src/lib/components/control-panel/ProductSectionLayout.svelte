@@ -272,7 +272,7 @@
 		left: 260px;
 		right: 0;
 		bottom: 0;
-		background-image: url('/img/noise.png');
+		background-image: url('/img/noise.webp');
 		background-repeat: repeat;
 		opacity: 0.025;
 		pointer-events: none;

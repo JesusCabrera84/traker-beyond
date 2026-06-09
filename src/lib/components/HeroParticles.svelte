@@ -176,7 +176,7 @@
 				resolve();
 			};
 			img.onerror = resolve;
-			img.src = '/img/geminislabs-nobg.png';
+			img.src = '/img/geminislabs-nobg.webp';
 		});
 		if (logoSrcList.length === 0) return;
 

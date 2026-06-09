@@ -766,7 +766,7 @@
 					src="/vid/title-tech.mp4"
 					muted
 					playsinline
-					preload="auto"
+					preload="none"
 				></video>
 				<span class="lab-title-scrim" aria-hidden="true"></span>
 				<h2 class="landing-section-title lab-title">Tecnología al servicio de la humanidad</h2>
@@ -774,9 +774,10 @@
 		</div>
 		<div class="lab-center">
 			<img
-				src="/img/foco-no-bg.png"
+				src="/img/foco-no-bg.webp"
 				alt="Foco con tecnología y naturaleza integradas"
 				class="lab-bulb"
+				loading="lazy"
 			/>
 		</div>
 		<div class="lab-right">
@@ -924,7 +925,7 @@
 						autoplay
 						playsinline
 						preload="metadata"
-						poster="/img/technology-man.png"
+						poster="/img/technology-man.webp"
 						on:loadedmetadata={(e) => (e.currentTarget.playbackRate = 0.7)}
 					>
 						<source src="/vid/technology-man.mp4" type="video/mp4" />
@@ -1157,9 +1158,10 @@
 		<div class="existimos-layout">
 			<div class="existimos-image-side">
 				<img
-					src="/img/existimos-white-2.png"
+					src="/img/existimos-white-2.webp"
 					alt="Visión de Geminis Labs: Comprender, Proteger, Actuar"
 					class="existimos-image"
+					loading="lazy"
 				/>
 			</div>
 
@@ -1218,10 +1220,10 @@
 				class="futuro-video"
 				muted
 				playsinline
+				preload="none"
+				use:_lazyVideo={'/vid/futuro-mapa.mp4'}
 				on:ended={onFuturoVideoEnded}
-			>
-				<source src="/vid/futuro-mapa.mp4" type="video/mp4" />
-			</video>
+			></video>
 
 			<!-- Dark Overlay Layer: vignette + gradients -->
 			<div class="futuro-dark-overlay"></div>
@@ -1234,7 +1236,7 @@
 					? '0.8s ease-in'
 					: '0.4s ease-out'};"
 			>
-				<img src="/img/future-bg-2.png" alt="" class="futuro-cover-img" />
+				<img src="/img/future-bg-2.webp" alt="" class="futuro-cover-img" loading="lazy" />
 			</div>
 
 			<!-- Title Overlay (top-left) -->
@@ -3195,7 +3197,7 @@
 			content: '';
 			position: absolute;
 			inset: 0;
-			background: url('/img/technology-man.png') center / cover no-repeat;
+			background: url('/img/technology-man.webp') center / cover no-repeat;
 			z-index: 1;
 		}
 	}
@@ -4312,7 +4314,7 @@
 	.contact-bg {
 		position: absolute;
 		inset: 0;
-		background-image: url('/img/contact-bg.png');
+		background-image: url('/img/contact-bg.webp');
 		background-size: cover;
 		background-position: center center;
 		/* fixed: la imagen se ancla al viewport, no escala con la altura de la sección */
@@ -4556,7 +4558,7 @@
 		width: 100%;
 		min-height: 100vh;
 		overflow: hidden;
-		background-image: url('/img/deepspace.png');
+		background-image: url('/img/deepspace.webp');
 		background-size: cover;
 		background-position: center center;
 		display: flex;
@@ -5045,7 +5047,7 @@
 	.nx-card[data-product='nexus'] .nx-bg {
 		background:
 			linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
-			url('/img/nexus-card-bg-2.png') center / cover no-repeat,
+			url('/img/nexus-card-bg-2.webp') center / cover no-repeat,
 			#0f1518;
 		transform: translate(calc(var(--nx-mx, 0) * 70px), calc(var(--nx-my, 0) * 70px)) scale(1.08);
 	}
@@ -5062,7 +5064,7 @@
 	.nx-card[data-product='orion'] .nx-bg {
 		background:
 			linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)),
-			url('/img/orion-card-bg-2.png') center / cover no-repeat,
+			url('/img/orion-card-bg-2.webp') center / cover no-repeat,
 			#08090a;
 		transform: translate(calc(var(--nx-mx, 0) * 70px), calc(var(--nx-my, 0) * 70px)) scale(1.08);
 	}
@@ -5074,7 +5076,7 @@
 		z-index: 1;
 		border-radius: inherit;
 		pointer-events: none;
-		background-image: url('/img/noise.png');
+		background-image: url('/img/noise.webp');
 		background-size: 180px 180px;
 		opacity: 0.09;
 		mix-blend-mode: overlay;
@@ -5613,7 +5615,7 @@
 	.futuro-noise {
 		position: absolute;
 		inset: 0;
-		background-image: url('/img/noise.png');
+		background-image: url('/img/noise.webp');
 		background-repeat: repeat;
 		background-size: 180px 180px;
 		opacity: 0.045;
