@@ -369,10 +369,6 @@
 		flex-shrink: 0;
 	}
 
-	.tab-label {
-		/* Visible en desktop */
-	}
-
 	.products-tab:hover {
 		color: #cbd5e1;
 		background: rgba(255, 255, 255, 0.05);
@@ -463,6 +459,7 @@
 			font-size: 11px;
 			display: -webkit-box;
 			-webkit-line-clamp: 1;
+			line-clamp: 1;
 			-webkit-box-orient: vertical;
 			overflow: hidden;
 		}

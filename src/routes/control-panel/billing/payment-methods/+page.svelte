@@ -548,11 +548,6 @@
 		border-color: rgba(248, 113, 113, 0.2);
 		color: #fca5a5;
 	}
-	.alert--demo {
-		background: rgba(139, 92, 246, 0.07);
-		border-color: rgba(139, 92, 246, 0.2);
-		color: #c4b5fd;
-	}
 	.alert__close {
 		margin-left: auto;
 		background: none;
@@ -750,8 +745,6 @@
 		border-color: rgba(239, 68, 68, 0.4);
 		color: #fca5a5;
 	}
-	.badge--default {
-	}
 
 	.card-chip {
 		width: 32px;
@@ -778,8 +771,6 @@
 		color: rgba(255, 255, 255, 0.9);
 		margin: 0 0 14px;
 		font-variant-numeric: tabular-nums;
-	}
-	.card-exp {
 	}
 	.card-exp__label {
 		display: block;
