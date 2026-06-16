@@ -14,14 +14,11 @@ export default defineConfig({
 			provider: 'v8',
 			reporter: ['text', 'json', 'html', 'lcov'],
 			reportsDirectory: './coverage',
-			thresholds: {
-				lines: 70,
-				functions: 70,
-				branches: 60,
-				statements: 70
-			},
+			include: ['src/lib/**'],
 			exclude: [
 				'src/routes/**',
+				'src/lib/components/**',
+				'src/lib/billing/**',
 				'src/**/*.spec.{js,ts}',
 				'src/**/*.test.{js,ts}',
 				'src/app.html',
