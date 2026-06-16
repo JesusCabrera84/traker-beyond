@@ -1,9 +1,10 @@
+# syntax=docker/dockerfile:1.7
+
 # Usar imagen base de Node.js
 FROM node:20-alpine AS builder
 
 # Argumentos para variables de entorno de build
 ARG VITE_API_BASE_URL
-ARG VITE_RECAPTCHA_SITE_KEY
 
 # Establecer directorio de trabajo
 WORKDIR /app
@@ -17,12 +18,11 @@ RUN npm ci --ignore-scripts
 # Copiar el código fuente
 COPY . .
 
-# Pasar las variables de entorno durante el build
-ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
-ENV VITE_RECAPTCHA_SITE_KEY=${VITE_RECAPTCHA_SITE_KEY}
-
 # Construir la aplicación
-RUN npm run build
+RUN --mount=type=secret,id=VITE_RECAPTCHA_SITE_KEY \
+	export VITE_API_BASE_URL="$VITE_API_BASE_URL" && \
+	export VITE_RECAPTCHA_SITE_KEY="$(cat /run/secrets/VITE_RECAPTCHA_SITE_KEY)" && \
+	npm run build
 
 # Instalar solo dependencias de producción para la etapa final
 RUN npm ci --only=production --ignore-scripts
