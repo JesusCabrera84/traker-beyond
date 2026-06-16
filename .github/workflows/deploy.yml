@@ -1,4 +1,4 @@
-name: Deploy Tracker Web to EC2
+name: Deploy Geminis Labs Web to EC2
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup SSH Key
         uses: shimataro/ssh-key-action@v2
@@ -27,15 +27,15 @@ jobs:
           if_key_exists: replace
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build Docker image for deployment
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           push: false
-          tags: tracker-web:latest
+          tags: geminislabs-web:latest
           load: true
           build-args: |
             VITE_API_BASE_URL=${{ secrets.VITE_API_BASE_URL }}
@@ -44,24 +44,24 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Save Docker image
-        run: docker save tracker-web:latest | gzip > tracker-web.tar.gz
+        run: docker save geminislabs-web:latest | gzip > geminislabs-web.tar.gz
 
       - name: Copy Docker image to EC2
         run: |
           echo "Copiando imagen Docker al servidor..."
-          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa tracker-web.tar.gz ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST_TEST }}:/tmp/
+          scp -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa geminislabs-web.tar.gz ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST_TEST }}:/tmp/
           echo "Copia completada."
 
       - name: Verify file transfer
         run: |
           echo "Verificando que el archivo se copió correctamente..."
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST_TEST }} << 'EOF'
-            if [ -f /tmp/tracker-web.tar.gz ]; then
-              echo "✅ Archivo encontrado: /tmp/tracker-web.tar.gz"
-              echo "Tamaño del archivo: $(du -h /tmp/tracker-web.tar.gz)"
+            if [ -f /tmp/geminislabs-web.tar.gz ]; then
+              echo "✅ Archivo encontrado: /tmp/geminislabs-web.tar.gz"
+              echo "Tamaño del archivo: $(du -h /tmp/geminislabs-web.tar.gz)"
               echo "Espacio disponible en /tmp: $(df -h /tmp | tail -1)"
             else
-              echo "❌ Error: No se encontró el archivo /tmp/tracker-web.tar.gz"
+              echo "❌ Error: No se encontró el archivo /tmp/geminislabs-web.tar.gz"
               exit 1
             fi
           EOF
@@ -74,6 +74,8 @@ jobs:
             echo "=== Detener contenedor anterior ==="
             docker stop tracker-web-test || true
             docker rm tracker-web-test || true
+            docker stop geminislabs-web || true
+            docker rm geminislabs-web || true
 
             echo "=== Limpiando espacio en disco ==="
             docker container prune -f || true
@@ -85,31 +87,31 @@ jobs:
 
             echo "=== Cargar nueva imagen ==="
             cd /tmp
-            if [ -f tracker-web.tar.gz ]; then
+            if [ -f geminislabs-web.tar.gz ]; then
               echo "Cargando imagen Docker..."
-              docker load < tracker-web.tar.gz
+              docker load < geminislabs-web.tar.gz
 
               echo "=== Verificar imagen cargada ==="
-              docker images | grep tracker-web || echo "Advertencia: No se encontró la imagen tracker-web"
+              docker images | grep geminislabs-web || echo "Advertencia: No se encontró la imagen geminislabs-web"
 
               echo "=== Ejecutar nuevo contenedor ==="
               docker run -d \
-                --name tracker-web-test \
+                --name geminislabs-web \
                 --restart unless-stopped \
                 -p 3330:3330 \
                 -e NODE_ENV=production \
-                tracker-web:latest
+                geminislabs-web:latest
 
               echo "=== Verificar contenedor ==="
-              docker ps | grep tracker-web-test
+              docker ps | grep geminislabs-web
 
               echo "=== Limpiar archivos temporales ==="
-              rm -f tracker-web.tar.gz
-              find /tmp -name "tracker-web*.tar.gz" -mtime +1 -delete || true
+              rm -f geminislabs-web.tar.gz
+              find /tmp -name "geminislabs-web*.tar.gz" -mtime +1 -delete || true
 
               echo "=== Deployment completado exitosamente ==="
             else
-              echo "Error: No se encontró el archivo tracker-web.tar.gz"
+              echo "Error: No se encontró el archivo geminislabs-web.tar.gz"
               exit 1
             fi
           EOF

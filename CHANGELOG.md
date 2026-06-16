@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Split monolithic GitHub Actions workflow into `ci.yml` (quality gates) and `deploy.yml` (releases)
 - Enriched pull request template with changelog and base-branch checks
+- Updated deploy GitHub Actions to current major versions (`actions/checkout@v5`, `docker/setup-buildx-action@v4`, `docker/build-push-action@v6`) to align with Node 24 runtime
+- Renamed deploy Docker image/container from `tracker-web(-test)` to `geminislabs-web` in EC2 deployment flow
 
 ### Removed
 

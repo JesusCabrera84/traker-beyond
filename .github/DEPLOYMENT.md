@@ -36,7 +36,7 @@ Para que el deployment funcione correctamente, necesitas configurar los siguient
 
 - Se ejecuta automáticamente cuando se hace push a la rama `develop`
 - Despliega en el servidor de pruebas usando el puerto configurado en `TEST_PORT`
-- El contenedor se llama `tracker-web-test`
+- El contenedor se llama `geminislabs-web`
 
 ### Rama `master` → Servidor de Producción
 
