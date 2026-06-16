@@ -43,11 +43,10 @@ Antes de modificar integraciones con backend, lee `docs/architecture/modules/REA
 ## Comandos obligatorios antes de terminar
 
 ```bash
-npm run lint
-npm run check
-npm run test
-npm run build
+npm run validate
 ```
+
+Equivalente: `npm run lint`, `npm run check`, `npm run test`, `npm run build`.
 
 Si tocaste `src/lib/**`, verifica cobertura:
 
@@ -85,6 +84,8 @@ Referencias en `README.md` y `.env.example` si existe.
 
 - Contribución: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Seguridad: [SECURITY.md](SECURITY.md)
+- Threat model: [docs/security/threat-model.md](docs/security/threat-model.md)
+- ADRs: [docs/adr/](docs/adr/)
 - Arquitectura por módulo: [docs/architecture/modules/](docs/architecture/modules/)
 
 ## Release y changelog
