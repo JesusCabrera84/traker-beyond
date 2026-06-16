@@ -72,7 +72,12 @@ Opcional pero recomendado:
 ```bash
 npm run test:coverage   # verificar cobertura en src/lib/
 npm run audit           # vulnerabilidades npm (nivel high+)
+npm run scan:secrets    # escaneo de secretos con Gitleaks CLI (gratis, sin licencia)
 ```
+
+**Gitleaks local (antes de push):** la primera vez descarga el binario a `.cache/gitleaks/`. Escanea el working tree con las reglas por defecto + `.gitleaks.toml`. Exit 0 = sin hallazgos; exit 1 = posible secreto expuesto.
+
+Alternativa si ya lo tienes instalado: `gitleaks detect --source . --redact --verbose`
 
 Los hooks de Husky ejecutan:
 

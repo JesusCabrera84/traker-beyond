@@ -25,6 +25,7 @@ playwright-report/
 coverage/
 
 # ── Tools ─────────────────────────────────────────────
+.cache/
 .husky/_
 .last-run.json
 vite.config.js.timestamp-*
