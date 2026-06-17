@@ -32,3 +32,22 @@ Vitest enforces thresholds on `src/lib/**` (excluding Svelte components and `src
 ## Release
 
 Follow [docs/RELEASE.md](RELEASE.md). Deploy only via annotated tags `v*.*.*`.
+
+## Dependabot
+
+Configured in [.github/dependabot.yml](../.github/dependabot.yml).
+
+| Ecosystem      | Schedule | Target branch | Notes                                       |
+| -------------- | -------- | ------------- | ------------------------------------------- |
+| npm            | Weekly   | `develop`     | Grouped patch/minor; majors as separate PRs |
+| github-actions | Weekly   | `develop`     | Single grouped PR per week when possible    |
+| docker         | Weekly   | `develop`     | Base images in `Dockerfile*`                |
+
+**Merge policy for Dependabot PRs:**
+
+1. Wait for CI checks `quality`, `security`, and `e2e` to pass.
+2. Patch/minor grouped PRs: review changelog, merge if green.
+3. Major version PRs (SvelteKit, Vite, etc.): manual smoke test (`npm run validate`, `npm run test:e2e`).
+4. Do not auto-merge majors without human approval.
+
+Enable **Dependabot security updates** in GitHub → Settings → Code security and analysis (complements OSV-Scanner and `npm audit`).

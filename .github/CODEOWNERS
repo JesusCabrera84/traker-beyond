@@ -14,5 +14,6 @@
 
 # CI/CD and release
 /.github/workflows/ @geminislabs/engineering
+/.github/dependabot.yml @geminislabs/engineering
 /scripts/ @geminislabs/engineering
 /Dockerfile @geminislabs/engineering

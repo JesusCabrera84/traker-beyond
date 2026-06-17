@@ -89,6 +89,8 @@ npm run scan:secrets    # escaneo de secretos con Gitleaks CLI (gratis, sin lice
 npm run scan:osv        # escaneo de dependencias con OSV-Scanner
 ```
 
+> **Dependabot:** PRs automáticos de dependencias (npm, GitHub Actions, Docker) apuntan a `develop`. Ver `.github/dependabot.yml` y `docs/GOVERNANCE.md`.
+
 > **Phase 3:** e2e, audit y umbrales de cobertura son **bloqueantes** en CI. Ver `docs/GOVERNANCE.md` para branch protection.
 
 **Gitleaks local (antes de push):** la primera vez descarga el binario a `.cache/gitleaks/`. Escanea el working tree con las reglas por defecto + `.gitleaks.toml`. Exit 0 = sin hallazgos; exit 1 = posible secreto expuesto.

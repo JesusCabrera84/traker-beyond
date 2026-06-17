@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Phase 3 quality gates: coverage thresholds (90% lines/statements/functions on `src/lib/**`), blocking e2e and audit CI jobs
+- Dependabot version updates for npm, GitHub Actions, and Docker (`.github/dependabot.yml`)
 - OSV-Scanner dependency scan (`scripts/osv-scan.sh`, `npm run scan:osv`)
 - `.github/CODEOWNERS` and `docs/GOVERNANCE.md` (branch protection checklist)
 - Coverage artifact upload in CI
