@@ -1,5 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { THEMES, getCurrentTheme, setTheme, getThemeConfig, initializeTheme } from './theme.js';
+import {
+	THEMES,
+	getCurrentTheme,
+	setTheme,
+	getThemeConfig,
+	initializeTheme,
+	nextTheme,
+	previousTheme
+} from './theme.js';
 
 describe('Theme System', () => {
 	beforeEach(() => {
@@ -137,6 +145,17 @@ describe('Theme System', () => {
 			// Verificar que se inicializó con algún tema válido
 			const currentTheme = getCurrentTheme();
 			expect(Object.keys(THEMES)).toContain(currentTheme);
+		});
+	});
+
+	describe('theme cycling', () => {
+		it('nextTheme and previousTheme rotate active theme', () => {
+			setTheme('default');
+			const start = getCurrentTheme();
+			const afterNext = nextTheme();
+			expect(afterNext).not.toBe(start);
+			previousTheme();
+			expect(getCurrentTheme()).toBe(start);
 		});
 	});
 });

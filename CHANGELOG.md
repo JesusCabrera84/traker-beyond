@@ -9,8 +9,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Phase 3 quality gates: coverage thresholds (90% lines/statements/functions on `src/lib/**`), blocking e2e and audit CI jobs
+- Dependabot version updates for npm, GitHub Actions, and Docker (`.github/dependabot.yml`)
+- OSV-Scanner dependency scan (`scripts/osv-scan.sh`, `npm run scan:osv`)
+- `.github/CODEOWNERS` and `docs/GOVERNANCE.md` (branch protection checklist)
+- Coverage artifact upload in CI
+- Expanded unit tests for services, stores, and utils (~150 tests)
 - Engineering foundation docs: `AGENTS.md`, `CONTRIBUTING.md`, `SECURITY.md`, `.editorconfig`, `.nvmrc`
-- Release discipline: `CHANGELOG.md`, `docs/RELEASE.md`, `scripts/setup.sh`, pre-push hooks
+
+### Changed
+
+- `npm run validate` now runs `test:coverage` with enforced thresholds
+- CI `e2e` and `audit` jobs are blocking (removed `continue-on-error`)
+- `apiClient.delete()` for organization user removal
 - CI guardrails workflow: lint, type-check, coverage, audit, Gitleaks, Semgrep
 - Separate `deploy.yml` for tag-based EC2 deployments
 - Phase 2 (soft): DevContainer, `npm run validate`, unit test scaffolding, Playwright smoke e2e (informational CI)

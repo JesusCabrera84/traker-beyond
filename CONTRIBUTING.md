@@ -68,7 +68,7 @@ chore: add CONTRIBUTING guidelines
 Ejecuta localmente (en este orden):
 
 ```bash
-npm run validate   # lint + check + test + build (atajo recomendado)
+npm run validate   # lint + check + test:coverage + build (atajo recomendado)
 ```
 
 Equivalente manual:
@@ -76,20 +76,22 @@ Equivalente manual:
 ```bash
 npm run lint       # prettier + eslint
 npm run check      # svelte-check
-npm run test       # vitest
+npm run test:coverage # vitest con umbrales en src/lib/**
 npm run build      # build de producción
 ```
 
 Opcional pero recomendado:
 
 ```bash
-npm run test:coverage   # reporte de cobertura (sin umbrales bloqueantes)
 npm run test:e2e        # smoke Playwright (local)
 npm run audit           # vulnerabilidades npm (nivel high+)
 npm run scan:secrets    # escaneo de secretos con Gitleaks CLI (gratis, sin licencia)
+npm run scan:osv        # escaneo de dependencias con OSV-Scanner
 ```
 
-> **Phase 2 es non-blocking:** e2e en CI es informativo (`continue-on-error`). Los umbrales de cobertura se activarán en una fase posterior.
+> **Dependabot:** PRs automáticos de dependencias (npm, GitHub Actions, Docker) apuntan a `develop`. Ver `.github/dependabot.yml` y `docs/GOVERNANCE.md`.
+
+> **Phase 3:** e2e, audit y umbrales de cobertura son **bloqueantes** en CI. Ver `docs/GOVERNANCE.md` para branch protection.
 
 **Gitleaks local (antes de push):** la primera vez descarga el binario a `.cache/gitleaks/`. Escanea el working tree con las reglas por defecto + `.gitleaks.toml`. Exit 0 = sin hallazgos; exit 1 = posible secreto expuesto.
 
@@ -127,7 +129,7 @@ Formato: [Keep a Changelog](https://keepachangelog.com/). Ver [docs/RELEASE.md](
 
 ### 6. Cobertura de tests
 
-Vitest reporta cobertura en `src/lib/` (excluye rutas y componentes Svelte). CI ejecuta `test:coverage` como reporte; el gate bloqueante es `npm run test`.
+Vitest reporta cobertura en `src/lib/` (excluye rutas y componentes Svelte). CI ejecuta `test:coverage` con umbrales: **90%** líneas/funciones/statements, **70%** ramas en archivos incluidos.
 
 Objetivos de cobertura para lógica en `src/lib/services`, `stores` y `utils`:
 

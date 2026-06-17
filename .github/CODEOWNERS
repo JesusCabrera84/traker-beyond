@@ -1,0 +1,19 @@
+# Default reviewers — replace @geminislabs/engineering with your GitHub team slug
+* @geminislabs/engineering
+
+# Authentication and session handling
+/src/lib/services/authService.js @geminislabs/engineering
+/src/lib/services/apiClient.js @geminislabs/engineering
+/src/lib/services/sessionExpiredHandler.js @geminislabs/engineering
+/src/lib/stores/authStore.js @geminislabs/engineering
+/src/routes/auth/ @geminislabs/engineering
+
+# Billing and payments
+/src/lib/services/billingService.js @geminislabs/engineering
+/src/routes/control-panel/billing/ @geminislabs/engineering
+
+# CI/CD and release
+/.github/workflows/ @geminislabs/engineering
+/.github/dependabot.yml @geminislabs/engineering
+/scripts/ @geminislabs/engineering
+/Dockerfile @geminislabs/engineering

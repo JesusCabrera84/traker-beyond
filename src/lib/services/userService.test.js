@@ -96,7 +96,6 @@ describe('UserService', () => {
 			const result = await userService.getUsers();
 
 			expect(apiClient.get).toHaveBeenCalledWith('/api/v1/users', {}, 'valid-token');
-
 			expect(result.success).toBe(true);
 			expect(result.data).toEqual(mockUsers);
 		});
@@ -124,6 +123,31 @@ describe('UserService', () => {
 
 			expect(result.success).toBe(true);
 			expect(result.message).toBe('Contraseña actualizada correctamente');
+		});
+	});
+
+	describe('handleUserError', () => {
+		it('maps validation, auth, server and network errors', async () => {
+			sessionStorage.setItem('geminis_access_token', 'valid-token');
+			const { apiClient, ApiError } = await import('./apiClient.js');
+
+			apiClient.get.mockRejectedValueOnce(
+				new ApiError('bad', 422, { detail: [{ msg: 'Campo requerido' }] })
+			);
+			expect((await userService.getCurrentUser()).message).toBe('Campo requerido');
+
+			apiClient.get.mockRejectedValueOnce(new ApiError('auth', 401, {}));
+			expect((await userService.getCurrentUser()).message).toBe('Sesión expirada o sin permisos');
+
+			apiClient.get.mockRejectedValueOnce(new ApiError('server', 500, {}));
+			expect((await userService.getCurrentUser()).message).toBe(
+				'Error del servidor. Intenta más tarde.'
+			);
+
+			apiClient.get.mockRejectedValueOnce(new ApiError('offline', 0, {}));
+			expect((await userService.getCurrentUser()).message).toBe(
+				'Error de conexión. Verifica tu internet.'
+			);
 		});
 	});
 

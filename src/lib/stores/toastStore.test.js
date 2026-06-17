@@ -28,4 +28,10 @@ describe('toastStore', () => {
 		toastStore.clear();
 		expect(get(toastStore)).toHaveLength(0);
 	});
+
+	it('supports convenience helpers', () => {
+		const id = toastStore.success('Done', 0);
+		expect(get(toastStore)[0]).toMatchObject({ type: 'success', message: 'Done' });
+		toastStore.remove(id);
+	});
 });

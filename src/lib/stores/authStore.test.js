@@ -14,7 +14,8 @@ vi.mock('../services/authService.js', () => ({
 		getCurrentClient: vi.fn(),
 		resendVerification: vi.fn(),
 		forgotPassword: vi.fn(),
-		resetPassword: vi.fn()
+		resetPassword: vi.fn(),
+		acceptInvitation: vi.fn()
 	}
 }));
 
@@ -165,11 +166,7 @@ describe('AuthStore', () => {
 
 	describe('utility methods', () => {
 		it('clearError debería limpiar errores', () => {
-			// Simular un error
-			authStore.login({ email: 'test', password: 'wrong' });
-
 			authStore.clearError();
-
 			const state = get(authStore);
 			expect(state.error).toBe(null);
 		});
@@ -181,6 +178,119 @@ describe('AuthStore', () => {
 
 			const state = get(authStore);
 			expect(state.user).toEqual(expect.objectContaining(newUserData));
+		});
+	});
+
+	describe('confirmEmail', () => {
+		it('updates state on success', async () => {
+			const { authService } = await import('../services/authService.js');
+			authService.confirmEmail.mockResolvedValueOnce({ success: true, message: 'OK' });
+
+			const result = await authStore.confirmEmail('token');
+
+			expect(result.success).toBe(true);
+			expect(get(authStore).loading).toBe(false);
+		});
+	});
+
+	describe('forgotPassword', () => {
+		it('stores error on failure', async () => {
+			const { authService } = await import('../services/authService.js');
+			authService.forgotPassword.mockResolvedValueOnce({
+				success: false,
+				message: 'No encontrado'
+			});
+
+			await authStore.forgotPassword('a@test.com');
+
+			expect(get(authStore).error).toBe('No encontrado');
+		});
+	});
+
+	describe('acceptInvitation', () => {
+		it('updates state on success', async () => {
+			const { authService } = await import('../services/authService.js');
+			authService.acceptInvitation.mockResolvedValueOnce({ success: true, message: 'OK' });
+
+			const result = await authStore.acceptInvitation('tok', 'pass');
+
+			expect(result.success).toBe(true);
+			expect(get(authStore).loading).toBe(false);
+		});
+	});
+
+	describe('getClientInfo', () => {
+		it('merges client data into user', async () => {
+			const { authService } = await import('../services/authService.js');
+			authStore.updateUser({ id: 1 });
+			authService.getCurrentClient.mockResolvedValueOnce({
+				success: true,
+				data: { company: 'Acme' }
+			});
+
+			await authStore.getClientInfo();
+
+			expect(get(authStore).user).toMatchObject({
+				id: 1,
+				client: { company: 'Acme' }
+			});
+		});
+	});
+
+	describe('resendVerification', () => {
+		it('stores error on failure', async () => {
+			const { authService } = await import('../services/authService.js');
+			authService.resendVerification.mockResolvedValueOnce({
+				success: false,
+				message: 'No enviado'
+			});
+
+			await authStore.resendVerification('a@test.com');
+
+			expect(get(authStore).error).toBe('No enviado');
+		});
+	});
+
+	describe('resetPassword', () => {
+		it('clears error on success', async () => {
+			const { authService } = await import('../services/authService.js');
+			authService.resetPassword.mockResolvedValueOnce({ success: true, message: 'OK' });
+
+			await authStore.resetPassword('a@test.com', '123', 'new');
+
+			expect(get(authStore).error).toBeNull();
+		});
+
+		it('handles thrown errors', async () => {
+			const { authService } = await import('../services/authService.js');
+			authService.resetPassword.mockRejectedValueOnce(new Error('boom'));
+
+			const result = await authStore.resetPassword('a@test.com', '123', 'new');
+
+			expect(result.success).toBe(false);
+			expect(get(authStore).error).toBe('Error al restablecer la contraseña');
+		});
+	});
+
+	describe('error catch paths', () => {
+		it('login handles thrown errors', async () => {
+			const { authService } = await import('../services/authService.js');
+			authService.login.mockRejectedValueOnce(new Error('network'));
+
+			const result = await authStore.login({ email: 'a', password: 'b' });
+
+			expect(result.success).toBe(false);
+			expect(get(authStore).error).toBe('Error al iniciar sesión');
+		});
+
+		it('forgotPassword handles thrown errors', async () => {
+			const { authService } = await import('../services/authService.js');
+			authService.forgotPassword.mockRejectedValueOnce(new Error('fail'));
+
+			const result = await authStore.forgotPassword('a@test.com');
+
+			expect(result.success).toBe(false);
+			expect(get(authStore).error).toBe('Error al solicitar recuperación de contraseña');
 		});
 	});
 });
