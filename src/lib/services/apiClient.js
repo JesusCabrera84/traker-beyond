@@ -137,6 +137,16 @@ class ApiClient {
 			body: JSON.stringify(data)
 		});
 	}
+
+	/**
+	 * DELETE request
+	 */
+	async delete(endpoint, _params = {}, token = null) {
+		return this.request(endpoint, {
+			method: 'DELETE',
+			headers: getAuthHeaders(token)
+		});
+	}
 }
 
 /**

@@ -46,7 +46,7 @@ Antes de modificar integraciones con backend, lee `docs/architecture/modules/REA
 npm run validate
 ```
 
-Equivalente: `npm run lint`, `npm run check`, `npm run test`, `npm run build`.
+Equivalente: `npm run lint`, `npm run check`, `npm run test:coverage`, `npm run build`.
 
 Si tocaste `src/lib/**`, verifica cobertura:
 
@@ -54,7 +54,7 @@ Si tocaste `src/lib/**`, verifica cobertura:
 npm run test:coverage
 ```
 
-Umbrales objetivo (`src/lib/` servicios, stores, utils, config): 70% líneas/funciones/statements, 60% ramas. Verificar con `npm run test:coverage`.
+Umbrales en CI (`src/lib/` servicios, stores, utils, config): **90%** líneas/funciones/statements, **70%** ramas. Ver `vite.config.js` y `docs/GOVERNANCE.md`.
 
 ## Módulos sensibles
 
@@ -92,7 +92,7 @@ Referencias en `README.md` y `.env.example` si existe.
 
 - **Changelog:** `CHANGELOG.md` — actualizar `[Unreleased]` en PRs con cambios de release note
 - **Pre-push:** valida rama (`feature/`, `fix/`, `chore/`, etc.) y presencia de changelog vs `origin/develop`
-- **CI:** `.github/workflows/ci.yml` — lint, check, coverage, build, audit, Gitleaks, Semgrep
+- **CI:** `.github/workflows/ci.yml` — lint, check, coverage (umbrales), build, audit, e2e, Gitleaks, Semgrep, OSV-Scanner
 - **Deploy:** `.github/workflows/deploy.yml` — solo tags `v*.*.*`; ver [docs/RELEASE.md](docs/RELEASE.md)
 
 ## PRs

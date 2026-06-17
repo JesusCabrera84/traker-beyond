@@ -19,13 +19,20 @@ export default defineConfig({
 				'src/routes/**',
 				'src/lib/components/**',
 				'src/lib/billing/**',
+				'src/lib/index.js',
 				'src/**/*.spec.{js,ts}',
 				'src/**/*.test.{js,ts}',
 				'src/app.html',
 				'src/app.css',
 				'**/*.config.{js,ts}',
 				'**/vitest-setup*'
-			]
+			],
+			thresholds: {
+				lines: 90,
+				functions: 90,
+				branches: 70,
+				statements: 90
+			}
 		}
 	}
 });
