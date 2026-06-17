@@ -1,6 +1,5 @@
 import { API_CONFIG, buildApiUrl, getAuthHeaders } from '$lib/config/api.js';
-import { browser } from '$app/environment';
-import { toastStore } from '../stores/toastStore.js';
+import { handleSessionExpired } from './sessionExpiredHandler.js';
 
 /**
  * Cliente API para manejar todas las peticiones al backend
@@ -90,27 +89,7 @@ class ApiClient {
 	 * Maneja la sesión expirada automáticamente
 	 */
 	async handleSessionExpired() {
-		if (!browser) return;
-
-		try {
-			// Importar dinámicamente para evitar dependencias circulares
-			const { pageTransitionStore } = await import('$lib/stores/pageTransitionStore.js');
-			const { authStore } = await import('../stores/authStore.js');
-
-			// Cerrar sesión automáticamente
-			await authStore.logout();
-
-			// Mostrar notificación al usuario
-			toastStore.warning('Tu sesión ha expirado. Por favor, inicia sesión nuevamente.');
-
-			// Redirigir al login
-			await pageTransitionStore.goto('/auth', {
-				transitionType: 'fade',
-				replaceState: true
-			});
-		} catch {
-			// Error silencioso al manejar sesión expirada
-		}
+		await handleSessionExpired();
 	}
 
 	/**

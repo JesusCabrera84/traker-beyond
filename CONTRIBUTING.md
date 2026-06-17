@@ -14,7 +14,14 @@ bash scripts/setup.sh
 
 `scripts/setup.sh` ejecuta `npm ci` y configura los hooks de Husky.
 
-## Flujo de trabajo
+### Dev Container (opcional)
+
+Abre el repo en **Dev Container** (VS Code / Cursor) para Node 22 preconfigurado:
+
+```bash
+# Tras abrir en container, post-create corre setup y copia .env.example → .env si falta
+npm run dev
+```
 
 ### 1. Rama base
 
@@ -61,6 +68,12 @@ chore: add CONTRIBUTING guidelines
 Ejecuta localmente (en este orden):
 
 ```bash
+npm run validate   # lint + check + test + build (atajo recomendado)
+```
+
+Equivalente manual:
+
+```bash
 npm run lint       # prettier + eslint
 npm run check      # svelte-check
 npm run test       # vitest
@@ -70,10 +83,13 @@ npm run build      # build de producción
 Opcional pero recomendado:
 
 ```bash
-npm run test:coverage   # verificar cobertura en src/lib/
+npm run test:coverage   # reporte de cobertura (sin umbrales bloqueantes)
+npm run test:e2e        # smoke Playwright (local)
 npm run audit           # vulnerabilidades npm (nivel high+)
 npm run scan:secrets    # escaneo de secretos con Gitleaks CLI (gratis, sin licencia)
 ```
+
+> **Phase 2 es non-blocking:** e2e en CI es informativo (`continue-on-error`). Los umbrales de cobertura se activarán en una fase posterior.
 
 **Gitleaks local (antes de push):** la primera vez descarga el binario a `.cache/gitleaks/`. Escanea el working tree con las reglas por defecto + `.gitleaks.toml`. Exit 0 = sin hallazgos; exit 1 = posible secreto expuesto.
 

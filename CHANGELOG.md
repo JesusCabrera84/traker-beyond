@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Release discipline: `CHANGELOG.md`, `docs/RELEASE.md`, `scripts/setup.sh`, pre-push hooks
 - CI guardrails workflow: lint, type-check, coverage, audit, Gitleaks, Semgrep
 - Separate `deploy.yml` for tag-based EC2 deployments
+- Phase 2 (soft): DevContainer, `npm run validate`, unit test scaffolding, Playwright smoke e2e (informational CI)
+- ADRs (`docs/adr/`), threat model (`docs/security/threat-model.md`), GitHub issue templates
+- `sessionExpiredHandler` to isolate 401 handling from `apiClient`
 
 ### Changed
 
