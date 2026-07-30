@@ -6,6 +6,7 @@
 	import HeroGlitch from '$lib/components/HeroGlitch.svelte';
 	import HeroTitle from '$lib/components/HeroTitle.svelte';
 	import { buildApiUrl, API_CONFIG } from '$lib/config/api.js';
+	import { products, neighborProduct } from '$lib/data/products.js';
 
 	// Variables para efectos parallax
 	let scrollY = 0;
@@ -14,12 +15,15 @@
 	// Variable para detectar si estamos en móvil
 	let isMobile = false;
 
-	// Selector de producto (Nexus / Orion)
-	let activeProduct = 'nexus';
+	// Selector de producto. La navegación por flechas cicla sobre el catálogo:
+	// con un ternario binario el tercer producto era inalcanzable por teclado.
+	let activeProduct = products[0].id;
 	function onProductTabKey(e) {
 		if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(e.key)) return;
 		e.preventDefault();
-		activeProduct = e.key === 'ArrowLeft' || e.key === 'Home' ? 'nexus' : 'orion';
+		if (e.key === 'Home') activeProduct = products[0].id;
+		else if (e.key === 'End') activeProduct = products[products.length - 1].id;
+		else activeProduct = neighborProduct(activeProduct, e.key === 'ArrowRight' ? 1 : -1);
 		e.currentTarget.parentElement?.querySelector('#tab-' + activeProduct)?.focus();
 	}
 
@@ -303,6 +307,10 @@
 	let orionInterval;
 
 	let innerWindowWidth;
+
+	// En móvil (≤600px) el hero muestra solo el logo estático, así que no montamos
+	// el canvas de partículas de PIXI (evita su ticker y el coste de batería).
+	$: showHeroParticles = innerWindowWidth > 600;
 
 	onMount(() => {
 		// Nexus Carousel Autoplay
@@ -726,7 +734,9 @@
 	<div class="hero-scanlines" aria-hidden="true"></div>
 	<div class="hero-right-glow" aria-hidden="true"></div>
 
-	<HeroParticles />
+	{#if showHeroParticles}
+		<HeroParticles />
+	{/if}
 
 	<!-- Logo estático — solo visible en móvil -->
 	<div class="hero-mobile-logo" aria-label="Geminis Labs">
@@ -945,36 +955,41 @@
 <section id="productos" class="nexus-section">
 	<div class="nexus-head">
 		<h2 class="landing-section-title">Nuestros Productos</h2>
-		<div class="nx-tabs" role="tablist" aria-label="Productos">
+		<p class="nx-kicker">Tres productos</p>
+	</div>
+
+	<!-- Rail de cámaras: las tres marcas visibles siempre, sin depender de hover.
+	     Cada celda comparte la misma materia de fondo; solo cambia la temperatura
+	     de la luz, así que ninguna paleta compite con las otras. -->
+	<div class="nx-rail" role="tablist" aria-label="Productos">
+		{#each products as p, i (p.id)}
 			<button
 				type="button"
 				role="tab"
-				id="tab-nexus"
-				class="nx-tab"
-				class:is-active={activeProduct === 'nexus'}
-				aria-selected={activeProduct === 'nexus'}
-				aria-controls="panel-nexus"
-				tabindex={activeProduct === 'nexus' ? 0 : -1}
-				on:click={() => (activeProduct = 'nexus')}
+				id="tab-{p.id}"
+				class="nx-cell"
+				class:is-active={activeProduct === p.id}
+				data-product={p.id}
+				aria-selected={activeProduct === p.id}
+				aria-controls="panel-{p.id}"
+				tabindex={activeProduct === p.id ? 0 : -1}
+				on:click={() => (activeProduct = p.id)}
 				on:keydown={onProductTabKey}
 			>
-				Nexus
+				<span class="nx-cell-num" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+				<span class="nx-cell-stage" aria-hidden="true">
+					<img src={p.mark} alt="" class="nx-cell-mark" loading="lazy" decoding="async" />
+					<span class="nx-cell-shadow"></span>
+				</span>
+				<span class="nx-cell-text">
+					<span class="nx-cell-name">{p.name}</span>
+					<span class="nx-cell-desc">{p.rail}</span>
+				</span>
+				{#if p.badge}
+					<span class="nx-cell-badge">{p.badge}</span>
+				{/if}
 			</button>
-			<button
-				type="button"
-				role="tab"
-				id="tab-orion"
-				class="nx-tab"
-				class:is-active={activeProduct === 'orion'}
-				aria-selected={activeProduct === 'orion'}
-				aria-controls="panel-orion"
-				tabindex={activeProduct === 'orion' ? 0 : -1}
-				on:click={() => (activeProduct = 'orion')}
-				on:keydown={onProductTabKey}
-			>
-				Orion
-			</button>
-		</div>
+		{/each}
 	</div>
 
 	<div class="nx-card-shell" use:_reveal>
@@ -986,149 +1001,98 @@
 		>
 			<div class="nx-bg" aria-hidden="true"></div>
 			<div class="nx-panels">
-				<!-- NEXUS -->
-				<div
-					class="nx-panel"
-					class:is-active={activeProduct === 'nexus'}
-					id="panel-nexus"
-					role="tabpanel"
-					aria-labelledby="tab-nexus"
-					aria-hidden={activeProduct !== 'nexus'}
-				>
-					<div class="nx-content">
-						<p class="nx-eyebrow">Producto</p>
-						<h3 class="nx-title">NEXUS</h3>
-						<p class="nx-subtitle">
-							Nexus es una plataforma de rastreo inteligente diseñada para proteger vehículos,
-							personas y operaciones mediante ubicación en tiempo real, alertas y análisis de
-							movilidad
-						</p>
-
-						<ul class="nx-audiences">
-							<li class="nx-aud">
-								<span class="nx-aud-label">Para familia</span>
-								<span class="nx-aud-benefit">Protege a quienes más quieres</span>
-							</li>
-							<li class="nx-aud">
-								<span class="nx-aud-label">Para flotillas</span>
-								<span class="nx-aud-benefit">Control donde quiera que estés</span>
-							</li>
-							<li class="nx-aud">
-								<span class="nx-aud-label">Para negocios</span>
-								<span class="nx-aud-benefit">Integra fácil tus datos</span>
-							</li>
-						</ul>
-
-						<div class="nx-lists">
-							<div class="nx-list-col">
-								<h3 class="nx-list-title">Características</h3>
-								<ul class="nx-chips">
-									<li class="nx-chip">Ubicación en tiempo real</li>
-									<li class="nx-chip">Historial de recorridos</li>
-									<li class="nx-chip">Geocercas personalizadas</li>
-									<li class="nx-chip">Notificaciones</li>
-									<li class="nx-chip">Panel web + App móvil</li>
-									<li class="nx-chip">API para integradores</li>
-								</ul>
+				{#each products as p (p.id)}
+					<div
+						class="nx-panel"
+						data-product={p.id}
+						class:is-active={activeProduct === p.id}
+						id="panel-{p.id}"
+						role="tabpanel"
+						aria-labelledby="tab-{p.id}"
+						aria-hidden={activeProduct !== p.id}
+					>
+						{#if p.id === 'orion'}
+							<div class="nx-orion-fx" aria-hidden="true">
+								{#each orionParticles as pt (`${pt.sx}-${pt.sy}-${pt.d}`)}
+									<span
+										style="--sx:{pt.sx}px; --sy:{pt.sy}px; --d:{pt.d}s; --dur:{pt.dur}s; --s:{pt.s}px; --o:{pt.o};"
+									></span>
+								{/each}
 							</div>
-							<div class="nx-list-col">
-								<h3 class="nx-list-title">Casos de uso</h3>
-								<ul class="nx-chips">
-									<li class="nx-chip nx-chip--case">Protección vehicular</li>
-									<li class="nx-chip nx-chip--case">Rastreo familiar</li>
-									<li class="nx-chip nx-chip--case">Control de flotillas</li>
-									<li class="nx-chip nx-chip--case">Recuperación ante robo</li>
-									<li class="nx-chip nx-chip--case">Seguridad en campo</li>
-									<li class="nx-chip nx-chip--case">Integración con terceros</li>
+						{/if}
+
+						<div class="nx-content">
+							<p class="nx-eyebrow">Producto</p>
+							<h3 class="nx-title">{p.name}</h3>
+							<p class="nx-subtitle">{p.subtitle}</p>
+
+							{#if p.audiences}
+								<ul class="nx-audiences">
+									{#each p.audiences as aud (aud.label)}
+										<li class="nx-aud">
+											<span class="nx-aud-label">{aud.label}</span>
+											<span class="nx-aud-benefit">{aud.benefit}</span>
+										</li>
+									{/each}
 								</ul>
+							{/if}
+
+							<div class="nx-lists">
+								{#if p.id === 'signum'}
+									<!-- Trazo de electrocardiograma que se dibuja detrás de los chips.
+									     Decorativo: no aporta información, así que queda fuera del
+									     árbol de accesibilidad y se apaga con reduced-motion. -->
+									<svg
+										class="nx-ecg"
+										viewBox="0 0 600 100"
+										preserveAspectRatio="none"
+										aria-hidden="true"
+										focusable="false"
+									>
+										<path
+											d="M0 50 H120 l14 0 8 -26 10 52 9 -40 8 30 7 -16 h14 H300 l14 0 8 -26 10 52 9 -40 8 30 7 -16 h14 H600"
+										/>
+									</svg>
+								{/if}
+								<div class="nx-list-col">
+									<h4 class="nx-list-title">{p.featuresTitle}</h4>
+									<ul class="nx-chips">
+										{#each p.features as feat (feat)}
+											<li class="nx-chip">{feat}</li>
+										{/each}
+									</ul>
+								</div>
+								<div class="nx-list-col">
+									<h4 class="nx-list-title">Casos de uso</h4>
+									<ul class="nx-chips">
+										{#each p.useCases as uc (uc)}
+											<li class="nx-chip nx-chip--case">{uc}</li>
+										{/each}
+									</ul>
+								</div>
 							</div>
+
+							<a
+								class="nx-cta"
+								href={p.href}
+								tabindex={activeProduct === p.id ? 0 : -1}
+								target={p.external ? '_blank' : null}
+								rel={p.external ? 'noopener noreferrer' : null}
+							>
+								{p.cta}
+								<span class="nx-cta-arrow" aria-hidden="true">→</span>
+							</a>
 						</div>
 
-						<a class="nx-cta" href="/products/nexus">
-							Explorar Nexus <span class="nx-cta-arrow" aria-hidden="true">→</span>
-						</a>
-					</div>
-
-					<div class="nx-stage" aria-hidden="true">
-						<span class="nx-halo"></span>
-						<a
-							href="/products/nexus"
-							class="nx-logo-link"
-							tabindex={activeProduct === 'nexus' ? 0 : -1}
-						>
-							<img src="/img/logo-nexus-3x.png" alt="Logotipo de Nexus" class="nx-logo" />
-						</a>
-						<span class="nx-floor"></span>
-					</div>
-				</div>
-
-				<!-- ORION -->
-				<div
-					class="nx-panel nx-panel--orion"
-					class:is-active={activeProduct === 'orion'}
-					id="panel-orion"
-					role="tabpanel"
-					aria-labelledby="tab-orion"
-					aria-hidden={activeProduct !== 'orion'}
-				>
-					<div class="nx-orion-fx" aria-hidden="true">
-						{#each orionParticles as pt (`${pt.sx}-${pt.sy}-${pt.d}`)}
-							<span
-								style="--sx:{pt.sx}px; --sy:{pt.sy}px; --d:{pt.d}s; --dur:{pt.dur}s; --s:{pt.s}px; --o:{pt.o};"
-							></span>
-						{/each}
-					</div>
-					<div class="nx-content">
-						<p class="nx-eyebrow">Producto</p>
-						<h3 class="nx-title">ORION</h3>
-						<p class="nx-subtitle">
-							Una capa silenciosa de inteligencia geoespacial para productos que requieren
-							localización, análisis territorial y validación de eventos sin depender exclusivamente
-							del GPS.
-						</p>
-
-						<div class="nx-lists">
-							<div class="nx-list-col">
-								<h3 class="nx-list-title">Características principales</h3>
-								<ul class="nx-chips">
-									<li class="nx-chip">Localización por Cell ID</li>
-									<li class="nx-chip">API de geolocalización</li>
-									<li class="nx-chip">Enriquecimiento geoespacial</li>
-									<li class="nx-chip">Soporte para múltiples operadores</li>
-									<li class="nx-chip">Integración con plataformas IoT</li>
-									<li class="nx-chip">Procesamiento por lotes</li>
-								</ul>
-							</div>
-							<div class="nx-list-col">
-								<h3 class="nx-list-title">Casos de uso</h3>
-								<ul class="nx-chips">
-									<li class="nx-chip nx-chip--case">Localización sin GPS</li>
-									<li class="nx-chip nx-chip--case">Validación de eventos IoT</li>
-									<li class="nx-chip nx-chip--case">Enriquecimiento de telemetría</li>
-									<li class="nx-chip nx-chip--case">Seguridad vehicular</li>
-									<li class="nx-chip nx-chip--case">Sistemas antifraude</li>
-									<li class="nx-chip nx-chip--case">Integración con ERPs o CRMs</li>
-								</ul>
-							</div>
+						<!-- Escenario decorativo: el nombre ya lo da el h3, así que el logo no
+						     necesita ser un enlace focusable dentro de un subárbol aria-hidden. -->
+						<div class="nx-stage" aria-hidden="true">
+							<span class="nx-halo"></span>
+							<img src={p.logo} alt="" class="nx-logo" loading="lazy" decoding="async" />
+							<span class="nx-floor"></span>
 						</div>
-
-						<a class="nx-cta" href="https://orion.geminislabs.com/">
-							Explorar Orion <span class="nx-cta-arrow" aria-hidden="true">→</span>
-						</a>
 					</div>
-
-					<div class="nx-stage" aria-hidden="true">
-						<span class="nx-halo"></span>
-						<a
-							href="https://orion.geminislabs.com/"
-							class="nx-logo-link"
-							tabindex={activeProduct === 'orion' ? 0 : -1}
-						>
-							<img src="/img/products/logo-orion.png" alt="Logotipo de Orion" class="nx-logo" />
-						</a>
-						<span class="nx-floor"></span>
-					</div>
-				</div>
+				{/each}
 			</div>
 		</article>
 	</div>
@@ -3225,50 +3189,236 @@
 		color: #0a2540;
 	}
 
-	/* Selector de producto (pills) */
-	.nx-tabs {
-		display: inline-flex;
-		gap: 0.4rem;
-		margin-top: 1.5rem;
-		padding: 0.35rem;
-		border-radius: 999px;
-		background: rgba(10, 37, 64, 0.05);
-		border: 1px solid rgba(10, 37, 64, 0.1);
-	}
-	.nx-tab {
-		appearance: none;
-		border: none;
-		background: transparent;
-		cursor: pointer;
-		font-family: 'Dune Rise', system-ui, sans-serif;
-		font-size: 0.95rem;
-		letter-spacing: 0.08em;
+	/* Kicker: dice explícitamente cuántos productos hay, para quien escanea */
+	.nx-kicker {
+		font-family: 'Audiowide', system-ui, sans-serif;
+		font-size: 0.72rem;
+		letter-spacing: 0.28em;
 		text-transform: uppercase;
-		color: #0a2540;
-		padding: 0.55rem 1.7rem;
-		border-radius: 999px;
+		color: rgba(10, 37, 64, 0.55);
+		margin: 0.5rem 0 0;
+	}
+
+	/* ── RAIL DE CÁMARAS ─────────────────────────────────────────
+	   Las tres marcas visibles a la vez. Cada celda es una cámara sellada:
+	   misma materia de fondo en las tres, y solo cambia la temperatura del
+	   foco (--lite) — el ojo lee "la misma sala iluminada distinto", no
+	   "fondos de colores". Profundidad con degradado + viñeta, sin fotos. */
+	.nx-rail {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: clamp(0.5rem, 1vw, 0.75rem);
+		/* Alineado al píxel con .nx-card-shell: rail y tarjeta comparten borde
+		   izquierdo y derecho, así se leen como un solo objeto. */
+		width: 100%;
+		max-width: calc(1280px + 4rem);
+		margin: 0 auto;
+		padding: 0 2rem;
+		box-sizing: border-box;
+	}
+	.nx-cell {
+		position: relative;
+		isolation: isolate;
+		display: grid;
+		grid-template-rows: auto 1fr auto;
+		justify-items: center;
+		gap: 0.75rem;
+		appearance: none;
+		cursor: pointer;
+		overflow: hidden;
+		padding: 1.5rem 1.25rem 1.35rem;
+		border-radius: 16px;
+		border: 1px solid rgba(244, 241, 232, 0.1);
+		text-align: center;
+		background:
+			radial-gradient(
+				125% 85% at 50% -12%,
+				rgba(var(--lite), var(--lite-a, 0.085)) 0%,
+				rgba(var(--lite), 0.025) 38%,
+				transparent 66%
+			),
+			radial-gradient(90% 55% at 50% 112%, rgba(var(--lite), 0.035) 0%, transparent 60%),
+			linear-gradient(178deg, #1e2225 0%, #16191b 100%);
+		box-shadow:
+			inset 0 0 90px 26px rgba(0, 0, 0, 0.52),
+			inset 0 1px 0 rgba(255, 255, 255, 0.075),
+			inset 0 -1px 0 rgba(0, 0, 0, 0.5),
+			0 18px 40px -26px rgba(0, 0, 0, 0.85);
 		transition:
-			background 0.25s ease,
-			color 0.25s ease,
-			box-shadow 0.25s ease;
+			border-color 0.28s ease,
+			box-shadow 0.28s ease,
+			transform 0.28s ease;
 	}
-	.nx-tab:hover {
-		color: #0883a0;
+	/* Grano: sin él, un degradado tenue sobre casi-negro produce banding
+	   visible en pantallas de 8 bits y la cámara se ve barata. */
+	.nx-cell::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: 1;
+		pointer-events: none;
+		background-image: url('/img/noise.webp');
+		background-size: 180px 180px;
+		opacity: 0.055;
+		mix-blend-mode: overlay;
 	}
-	.nx-tab.is-active {
-		background: linear-gradient(135deg, #0a2540, #0883a0);
-		color: #fff;
-		box-shadow: 0 8px 20px -8px rgba(8, 131, 160, 0.55);
+	.nx-cell > * {
+		position: relative;
+		z-index: 2;
 	}
-	.nx-tab:focus-visible {
+
+	/* Temperatura de luz por producto. Orion no tiene croma en su marca, así
+	   que compensa con intensidad: su cámara es la más luminosa de las tres. */
+	.nx-cell[data-product='nexus'] {
+		--lite: 168, 216, 150;
+		--accent: #5fd158;
+	}
+	.nx-cell[data-product='orion'] {
+		--lite: 196, 214, 232;
+		--lite-a: 0.115;
+		--accent: #c8d2dc;
+	}
+	.nx-cell[data-product='signum'] {
+		--lite: 232, 186, 180;
+		--accent: #e8565a;
+	}
+
+	.nx-cell-num {
+		font-family: 'Audiowide', system-ui, sans-serif;
+		font-size: 0.65rem;
+		letter-spacing: 0.2em;
+		color: rgba(244, 241, 232, 0.3);
+		justify-self: end;
+	}
+	.nx-cell-stage {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+	}
+	/* Normalización por masa óptica, no por caja: los tres logos tienen
+	   ratios distintos (0.96 / 0.83 / 0.69) y alinearlos por ancho los
+	   descuadra. Se controla la altura y la marca densa encoge. */
+	.nx-cell-mark {
+		width: auto;
+		object-fit: contain;
+		filter: saturate(0.55) brightness(0.88);
+		transition: filter 0.28s ease;
+	}
+	.nx-cell[data-product='nexus'] .nx-cell-mark {
+		height: clamp(56px, 6vw, 84px);
+	}
+	.nx-cell[data-product='orion'] .nx-cell-mark {
+		height: clamp(70px, 7.5vw, 106px);
+	}
+	.nx-cell[data-product='signum'] .nx-cell-mark {
+		height: clamp(66px, 7vw, 98px);
+	}
+	.nx-cell-shadow {
+		position: absolute;
+		bottom: -6px;
+		left: 50%;
+		width: 46%;
+		height: 18px;
+		transform: translateX(-50%);
+		background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.55) 0%, transparent 72%);
+		filter: blur(9px);
+		pointer-events: none;
+	}
+	.nx-cell-text {
+		display: grid;
+		gap: 0.3rem;
+	}
+	.nx-cell-name {
+		font-family: 'Dune Rise', system-ui, sans-serif;
+		font-size: clamp(0.82rem, 1vw, 1rem);
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: rgba(244, 241, 232, 0.72);
+		transition: color 0.28s ease;
+	}
+	.nx-cell-desc {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.78rem;
+		line-height: 1.35;
+		color: rgba(244, 241, 232, 0.58);
+	}
+	.nx-cell-badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		padding: 0.24rem 0.6rem;
+		border-radius: 999px;
+		border: 1px solid rgba(214, 47, 50, 0.45);
+		background: rgba(181, 18, 27, 0.12);
+		color: #e8565a;
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.62rem;
+		font-weight: 600;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+	}
+	.nx-cell-badge::before {
+		content: '';
+		width: 5px;
+		height: 5px;
+		border-radius: 50%;
+		background: #d62f32;
+	}
+
+	/* Estados. Se atenúa la croma de las marcas inactivas lo justo para que el
+	   verde de Nexus y el rojo de Signum no vibren entre sí, sin apagarlas. */
+	.nx-cell:hover,
+	.nx-cell:focus-visible {
+		transform: translateY(-3px);
+		border-color: rgba(244, 241, 232, 0.26);
+	}
+	.nx-cell:hover .nx-cell-mark,
+	.nx-cell:focus-visible .nx-cell-mark {
+		filter: none;
+	}
+	.nx-cell:hover .nx-cell-name {
+		color: #f4f1e8;
+	}
+	.nx-cell:focus-visible {
 		outline: 2px solid #0883a0;
-		outline-offset: 2px;
+		outline-offset: 3px;
+	}
+	.nx-cell.is-active {
+		border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+		box-shadow:
+			inset 0 0 90px 26px rgba(0, 0, 0, 0.42),
+			inset 0 1px 0 rgba(255, 255, 255, 0.11),
+			0 20px 44px -24px rgba(0, 0, 0, 0.9);
+	}
+	.nx-cell.is-active .nx-cell-mark {
+		filter: none;
+	}
+	.nx-cell.is-active .nx-cell-name {
+		color: #ffffff;
+	}
+	/* Barra de acento inferior */
+	.nx-cell.is-active::after {
+		content: '';
+		position: absolute;
+		inset: auto 0 0 0;
+		z-index: 3;
+		height: 3px;
+		background: var(--accent);
 	}
 
 	/* Shell: centra la tarjeta + reveal de scroll */
+	/* La tarjeta de "El futuro que estamos construyendo" queda fija en 1280px
+	   (su aspect-ratio 16/9 deriva el ancho de una altura acotada), así que
+	   aquí se replica ese ancho útil: 1280 + 2rem de padding a cada lado.
+	   Antes llegaba a 2400px y en monitores grandes se desparramaba. */
 	.nx-card-shell {
-		width: min(2400px, 92vw);
+		width: 100%;
+		max-width: calc(1280px + 4rem);
 		margin: 0 auto;
+		padding: 0 2rem;
+		box-sizing: border-box;
 	}
 	/* Tarjeta-marco (el fondo cambia según el producto) */
 	.nx-card {
@@ -3276,8 +3426,11 @@
 		z-index: 1;
 		overflow: hidden;
 		width: 100%;
-		min-height: min(86vh, 920px);
-		padding: clamp(2rem, 4vw, 4.5rem);
+		/* El min-height es solo un suelo de seguridad: la altura real la fija el
+		   panel más alto (Nexus). Si se queda por encima del contenido, anula
+		   cualquier ahorro de padding. */
+		min-height: min(60vh, 660px);
+		padding: clamp(1.5rem, 3vw, 3rem);
 		border: 1px solid rgba(244, 241, 232, 0.55);
 		border-radius: clamp(20px, 2vw, 32px);
 		transition:
@@ -3325,6 +3478,27 @@
 			#08090a;
 		transform: translate(calc(var(--nx-mx, 0) * 70px), calc(var(--nx-my, 0) * 70px)) scale(1.08);
 	}
+	/* Tema Signum (negro cálido + acero y rojo).
+	   Los tres negros se separan por matiz, no por luminancia: grafito-cian en
+	   Nexus, neutro puro en Orion, cálido-rojo aquí. El fondo se genera con CSS
+	   —misma receta de cámara del rail, a escala— para no bloquear el lanzamiento
+	   a la espera de una fotografía. */
+	.nx-card[data-product='signum'] {
+		background: #130d0e;
+		border-color: rgba(226, 214, 214, 0.24);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.1),
+			inset 0 0 60px rgba(242, 242, 242, 0.03),
+			0 30px 80px -40px rgba(0, 0, 0, 0.7),
+			0 0 40px -10px rgba(181, 18, 27, 0.18);
+	}
+	.nx-card[data-product='signum'] .nx-bg {
+		background:
+			linear-gradient(rgba(9, 5, 6, 0.5), rgba(9, 5, 6, 0.5)),
+			url('/img/signum-card-bg.webp') center / cover no-repeat,
+			#130d0e;
+		transform: translate(calc(var(--nx-mx, 0) * 70px), calc(var(--nx-my, 0) * 70px)) scale(1.08);
+	}
 	/* Ruido (noise.png) sobre el fondo */
 	.nx-card::before {
 		content: '';
@@ -3347,8 +3521,11 @@
 	.nx-panel {
 		grid-area: 1 / 1;
 		display: grid;
-		grid-template-columns: 1.15fr 0.85fr;
-		gap: clamp(2rem, 4vw, 5rem);
+		/* El escenario se llevaba el 42% del ancho para un logotipo que no lo
+		   necesita. Cediendo ancho al contenido, los chips rompen en menos
+		   filas y la tarjeta baja de alto. */
+		grid-template-columns: 1.38fr 0.62fr;
+		gap: clamp(1.5rem, 3vw, 3.5rem);
 		align-items: center;
 		opacity: 0;
 		visibility: hidden;
@@ -3376,31 +3553,31 @@
 	}
 
 	/* Acentos Orion (plata) */
-	.nx-panel--orion .nx-eyebrow {
+	.nx-panel[data-product='orion'] .nx-eyebrow {
 		color: rgba(205, 213, 221, 0.85);
 	}
-	.nx-panel--orion .nx-title {
+	.nx-panel[data-product='orion'] .nx-title {
 		background: linear-gradient(120deg, #ffffff 0%, #dfe5ea 45%, #aeb8c2 100%);
 		-webkit-background-clip: text;
 		background-clip: text;
 		-webkit-text-fill-color: transparent;
 	}
-	.nx-panel--orion .nx-chip {
+	.nx-panel[data-product='orion'] .nx-chip {
 		border-color: rgba(205, 213, 221, 0.28);
 	}
-	.nx-panel--orion .nx-chip::before {
+	.nx-panel[data-product='orion'] .nx-chip::before {
 		background: #c3ccd6;
 	}
-	.nx-panel--orion .nx-chip--case {
+	.nx-panel[data-product='orion'] .nx-chip--case {
 		border-color: rgba(205, 213, 221, 0.16);
 	}
-	.nx-panel--orion .nx-cta {
+	.nx-panel[data-product='orion'] .nx-cta {
 		color: #d7dde4;
 	}
-	.nx-panel--orion .nx-cta:focus-visible {
+	.nx-panel[data-product='orion'] .nx-cta:focus-visible {
 		outline-color: #d7dde4;
 	}
-	.nx-panel--orion .nx-halo {
+	.nx-panel[data-product='orion'] .nx-halo {
 		background: radial-gradient(
 			circle,
 			rgba(232, 237, 242, 0.22) 0%,
@@ -3408,12 +3585,83 @@
 			transparent 72%
 		);
 	}
-	.nx-panel--orion .nx-logo {
+	.nx-panel[data-product='orion'] .nx-logo {
 		filter: drop-shadow(0 0 14px rgba(228, 234, 240, 0.5))
 			drop-shadow(0 14px 30px rgba(0, 0, 0, 0.5));
 	}
-	.nx-panel--orion .nx-floor {
+	.nx-panel[data-product='orion'] .nx-floor {
 		background: radial-gradient(ellipse at center, rgba(228, 234, 240, 0.14) 0%, transparent 70%);
+	}
+
+	/* Acentos Signum (acero + rojo).
+	   El rojo de marca #b5121b da 2.7:1 sobre este fondo, así que solo se usa
+	   como relleno y borde; para texto va #e8565a (5.3:1), que es el mismo
+	   token que Signum ya usa en su propio sistema. */
+	/* A opacidad .9 sobre el fondo rojo daba 4.49:1, justo por debajo de AA.
+	   A plena opacidad sube a 5.27:1. */
+	.nx-panel[data-product='signum'] .nx-eyebrow {
+		color: #e8565a;
+	}
+	.nx-panel[data-product='signum'] .nx-title {
+		background: linear-gradient(
+			115deg,
+			#f2f2f2 0%,
+			#c0c0c0 24%,
+			#ffffff 40%,
+			#8a8a8a 52%,
+			#dadada 70%,
+			#e8565a 100%
+		);
+		-webkit-background-clip: text;
+		background-clip: text;
+		-webkit-text-fill-color: transparent;
+	}
+	/* Rojo para características, acero para casos de uso: reproduce en la UI la
+	   construcción bimaterial del logotipo. */
+	/* Fondo más opaco que el resto para que el trazo del ECG pase por detrás
+	   del chip y no cruce el texto. */
+	.nx-panel[data-product='signum'] .nx-chip {
+		border-color: rgba(214, 47, 50, 0.3);
+		background: rgba(17, 11, 12, 0.82);
+	}
+	.nx-panel[data-product='signum'] .nx-chip::before {
+		background: #d62f32;
+	}
+	.nx-panel[data-product='signum'] .nx-chip--case {
+		border-color: rgba(192, 192, 192, 0.2);
+	}
+	.nx-panel[data-product='signum'] .nx-chip:hover {
+		border-color: rgba(232, 86, 90, 0.75);
+	}
+	.nx-panel[data-product='signum'] .nx-cta {
+		background: #b5121b;
+		border-color: #b5121b;
+		color: #fbfaf7;
+	}
+	/* El hover oscurece en vez de aclarar: #d62f32 con texto blanco da 4.9:1 y
+	   aclarar más rompería AA. */
+	.nx-panel[data-product='signum'] .nx-cta:hover {
+		background: #d62f32;
+		border-color: #d62f32;
+		box-shadow: 0 8px 16px rgba(181, 18, 27, 0.35);
+	}
+	.nx-panel[data-product='signum'] .nx-cta:focus-visible {
+		outline-color: #e8565a;
+	}
+	.nx-panel[data-product='signum'] .nx-halo {
+		background: radial-gradient(
+			circle,
+			rgba(214, 47, 50, 0.2) 0%,
+			rgba(192, 192, 192, 0.09) 38%,
+			transparent 72%
+		);
+	}
+	.nx-panel[data-product='signum'] .nx-logo {
+		filter: drop-shadow(0 0 16px rgba(181, 18, 27, 0.38))
+			drop-shadow(0 14px 30px rgba(0, 0, 0, 0.55));
+	}
+	.nx-panel[data-product='signum'] .nx-floor {
+		background: radial-gradient(ellipse at center, rgba(181, 18, 27, 0.18) 0%, transparent 70%);
 	}
 
 	/* Partículas de Orion: fluyen de la esquina inferior izquierda hacia el logo */
@@ -3462,7 +3710,7 @@
 		position: relative;
 		z-index: 2;
 	}
-	.nx-panel--orion .nx-content::before {
+	.nx-panel[data-product='orion'] .nx-content::before {
 		content: '';
 		position: absolute;
 		inset: 0;
@@ -3545,10 +3793,77 @@
 
 	/* Spec sheet lists */
 	.nx-lists {
+		position: relative;
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: clamp(1.5rem, 3vw, 3rem);
 		margin-top: clamp(1.5rem, 3vw, 2.5rem);
+	}
+	/* En Nexus el separador lo aporta el borde superior de .nx-audiences.
+	   Donde no hay audiencias, las listas van pegadas al subtítulo y se
+	   quedaban sin él: se lo damos a quien ocupe ese sitio, sin nombrar
+	   productos, para que un cuarto lo herede solo. */
+	.nx-subtitle + .nx-lists {
+		border-top: 1px solid rgba(244, 241, 232, 0.1);
+		padding-top: 1.5rem;
+		margin-top: 1.5rem;
+	}
+
+	/* Electrocardiograma de Signum: se dibuja de izquierda a derecha detrás de
+	   los chips y se desvanece. Anima stroke-dashoffset sobre un único trazo,
+	   así que no provoca reflow. */
+	/* Altura fija y centrada: si se estira a todo el alto del bloque, el
+	   preserveAspectRatio="none" deforma los picos y deja de leerse como un
+	   trazo de monitor. */
+	.nx-ecg {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 50%;
+		z-index: 0;
+		width: 100%;
+		height: 88px;
+		transform: translateY(-50%);
+		overflow: visible;
+		pointer-events: none;
+	}
+	.nx-ecg path {
+		fill: none;
+		stroke: #e8565a;
+		stroke-width: 1.4;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		vector-effect: non-scaling-stroke;
+		filter: drop-shadow(0 0 6px rgba(232, 86, 90, 0.55));
+		stroke-dasharray: 1400;
+		stroke-dashoffset: 1400;
+		animation: sgEcg 6s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+	}
+	/* Los chips van por encima del trazo */
+	.nx-lists .nx-list-col {
+		position: relative;
+		z-index: 1;
+	}
+	@keyframes sgEcg {
+		0% {
+			stroke-dashoffset: 1400;
+			opacity: 0;
+		}
+		8% {
+			opacity: 0.7;
+		}
+		70% {
+			stroke-dashoffset: 0;
+			opacity: 0.7;
+		}
+		92% {
+			stroke-dashoffset: 0;
+			opacity: 0;
+		}
+		100% {
+			stroke-dashoffset: 0;
+			opacity: 0;
+		}
 	}
 	.nx-list-col {
 		min-width: 0;
@@ -3608,7 +3923,7 @@
 		box-shadow: 0 6px 18px -10px rgba(0, 0, 0, 0.7);
 		border-color: rgba(95, 209, 88, 0.8);
 	}
-	.nx-panel--orion .nx-chip:hover {
+	.nx-panel[data-product='orion'] .nx-chip:hover {
 		border-color: rgba(205, 213, 221, 0.8);
 	}
 
@@ -3622,7 +3937,10 @@
 		font-family: 'Inter', system-ui, sans-serif;
 		font-size: 0.95rem;
 		font-weight: 600;
-		color: #ffffff;
+		/* Verde #5fd158 con texto blanco daba 1.95:1 — fallo de AA en el
+		   elemento de conversión de la sección. Con tinta oscura da 8.7:1
+		   conservando el mismo verde de marca. */
+		color: #06210a;
 		text-decoration: none;
 		border-radius: 8px;
 		padding: 0.7rem 1.4rem;
@@ -3648,12 +3966,12 @@
 	.nx-cta:hover .nx-cta-arrow {
 		transform: translateX(4px);
 	}
-	.nx-panel--orion .nx-cta {
+	.nx-panel[data-product='orion'] .nx-cta {
 		background: #d7dde4;
 		color: #08090a;
 		border-color: #d7dde4;
 	}
-	.nx-panel--orion .nx-cta:hover {
+	.nx-panel[data-product='orion'] .nx-cta:hover {
 		background: #ffffff;
 		border-color: #ffffff;
 		box-shadow: 0 8px 16px rgba(200, 210, 220, 0.28);
@@ -3683,22 +4001,26 @@
 		animation: nexusHaloPulse 7s ease-in-out infinite;
 		pointer-events: none;
 	}
-	.nx-logo-link {
-		display: contents;
-	}
 	.nx-logo {
 		position: relative;
 		z-index: 3;
 		width: clamp(230px, 24vw, 420px);
+		max-width: 100%;
 		aspect-ratio: 1;
 		object-fit: contain;
-		cursor: pointer;
 		filter: drop-shadow(0 0 14px rgba(63, 174, 58, 0.32))
 			drop-shadow(0 14px 30px rgba(0, 0, 0, 0.45));
-		transition: transform 0.3s ease;
 	}
-	.nx-logo:hover {
-		transform: scale(1.04);
+	/* El logotipo de Signum es retrato (353×512). Dentro de una caja cuadrada
+	   con object-fit:contain se ajustaría por altura y quedaría un 31% más
+	   estrecho que los otros dos, así que aquí se controla por altura. */
+	.nx-panel[data-product='signum'] .nx-logo {
+		width: auto;
+		max-width: 100%;
+		aspect-ratio: 353 / 512;
+		/* Al ser retrato, a igual altura que Nexus u Orion se lee más grande.
+		   Se recorta para que las tres marcas pesen ópticamente lo mismo. */
+		height: clamp(230px, 23vw, 390px);
 	}
 	.nx-floor {
 		position: absolute;
@@ -3741,6 +4063,12 @@
 		.nx-logo {
 			width: clamp(200px, 38vw, 300px);
 		}
+		.nx-panel[data-product='signum'] .nx-logo {
+			height: clamp(220px, 40vw, 320px);
+		}
+		.nx-cell {
+			padding: 1.15rem 0.9rem 1.1rem;
+		}
 	}
 
 	/* Mobile */
@@ -3749,15 +4077,20 @@
 			padding: 3.5rem 0;
 		}
 		.nx-card {
-			width: 94vw;
 			padding: clamp(1.25rem, 5vw, 2rem);
 			border-radius: 18px;
+		}
+		.nx-card-shell {
+			padding: 0 3vw;
 		}
 		.nx-subtitle {
 			max-width: 100%;
 		}
 		.nx-logo {
 			width: clamp(150px, 50vw, 220px);
+		}
+		.nx-panel[data-product='signum'] .nx-logo {
+			height: clamp(170px, 52vw, 250px);
 		}
 		.nx-lists {
 			grid-template-columns: 1fr;
@@ -3767,6 +4100,42 @@
 		}
 		.nx-aud-label {
 			min-width: 0;
+		}
+
+		/* Las tres celdas siguen en fila y siempre visibles: un carril con
+		   scroll volvería a esconder productos, que es lo que resolvemos.
+		   Cabe recortando el descriptor y colapsando el badge a un punto. */
+		.nx-rail {
+			padding: 0 3vw;
+			gap: 0.4rem;
+		}
+		.nx-cell {
+			padding: 0.9rem 0.5rem 0.85rem;
+			gap: 0.5rem;
+			border-radius: 12px;
+		}
+		.nx-cell-num,
+		.nx-cell-desc {
+			display: none;
+		}
+		.nx-cell-name {
+			font-size: 0.7rem;
+			letter-spacing: 0.06em;
+		}
+		.nx-cell-badge {
+			position: absolute;
+			top: 0.5rem;
+			right: 0.5rem;
+			padding: 0;
+			width: 7px;
+			height: 7px;
+			border: none;
+			background: #d62f32;
+			font-size: 0;
+			gap: 0;
+		}
+		.nx-cell-badge::before {
+			display: none;
 		}
 	}
 
@@ -3779,12 +4148,24 @@
 		.nx-card,
 		.nx-chip,
 		.nx-cta-arrow,
-		.nx-panel {
+		.nx-panel,
+		.nx-cell,
+		.nx-cell-mark,
+		.nx-cell-name {
 			transition: none;
+		}
+		.nx-cell:hover,
+		.nx-cell:focus-visible {
+			transform: none;
 		}
 		.nx-orion-fx span {
 			animation: none;
 			opacity: 0;
+		}
+		.nx-ecg path {
+			animation: none;
+			stroke-dashoffset: 0;
+			opacity: 0.28;
 		}
 		.nx-bg {
 			transform: none !important;
