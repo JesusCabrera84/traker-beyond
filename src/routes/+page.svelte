@@ -304,6 +304,10 @@
 
 	let innerWindowWidth;
 
+	// En móvil (≤600px) el hero muestra solo el logo estático, así que no montamos
+	// el canvas de partículas de PIXI (evita su ticker y el coste de batería).
+	$: showHeroParticles = innerWindowWidth > 600;
+
 	onMount(() => {
 		// Nexus Carousel Autoplay
 		nexusCarouselInterval = setInterval(() => {
@@ -726,7 +730,9 @@
 	<div class="hero-scanlines" aria-hidden="true"></div>
 	<div class="hero-right-glow" aria-hidden="true"></div>
 
-	<HeroParticles />
+	{#if showHeroParticles}
+		<HeroParticles />
+	{/if}
 
 	<!-- Logo estático — solo visible en móvil -->
 	<div class="hero-mobile-logo" aria-label="Geminis Labs">
