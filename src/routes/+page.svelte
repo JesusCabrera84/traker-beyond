@@ -3426,8 +3426,11 @@
 		z-index: 1;
 		overflow: hidden;
 		width: 100%;
-		min-height: min(77vh, 828px);
-		padding: clamp(2rem, 4vw, 4.5rem);
+		/* El min-height es solo un suelo de seguridad: la altura real la fija el
+		   panel más alto (Nexus). Si se queda por encima del contenido, anula
+		   cualquier ahorro de padding. */
+		min-height: min(60vh, 660px);
+		padding: clamp(1.5rem, 3vw, 3rem);
 		border: 1px solid rgba(244, 241, 232, 0.55);
 		border-radius: clamp(20px, 2vw, 32px);
 		transition:
@@ -3518,8 +3521,11 @@
 	.nx-panel {
 		grid-area: 1 / 1;
 		display: grid;
-		grid-template-columns: 1.15fr 0.85fr;
-		gap: clamp(2rem, 4vw, 5rem);
+		/* El escenario se llevaba el 42% del ancho para un logotipo que no lo
+		   necesita. Cediendo ancho al contenido, los chips rompen en menos
+		   filas y la tarjeta baja de alto. */
+		grid-template-columns: 1.38fr 0.62fr;
+		gap: clamp(1.5rem, 3vw, 3.5rem);
 		align-items: center;
 		opacity: 0;
 		visibility: hidden;
@@ -3990,6 +3996,7 @@
 		position: relative;
 		z-index: 3;
 		width: clamp(230px, 24vw, 420px);
+		max-width: 100%;
 		aspect-ratio: 1;
 		object-fit: contain;
 		filter: drop-shadow(0 0 14px rgba(63, 174, 58, 0.32))
@@ -4000,8 +4007,11 @@
 	   estrecho que los otros dos, así que aquí se controla por altura. */
 	.nx-panel[data-product='signum'] .nx-logo {
 		width: auto;
+		max-width: 100%;
 		aspect-ratio: 353 / 512;
-		height: clamp(250px, 26vw, 440px);
+		/* Al ser retrato, a igual altura que Nexus u Orion se lee más grande.
+		   Se recorta para que las tres marcas pesen ópticamente lo mismo. */
+		height: clamp(230px, 23vw, 390px);
 	}
 	.nx-floor {
 		position: absolute;
