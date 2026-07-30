@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Signum as a third product on the landing page, with its own theme, background, and ECG animation behind the chips
+- Product rail on the landing: the three brands are always visible, each with logo, name, and a functional descriptor. Replaces the tab selector that kept two of the three products hidden
+- `src/lib/data/products.js` as the single source for the product catalogue, plus its unit tests
+- E2E regression tests for product discoverability, including keyboard reachability of all three products
+- "Zona de peligro" card in the profile view, with account-deletion confirmation modal
 - Phase 3 quality gates: coverage thresholds (90% lines/statements/functions on `src/lib/**`), blocking e2e and audit CI jobs
 - Dependabot version updates for npm, GitHub Actions, and Docker (`.github/dependabot.yml`)
 - OSV-Scanner dependency scan (`scripts/osv-scan.sh`, `npm run scan:osv`)
@@ -19,6 +24,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Product card is 13% shorter and matches the width of the "El futuro que estamos construyendo" card (1280px); it previously stretched to 2400px on large monitors
+- Arrow-key navigation on the product selector now cycles the catalogue; the previous binary ternary made a third product unreachable by keyboard
+- Nexus CTA now uses dark ink: white on `#5fd158` measured 1.95:1, an AA failure on the section's conversion element
+- Product logo is no longer a focusable link inside an `aria-hidden` subtree
+- Signum listed in the footer alongside Nexus and Orion
+- Hero particle canvas is not mounted on mobile (≤600px), where only the static logo is shown
 - `npm run validate` now runs `test:coverage` with enforced thresholds
 - CI `e2e` and `audit` jobs are blocking (removed `continue-on-error`)
 - `apiClient.delete()` for organization user removal
