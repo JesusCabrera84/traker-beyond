@@ -134,6 +134,43 @@
 			passwordLoading = false;
 		}
 	}
+
+	// Estado para la eliminación de cuenta
+	let showDeleteModal = false;
+	let deleteConfirmationText = '';
+	let deleteLoading = false;
+
+	function handleOpenDeleteModal() {
+		showDeleteModal = true;
+		deleteConfirmationText = '';
+	}
+
+	function handleCloseDeleteModal() {
+		showDeleteModal = false;
+		deleteConfirmationText = '';
+	}
+
+	async function handleDeleteAccountSubmit() {
+		if (deleteConfirmationText !== user.email) return;
+
+		deleteLoading = true;
+
+		try {
+			// Simulamos un retraso para una experiencia de usuario premium
+			await new Promise((resolve) => setTimeout(resolve, 1500));
+
+			// Mostramos un toast explicativo/exitoso para simular
+			toastStore.add('Simulación: Solicitud de eliminación recibida en frontend.', 'info');
+
+			toastStore.add('API de eliminación de cuenta no configurada aún.', 'warning');
+
+			handleCloseDeleteModal();
+		} catch {
+			toastStore.add('Error al procesar la eliminación', 'error');
+		} finally {
+			deleteLoading = false;
+		}
+	}
 </script>
 
 <!-- Vista Mi Perfil rediseñada -->
@@ -678,6 +715,126 @@
 						<p class="coming-soon-description">
 							Podrás registrar tus métodos de pago aquí (tarjeta, PayPal, MercadoPago, etc.)
 						</p>
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		<!-- Zona de peligro -->
+		<div class="config-card danger-zone">
+			<div class="card-header danger">
+				<div class="card-icon text-red-500">
+					<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+						/>
+					</svg>
+				</div>
+				<div class="card-title-section">
+					<h3 class="card-title text-red-500">Zona de peligro</h3>
+					<p class="card-description text-red-400/80">Acciones destructivas e irreversibles</p>
+				</div>
+			</div>
+
+			<div class="card-content">
+				<div class="danger-action-row">
+					<div class="danger-action-info">
+						<h4 class="danger-action-title">Eliminar cuenta</h4>
+						<p class="danger-action-description">
+							Al eliminar tu cuenta, se borrarán todos tus datos personales, configuraciones y
+							accesos de forma permanente. Esta acción no se puede deshacer.
+						</p>
+					</div>
+					<div class="danger-action-btn-container">
+						<button class="delete-account-btn" on:click={handleOpenDeleteModal}>
+							Eliminar mi cuenta
+						</button>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Modal de confirmación para eliminar cuenta -->
+		{#if showDeleteModal}
+			<div
+				class="modal-overlay open"
+				role="dialog"
+				aria-modal="true"
+				on:click|self={handleCloseDeleteModal}
+			>
+				<div class="modal-content danger-modal">
+					<div class="modal-header">
+						<h3 class="modal-title">¿Eliminar tu cuenta?</h3>
+						<button class="modal-close" on:click={handleCloseDeleteModal} aria-label="Cerrar">
+							<svg class="close-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M6 18L18 6M6 6l12 12"
+								/>
+							</svg>
+						</button>
+					</div>
+
+					<div class="modal-body">
+						<div class="alert-icon-wrapper text-red-500">
+							<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+								/>
+							</svg>
+						</div>
+
+						<p class="modal-text">
+							Estás a punto de eliminar de forma permanente tu cuenta de <strong
+								>Geminis Labs</strong
+							>. Esta acción es definitiva y <strong>no se puede deshacer</strong>.
+						</p>
+
+						<p class="modal-text sub-text text-gray-400">
+							Se borrarán permanentemente todos tus datos de perfil, historial, configuraciones y
+							perderás el acceso a todos nuestros servicios, incluidos <strong>Nexus</strong> y
+							<strong>Orion</strong>.
+						</p>
+
+						<div class="confirmation-input-wrapper">
+							<label for="deleteConfirmation" class="field-label-confirm">
+								Escribe tu correo <strong>{user.email}</strong> para confirmar:
+							</label>
+							<input
+								type="text"
+								id="deleteConfirmation"
+								bind:value={deleteConfirmationText}
+								class="confirmation-input"
+								placeholder={user.email}
+								autocomplete="off"
+							/>
+						</div>
+					</div>
+
+					<div class="modal-actions-confirm">
+						<button class="btn-cancel" on:click={handleCloseDeleteModal} disabled={deleteLoading}>
+							Cancelar
+						</button>
+						<button
+							class="btn-delete"
+							disabled={deleteConfirmationText !== user.email || deleteLoading}
+							on:click={handleDeleteAccountSubmit}
+						>
+							{#if deleteLoading}
+								<div class="spinner"></div>
+								Eliminando...
+							{:else}
+								Eliminar cuenta permanentemente
+							{/if}
+						</button>
 					</div>
 				</div>
 			</div>
