@@ -29,6 +29,11 @@
 							>Orion</a
 						>
 					</li>
+					<li>
+						<a href="https://signum.geminislabs.com/" target="_blank" rel="noopener noreferrer"
+							>Signum</a
+						>
+					</li>
 				</ul>
 			</div>
 
