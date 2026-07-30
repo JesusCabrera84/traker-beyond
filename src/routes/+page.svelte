@@ -1038,6 +1038,22 @@
 							{/if}
 
 							<div class="nx-lists">
+								{#if p.id === 'signum'}
+									<!-- Trazo de electrocardiograma que se dibuja detrás de los chips.
+									     Decorativo: no aporta información, así que queda fuera del
+									     árbol de accesibilidad y se apaga con reduced-motion. -->
+									<svg
+										class="nx-ecg"
+										viewBox="0 0 600 100"
+										preserveAspectRatio="none"
+										aria-hidden="true"
+										focusable="false"
+									>
+										<path
+											d="M0 50 H120 l14 0 8 -26 10 52 9 -40 8 30 7 -16 h14 H300 l14 0 8 -26 10 52 9 -40 8 30 7 -16 h14 H600"
+										/>
+									</svg>
+								{/if}
 								<div class="nx-list-col">
 									<h4 class="nx-list-title">{p.featuresTitle}</h4>
 									<ul class="nx-chips">
@@ -3192,8 +3208,13 @@
 		display: grid;
 		grid-template-columns: repeat(3, minmax(0, 1fr));
 		gap: clamp(0.5rem, 1vw, 0.75rem);
-		width: min(1180px, 92vw);
+		/* Alineado al píxel con .nx-card-shell: rail y tarjeta comparten borde
+		   izquierdo y derecho, así se leen como un solo objeto. */
+		width: 100%;
+		max-width: calc(1280px + 4rem);
 		margin: 0 auto;
+		padding: 0 2rem;
+		box-sizing: border-box;
 	}
 	.nx-cell {
 		position: relative;
@@ -3388,9 +3409,16 @@
 	}
 
 	/* Shell: centra la tarjeta + reveal de scroll */
+	/* La tarjeta de "El futuro que estamos construyendo" queda fija en 1280px
+	   (su aspect-ratio 16/9 deriva el ancho de una altura acotada), así que
+	   aquí se replica ese ancho útil: 1280 + 2rem de padding a cada lado.
+	   Antes llegaba a 2400px y en monitores grandes se desparramaba. */
 	.nx-card-shell {
-		width: min(2400px, 92vw);
+		width: 100%;
+		max-width: calc(1280px + 4rem);
 		margin: 0 auto;
+		padding: 0 2rem;
+		box-sizing: border-box;
 	}
 	/* Tarjeta-marco (el fondo cambia según el producto) */
 	.nx-card {
@@ -3398,7 +3426,7 @@
 		z-index: 1;
 		overflow: hidden;
 		width: 100%;
-		min-height: min(86vh, 920px);
+		min-height: min(77vh, 828px);
 		padding: clamp(2rem, 4vw, 4.5rem);
 		border: 1px solid rgba(244, 241, 232, 0.55);
 		border-radius: clamp(20px, 2vw, 32px);
@@ -3463,14 +3491,9 @@
 	}
 	.nx-card[data-product='signum'] .nx-bg {
 		background:
-			radial-gradient(
-				120% 80% at 68% 12%,
-				rgba(232, 186, 180, 0.11) 0%,
-				rgba(214, 47, 50, 0.05) 34%,
-				transparent 64%
-			),
-			radial-gradient(90% 60% at 20% 108%, rgba(181, 18, 27, 0.07) 0%, transparent 58%),
-			linear-gradient(172deg, #1b1315 0%, #0d0809 100%);
+			linear-gradient(rgba(9, 5, 6, 0.5), rgba(9, 5, 6, 0.5)),
+			url('/img/signum-card-bg.webp') center / cover no-repeat,
+			#130d0e;
 		transform: translate(calc(var(--nx-mx, 0) * 70px), calc(var(--nx-my, 0) * 70px)) scale(1.08);
 	}
 	/* Ruido (noise.png) sobre el fondo */
@@ -3568,8 +3591,10 @@
 	   El rojo de marca #b5121b da 2.7:1 sobre este fondo, así que solo se usa
 	   como relleno y borde; para texto va #e8565a (5.3:1), que es el mismo
 	   token que Signum ya usa en su propio sistema. */
+	/* A opacidad .9 sobre el fondo rojo daba 4.49:1, justo por debajo de AA.
+	   A plena opacidad sube a 5.27:1. */
 	.nx-panel[data-product='signum'] .nx-eyebrow {
-		color: rgba(232, 86, 90, 0.9);
+		color: #e8565a;
 	}
 	.nx-panel[data-product='signum'] .nx-title {
 		background: linear-gradient(
@@ -3587,8 +3612,11 @@
 	}
 	/* Rojo para características, acero para casos de uso: reproduce en la UI la
 	   construcción bimaterial del logotipo. */
+	/* Fondo más opaco que el resto para que el trazo del ECG pase por detrás
+	   del chip y no cruce el texto. */
 	.nx-panel[data-product='signum'] .nx-chip {
 		border-color: rgba(214, 47, 50, 0.3);
+		background: rgba(17, 11, 12, 0.82);
 	}
 	.nx-panel[data-product='signum'] .nx-chip::before {
 		background: #d62f32;
@@ -3759,10 +3787,68 @@
 
 	/* Spec sheet lists */
 	.nx-lists {
+		position: relative;
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: clamp(1.5rem, 3vw, 3rem);
 		margin-top: clamp(1.5rem, 3vw, 2.5rem);
+	}
+
+	/* Electrocardiograma de Signum: se dibuja de izquierda a derecha detrás de
+	   los chips y se desvanece. Anima stroke-dashoffset sobre un único trazo,
+	   así que no provoca reflow. */
+	/* Altura fija y centrada: si se estira a todo el alto del bloque, el
+	   preserveAspectRatio="none" deforma los picos y deja de leerse como un
+	   trazo de monitor. */
+	.nx-ecg {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 50%;
+		z-index: 0;
+		width: 100%;
+		height: 88px;
+		transform: translateY(-50%);
+		overflow: visible;
+		pointer-events: none;
+	}
+	.nx-ecg path {
+		fill: none;
+		stroke: #e8565a;
+		stroke-width: 1.4;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		vector-effect: non-scaling-stroke;
+		filter: drop-shadow(0 0 6px rgba(232, 86, 90, 0.55));
+		stroke-dasharray: 1400;
+		stroke-dashoffset: 1400;
+		animation: sgEcg 6s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+	}
+	/* Los chips van por encima del trazo */
+	.nx-lists .nx-list-col {
+		position: relative;
+		z-index: 1;
+	}
+	@keyframes sgEcg {
+		0% {
+			stroke-dashoffset: 1400;
+			opacity: 0;
+		}
+		8% {
+			opacity: 0.7;
+		}
+		70% {
+			stroke-dashoffset: 0;
+			opacity: 0.7;
+		}
+		92% {
+			stroke-dashoffset: 0;
+			opacity: 0;
+		}
+		100% {
+			stroke-dashoffset: 0;
+			opacity: 0;
+		}
 	}
 	.nx-list-col {
 		min-width: 0;
@@ -3972,9 +4058,11 @@
 			padding: 3.5rem 0;
 		}
 		.nx-card {
-			width: 94vw;
 			padding: clamp(1.25rem, 5vw, 2rem);
 			border-radius: 18px;
+		}
+		.nx-card-shell {
+			padding: 0 3vw;
 		}
 		.nx-subtitle {
 			max-width: 100%;
@@ -3999,7 +4087,7 @@
 		   scroll volvería a esconder productos, que es lo que resolvemos.
 		   Cabe recortando el descriptor y colapsando el badge a un punto. */
 		.nx-rail {
-			width: 94vw;
+			padding: 0 3vw;
 			gap: 0.4rem;
 		}
 		.nx-cell {
@@ -4054,6 +4142,11 @@
 		.nx-orion-fx span {
 			animation: none;
 			opacity: 0;
+		}
+		.nx-ecg path {
+			animation: none;
+			stroke-dashoffset: 0;
+			opacity: 0.28;
 		}
 		.nx-bg {
 			transform: none !important;
