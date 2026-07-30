@@ -3799,6 +3799,15 @@
 		gap: clamp(1.5rem, 3vw, 3rem);
 		margin-top: clamp(1.5rem, 3vw, 2.5rem);
 	}
+	/* En Nexus el separador lo aporta el borde superior de .nx-audiences.
+	   Donde no hay audiencias, las listas van pegadas al subtítulo y se
+	   quedaban sin él: se lo damos a quien ocupe ese sitio, sin nombrar
+	   productos, para que un cuarto lo herede solo. */
+	.nx-subtitle + .nx-lists {
+		border-top: 1px solid rgba(244, 241, 232, 0.1);
+		padding-top: 1.5rem;
+		margin-top: 1.5rem;
+	}
 
 	/* Electrocardiograma de Signum: se dibuja de izquierda a derecha detrás de
 	   los chips y se desvanece. Anima stroke-dashoffset sobre un único trazo,
