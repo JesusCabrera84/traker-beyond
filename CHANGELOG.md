@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `/legal/cookies` page, with a per-identifier inventory of everything NEXUS and Signum store in the browser. There was no cookie policy at all; the privacy notice covered the topic in two lines
+- Single-source generation for the legal documents: one generator emits both the `.docx` under `docs/legal/` that counsel reviews and the content modules under `src/routes/legal/content/` that the site renders, so the published page and the reviewed document cannot drift apart
+- `LegalDocument.svelte`, a shared renderer for the four legal pages (hero, sticky TOC, numbered sections, tables, callouts). Inline markup is tokenised rather than passed through `{@html}`
+- Table and ordered-list styles in `legal.css`. Tables scroll inside their own box instead of forcing the page to scroll horizontally on a phone
+- Product annexes in the privacy notice: NEXUS (geolocation processed on the client's behalf), Signum (health data published openly), Orion (system-to-system infrastructure)
 - Signum as a third product on the landing page, with its own theme, background, and ECG animation behind the chips
 - Product rail on the landing: the three brands are always visible, each with logo, name, and a functional descriptor. Replaces the tab selector that kept two of the three products hidden
 - `src/lib/data/products.js` as the single source for the product catalogue, plus its unit tests
@@ -30,6 +35,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Legal pages rewritten under the LFPDPPP published in the DOF on 20 March 2025, with the Secretaría Anticorrupción y Buen Gobierno as the supervisory authority. The previous text predated the reform and named neither
+- Geolocation is no longer described as "possibly sensitive depending on use". Article 3 of the LFPDPPP lists sensitive data exhaustively and location is not on it. The privacy notice and the terms said different things about the same category
+- Privacy notice now distinguishes when Geminis Labs acts as **responsable** (account holders' data) from when it acts as **encargado** (fleet geolocation, where the client is the responsable). The obligations that fall on the client — issuing its own notice, obtaining written consent from drivers, limiting monitoring to working hours — follow from that distinction
+- Named the actual processors and where they run: AWS EC2/S3 and SES (us-east-1), Google Maps, Firebase Cloud Messaging, Apple APNs and Stripe, all in the United States. The previous text said "may be processed outside your country of residence"
+- Stated retention periods: 3 months for raw telemetry, 12 for per-device aggregates and audit logs, 5 years for tax records and consent records. The previous text said periods "may vary by product"
+- Privacy enquiries now point at `privacidad@geminislabs.com` instead of `contacto@`
+- Jurisdiction set to Querétaro, Querétaro; ARCO deadlines (20 working days plus 15) and the supervisory authority spelled out
+- Terms keep their existing commercial scope — third-party telemetry, APIs/TCP/MQTT, partner and white-label, alerts, indemnity — and add lawful-monitoring obligations and a cross-reference to Signum's own terms
 - Product card is 13% shorter and matches the width of the "El futuro que estamos construyendo" card (1280px); it previously stretched to 2400px on large monitors
 - Arrow-key navigation on the product selector now cycles the catalogue; the previous binary ternary made a third product unreachable by keyboard
 - Nexus CTA now uses dark ink: white on `#5fd158` measured 1.95:1, an AA failure on the section's conversion element
