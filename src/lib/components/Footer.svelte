@@ -62,6 +62,7 @@
 					<li><a href="/legal/privacidad">Política de Privacidad</a></li>
 					<li><a href="/legal/terminos">Términos de Uso</a></li>
 					<li><a href="/legal/aviso-legal">Aviso Legal</a></li>
+					<li><a href="/legal/cookies">Política de Cookies</a></li>
 				</ul>
 			</div>
 		</div>

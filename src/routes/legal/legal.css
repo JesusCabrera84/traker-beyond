@@ -412,6 +412,72 @@
 	font-family: 'JetBrains Mono', monospace;
 }
 
+/* ── Tablas ────────────────────────────────────────────────── */
+/*
+	El envoltorio desplaza la tabla dentro de su propia caja. Sin él, una tabla de
+	cinco columnas obliga a desplazar la página entera en horizontal y rompe la
+	lectura del resto del documento en un teléfono.
+*/
+.tos-table-wrap {
+	overflow-x: auto;
+	margin: 1rem 0 1.5rem;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+}
+
+.tos-table {
+	width: 100%;
+	min-width: 34rem;
+	border-collapse: collapse;
+	font-size: 0.875rem;
+}
+
+.tos-table th {
+	background: #f8fafc;
+	color: #0f172a;
+	font-weight: 700;
+	text-align: left;
+	padding: 0.75rem 1rem;
+	border-bottom: 1px solid #e2e8f0;
+	white-space: nowrap;
+}
+
+.tos-table td {
+	padding: 0.75rem 1rem;
+	color: #334155;
+	line-height: 1.6;
+	vertical-align: top;
+	border-bottom: 1px solid #f1f5f9;
+}
+
+.tos-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+.tos-table tbody tr:nth-child(even) {
+	background: #fcfdfe;
+}
+
+/* ── Listas numeradas ──────────────────────────────────────── */
+/*
+	`.tos-section ul li` pone `list-style: none` y dibuja su propio rombo. Las
+	listas numeradas necesitan recuperar el marcador, o los pasos de un
+	procedimiento —ejercer derechos ARCO, por ejemplo— quedan sin número.
+*/
+.tos-section ol.tos-ol {
+	padding-left: 1.5rem;
+}
+
+.tos-section ol.tos-ol li {
+	list-style: decimal;
+	padding-left: 0.25rem;
+}
+
+.tos-section ol.tos-ol li::marker {
+	color: #267a18;
+	font-weight: 700;
+}
+
 /* ── Responsive ────────────────────────────────────────────── */
 @media (max-width: 1023px) {
 	.tos-body {
