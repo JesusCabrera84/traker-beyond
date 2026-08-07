@@ -9,3 +9,7 @@ bun.lockb
 /static/
 /graphify-out/
 .gitleaks.toml
+
+# Configuración local de herramientas de asistencia. Está en .gitignore, pero
+# Prettier lo revisaba igualmente y hacía fallar `npm run lint` en local.
+.claude/
