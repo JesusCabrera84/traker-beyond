@@ -18,6 +18,18 @@ Un aviso corporativo único, con un anexo por producto:
 **En caso de discrepancia entre el cuerpo principal y un anexo, prevalece el anexo** respecto del
 producto que regula.
 
+Los cuatro anteriores son **documentos publicados**: se generan por script junto con las páginas de
+`src/routes/legal/`. El siguiente no se publica, se firma:
+
+| Documento                                        | Qué es                                                           |
+| ------------------------------------------------ | ---------------------------------------------------------------- |
+| `05-Convenio-de-Tratamiento-de-Datos-Personales` | Anexo contractual que se firma **con cada Cliente**, uno por uno |
+
+Es lo que sostiene jurídicamente el rol de encargado descrito en el apartado 12 del Aviso de
+Privacidad. Sin él, la traslación de obligaciones al Cliente —emitir su propio aviso, recabar el
+consentimiento de los conductores, limitar el monitoreo a la jornada— es una declaración
+unilateral que no obliga a nadie. Sus anexos A, B y C se completan por Cliente antes de la firma.
+
 ## Qué sustituyen
 
 Estos documentos **fusionan y reemplazan**:

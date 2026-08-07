@@ -136,6 +136,10 @@ export const doc = {
 				{
 					t: 'p',
 					text: 'Este Aviso Legal se rige por las **leyes federales de los Estados Unidos Mexicanos**. Cualquier controversia será sometida a los **tribunales competentes de Querétaro, Querétaro**, salvo disposición legal distinta.'
+				},
+				{
+					t: 'p',
+					text: '**Cuando el usuario tenga el carácter de consumidor** en términos de la Ley Federal de Protección al Consumidor, conservará el derecho a elegir entre la jurisdicción de su propio domicilio y la del domicilio de Geminis Labs.'
 				}
 			]
 		},
