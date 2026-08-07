@@ -104,6 +104,10 @@ export const doc = {
 						'Utilice los Servicios **conforme a la legislación aplicable**.',
 						'Cuando represente a una organización, **cuente con autorización suficiente para obligarla**. En tal caso, la organización acepta igualmente estos Términos.'
 					]
+				},
+				{
+					t: 'p',
+					text: '**El Usuario manifiesta si contrata en su carácter de comerciante o empresario, o bien como consumidor final** en términos de la Ley Federal de Protección al Consumidor. Dicha manifestación determina el régimen aplicable a la relación, en particular respecto de la limitación de responsabilidad y de la jurisdicción competente.'
 				}
 			]
 		},
@@ -414,8 +418,16 @@ export const doc = {
 					text: 'Estos Términos se rigen por las **leyes federales de los Estados Unidos Mexicanos**. Para su interpretación, cumplimiento y ejecución, las partes se someten a los **tribunales competentes de Querétaro, Querétaro**, renunciando a cualquier otro fuero que pudiera corresponderles.'
 				},
 				{
+					t: 'p',
+					text: '**Lo anterior no resulta aplicable cuando el Usuario tenga el carácter de consumidor** en términos de la Ley Federal de Protección al Consumidor, en cuyo caso conservará el derecho a elegir entre la jurisdicción de su propio domicilio y la del domicilio de Geminis Labs, y podrá acudir ante la **Procuraduría Federal del Consumidor** en los términos que dicha ley establece.'
+				},
+				{
+					t: 'p',
+					text: 'Del mismo modo, **las limitaciones de responsabilidad previstas en estos Términos se aplicarán únicamente en la medida en que la ley lo permita** respecto de quien contrate como consumidor.'
+				},
+				{
 					t: 'note',
-					text: 'Si los Servicios se ofrecen a consumidores finales —personas físicas como destinatarios últimos—, la relación quedaría sujeta a la Ley Federal de Protección al Consumidor y a la competencia de la PROFECO, y la sumisión anterior podría resultar inoponible. Confirmar el perímetro comercial con el asesor legal.'
+					text: 'Confirmar con el asesor legal si estos Términos constituyen un contrato de adhesión sujeto a registro ante la Procuraduría Federal del Consumidor, dado que el servicio se ofrece también a consumidores finales.'
 				}
 			]
 		},

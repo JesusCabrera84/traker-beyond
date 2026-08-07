@@ -9,6 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Data Processing Agreement (`docs/legal/05-Convenio-de-Tratamiento-de-Datos-Personales`), signed with each client as Annex E of the Master Agreement. It is what contractually sustains the processor role the privacy notice describes; without it, the obligations placed on the client are a unilateral statement
+- Retention specification for the team implementing data purging (`docs/legal/retencion-plazos-declarados.md`): the periods already published, four technical constraints found in the code, and acceptance criteria
+- Third scenario in the privacy notice for individuals contracting for personal or household use, where Geminis Labs is the controller of everything including geolocation. Mexican data protection law does not reach individuals processing data for exclusively personal use, so no obligation can be passed to them
+- Fourth scenario for partners reselling or white-labelling the platform, who act as controllers towards their own end customers
+- Consumer carve-out in the jurisdiction clauses of the terms and the legal notice, mirroring clause 22.2 of the Master Agreement: a consumer may choose between their own domicile and Geminis Labs', and may turn to PROFECO
 - `/legal/cookies` page, with a per-identifier inventory of everything NEXUS and Signum store in the browser. There was no cookie policy at all; the privacy notice covered the topic in two lines
 - Single-source generation for the legal documents: one generator emits both the `.docx` under `docs/legal/` that counsel reviews and the content modules under `src/routes/legal/content/` that the site renders, so the published page and the reviewed document cannot drift apart
 - `LegalDocument.svelte`, a shared renderer for the four legal pages (hero, sticky TOC, numbered sections, tables, callouts). Inline markup is tokenised rather than passed through `{@html}`
@@ -29,12 +34,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Raised the `fast-uri` override from `>=3.1.4` to `>=4.1.2`. The former resolved to 4.1.1, affected by GHSA-7p8r-x3mc-p8w7, which made `npm run audit` fail on every pull request — all four open Dependabot PRs were red for a reason unrelated to what they were bumping
+- Added `.claude/` to `.prettierignore`. It is in `.gitignore` but Prettier still checked it, so `prettier --check .` failed locally on an unversioned file and, because the lint script chains with `&&`, eslint never ran at all
 - Cleared all 13 known dependency vulnerabilities reported by `npm audit` and OSV-Scanner (1 critical, 10 high, 2 medium), all in dev dependencies
 - Bumped `@sveltejs/kit` to `^2.69.1` and the `vitest` family (`vitest`, `@vitest/coverage-v8`, `@vitest/browser`) to `^3.2.7`
 - Added `overrides` for `brace-expansion`, `minimatch`, `fast-uri`, `js-yaml`, and raised the `postcss` floor to `>=8.5.18`. `minimatch` has to move to `>=10.2.6` alongside `brace-expansion@>=5`, since v5 switched from a default to a named export and older `minimatch` calls it as a default
 
 ### Changed
 
+- Declared two processors that were missing, both verified in code: **Amazon Cognito** for identity management (`siscom-admin-api`, user pool in us-east-1) and **KORE Wireless (SuperSIM)** for cellular connectivity and SMS commands to units (`app/services/kore.py`). Mobile network operators are described as carriers of the communication, which is what they are
+- Corrected a false statement in the privacy notice: passwords are not "protected by key derivation functions", they are **not stored at all**. Authentication has been fully delegated to Cognito since migration `004` of siscom-admin-api. The real posture is better than the one being declared
 - Legal pages rewritten under the LFPDPPP published in the DOF on 20 March 2025, with the Secretaría Anticorrupción y Buen Gobierno as the supervisory authority. The previous text predated the reform and named neither
 - Geolocation is no longer described as "possibly sensitive depending on use". Article 3 of the LFPDPPP lists sensitive data exhaustively and location is not on it. The privacy notice and the terms said different things about the same category
 - Privacy notice now distinguishes when Geminis Labs acts as **responsable** (account holders' data) from when it acts as **encargado** (fleet geolocation, where the client is the responsable). The obligations that fall on the client — issuing its own notice, obtaining written consent from drivers, limiting monitoring to working hours — follow from that distinction

@@ -84,11 +84,19 @@ export const doc = {
 		{
 			id: 'doble-caracter',
 			num: '03',
-			titulo: 'Doble carácter: responsable y encargado',
+			titulo: 'Quién es responsable de qué',
 			blocks: [
 				{
 					t: 'p',
-					text: 'Los servicios de Geminis Labs se contratan mayoritariamente por personas morales o físicas con actividad empresarial (el **«Cliente»**) para tratar información propia. Esto determina que Geminis Labs intervenga bajo **dos calidades jurídicas distintas**, cuya diferenciación es esencial para la correcta lectura de este Aviso.'
+					text: 'Geminis Labs presta sus servicios a perfiles muy distintos: empresas que gestionan flotas, personas y familias que monitorean sus propios vehículos, y terceros que integran o revenden la tecnología bajo su propia marca. **La calidad jurídica con la que interviene Geminis Labs cambia según el caso**, y de ella depende quién responde ante el titular de los datos.'
+				},
+				{
+					t: 'h3',
+					text: 'A · Contratación por una empresa u organización'
+				},
+				{
+					t: 'p',
+					text: 'Cuando quien contrata es una persona moral o física con actividad empresarial (el **«Cliente»**) que monitorea unidades afectas a su actividad:'
 				},
 				{
 					t: 'table',
@@ -97,14 +105,42 @@ export const doc = {
 						[
 							'**Responsable**',
 							'Datos de quienes contratan, administran o utilizan los servicios: representantes del Cliente, administradores y usuarios con cuenta.',
-							'Geminis Labs decide sobre el tratamiento y responde directamente ante el titular. **Es respecto de estos datos que se emite este Aviso.**'
+							'Geminis Labs decide sobre el tratamiento y responde directamente ante el titular.'
 						],
 						[
 							'**Encargado**',
-							'Datos que el Cliente incorpora o genera a través de los servicios: geolocalización y telemetría de unidades, identificación de vehículos y conductores, y demás contenido cargado por el Cliente.',
+							'Datos que el Cliente incorpora o genera: geolocalización y telemetría de unidades, identificación de vehículos y conductores, y demás contenido cargado por el Cliente.',
 							'Geminis Labs trata estos datos **únicamente conforme a las instrucciones del Cliente**, que conserva la calidad de responsable.'
 						]
 					]
+				},
+				{
+					t: 'h3',
+					text: 'B · Contratación por una persona física para uso personal o familiar'
+				},
+				{
+					t: 'p',
+					text: 'Cuando una persona contrata el servicio para monitorear vehículos propios, con fines exclusivamente personales o domésticos y ajenos a cualquier actividad empresarial, **Geminis Labs actúa como responsable respecto de la totalidad del tratamiento**, incluida la geolocalización de los vehículos.'
+				},
+				{
+					t: 'p',
+					text: 'Se hace constar que la normativa mexicana **no resulta aplicable a las personas físicas que tratan datos personales para uso exclusivamente personal**. En consecuencia, en este supuesto no se traslada a quien contrata ninguna de las obligaciones previstas para el responsable: las asume Geminis Labs.'
+				},
+				{
+					t: 'p',
+					text: '**Quien contrate en este supuesto debe tener presente** que si permite conducir el vehículo a otras personas, el sistema registrará igualmente sus desplazamientos. Geminis Labs recomienda informarles de la existencia del dispositivo.'
+				},
+				{
+					t: 'h3',
+					text: 'C · Integradores, distribuidores y plataformas de marca blanca'
+				},
+				{
+					t: 'p',
+					text: 'Cuando un tercero integra, revende o personaliza la plataforma para prestar servicio a sus propios clientes (el **«Partner»**), **el Partner actúa como responsable frente a sus clientes finales** y Geminis Labs como encargado suyo. Corresponde al Partner informar a los titulares y recabar el consentimiento exigible, y la relación se formaliza mediante el convenio de tratamiento de datos correspondiente.'
+				},
+				{
+					t: 'note',
+					text: 'Confirmar con el asesor legal si los términos de uso constituyen un contrato de adhesión sujeto a registro ante la Procuraduría Federal del Consumidor, dado que el servicio se ofrece también a consumidores finales.'
 				}
 			]
 		},
@@ -134,7 +170,7 @@ export const doc = {
 						],
 						[
 							'De autenticación',
-							'Contraseña resguardada mediante funciones criptográficas de derivación; tokens de sesión y de renovación; marcas de expiración; registros de inicio y cierre de sesión.',
+							'Identificador de usuario en el proveedor de identidades; tokens de sesión, de identidad y de renovación; marcas de expiración; registros de inicio y cierre de sesión. **La contraseña se gestiona directamente por el proveedor de identidades y Geminis Labs no la conoce ni la almacena.**',
 							'Automática'
 						],
 						[
@@ -274,9 +310,19 @@ export const doc = {
 							'EE. UU. — región us-east-1'
 						],
 						[
+							'**Amazon Cognito** (Amazon Web Services, Inc.)',
+							'Gestión de identidades: alta de usuarios, autenticación, recuperación de contraseña y emisión de los tokens de sesión.',
+							'EE. UU. — región us-east-1'
+						],
+						[
 							'**Amazon Simple Email Service**',
 							'Correos de verificación, recuperación de contraseña y notificaciones del servicio.',
 							'EE. UU. — región us-east-1'
+						],
+						[
+							'**KORE Wireless, Inc.** (SuperSIM)',
+							'Conectividad celular de los dispositivos telemáticos y envío de comandos por SMS a las unidades.',
+							'EE. UU. y operadores móviles que agrega'
 						],
 						[
 							'**Google Maps Platform** (Google LLC)',
@@ -299,6 +345,10 @@ export const doc = {
 				{
 					t: 'p',
 					text: '**La totalidad del tratamiento se realiza en servidores ubicados en los Estados Unidos de América.** Geminis Labs no realiza actualmente tratamiento en servidores ubicados en territorio nacional. La atención de soporte se realiza por correo electrónico, sin plataformas de ticketing de terceros.'
+				},
+				{
+					t: 'p',
+					text: 'La transmisión de los datos entre los dispositivos instalados en las unidades y las plataformas se realiza a través de **redes de telecomunicaciones móviles**, gestionadas mediante el proveedor de conectividad señalado y los operadores de red que este agrega. Dichos operadores intervienen como **transportistas de la comunicación** y no acceden a la información tratada en la Plataforma.'
 				},
 				{
 					t: 'h3',
@@ -442,7 +492,7 @@ export const doc = {
 						'**Cifrado de las comunicaciones** mediante protocolo TLS.',
 						'**Autenticación basada en tokens** con vigencia limitada, renovación controlada y expiración automática de la sesión.',
 						'**Control de acceso basado en roles** y segmentación por espacio de trabajo, de modo que cada Cliente accede exclusivamente a su propia información.',
-						'**Resguardo de contraseñas** mediante funciones criptográficas de derivación, sin almacenamiento en claro.',
+						'**Autenticación delegada en un proveedor especializado de gestión de identidades** (Amazon Cognito): Geminis Labs no administra, no conoce ni almacena las contraseñas de los usuarios.',
 						'**Direcciones IP resguardadas mediante huella irreversible** en los servicios que las registran.',
 						'**Registros de auditoría** de accesos y operaciones relevantes.',
 						'**Análisis automatizado de vulnerabilidades en dependencias y de secretos expuestos** en el ciclo de integración continua.',
@@ -573,7 +623,11 @@ export const doc = {
 			blocks: [
 				{
 					t: 'p',
-					text: 'Los servicios de Geminis Labs son de uso profesional y están dirigidos a personas mayores de edad con capacidad jurídica para contratar. **No se recaban de forma consciente datos de menores de edad**, salvo en el supuesto expresamente previsto en el Anexo B para las fichas de Signum creadas por quien ejerce la patria potestad o la tutela. Detectado un registro indebido, se procederá a su supresión inmediata.'
+					text: '**La contratación de los servicios está reservada a personas mayores de edad** con capacidad jurídica para obligarse, tanto en el ámbito empresarial como en el personal o familiar. **No se recaban de forma consciente datos de menores de edad**, salvo en el supuesto expresamente previsto en el Anexo B para las fichas de Signum creadas por quien ejerce la patria potestad o la tutela. Detectado un registro indebido, se procederá a su supresión inmediata.'
+				},
+				{
+					t: 'p',
+					text: 'Cuando un vehículo monitoreado en el ámbito familiar sea conducido por una persona menor de edad, corresponde a quien ejerce la patria potestad o la tutela informarle de la existencia del dispositivo de localización.'
 				}
 			]
 		},
