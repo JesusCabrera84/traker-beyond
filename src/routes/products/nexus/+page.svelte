@@ -221,7 +221,7 @@
 						iPhone, Android y Web.
 					</p>
 					<div class="nx-hero-actions">
-						<a href="#contacto" class="btn-nx-primary">Hablar con un asesor</a>
+						<a href="/#contacto" class="btn-nx-primary">Hablar con un asesor</a>
 						<a href="#app" class="btn-nx-ghost">Ver cómo funciona Nexus</a>
 					</div>
 				</div>
@@ -822,7 +822,7 @@
 									</div>
 								</div>
 								<div class="nx-aud-cta">
-									<a href="#contacto" class="btn-aud btn-aud--familias"
+									<a href="/#contacto" class="btn-aud btn-aud--familias"
 										>Quiero saber que llegaron bien</a
 									>
 									<p class="nx-cta-download-note">
@@ -861,15 +861,16 @@
 									</div>
 									<div class="nx-callout">
 										<span class="nx-callout-num nx-cn--flotillas">ROI</span>
-										<span class="nx-callout-label">Que se calcula solo</span>
+										<span class="nx-callout-label">Encuentra dónde se va el dinero</span>
 										<p class="nx-callout-text">
-											Activa los reportes de consumo, dale 30 días y abre el Excel. La diferencia
-											entre lo que gastabas y lo que gastas es el argumento para tu dirección.
+											Kilómetros innecesarios, tiempos detenidos y consumo fuera de lo esperado
+											dejan de ser costos invisibles. Nexus los convierte en información para que
+											puedas actuar sobre ellos.
 										</p>
 									</div>
 								</div>
 								<div class="nx-aud-cta">
-									<a href="#contacto" class="btn-aud btn-aud--flotillas"
+									<a href="/#contacto" class="btn-aud btn-aud--flotillas"
 										>Ver cómo funciona en mi operación</a
 									>
 								</div>
@@ -913,7 +914,7 @@
 									</div>
 								</div>
 								<div class="nx-aud-cta">
-									<a href="#contacto" class="btn-aud btn-aud--partners"
+									<a href="/#contacto" class="btn-aud btn-aud--partners"
 										>Hablar con el equipo técnico</a
 									>
 								</div>
@@ -1284,7 +1285,7 @@
 								<li>App iOS y Android incluida</li>
 							</ul>
 							<div class="nx-cta-actions">
-								<a href="#contacto" class="nx-cta-btn nx-cta-btn--familia"
+								<a href="/#contacto" class="nx-cta-btn nx-cta-btn--familia"
 									>Quiero proteger mi vehículo</a
 								>
 								<p class="nx-cta-sub-note">
@@ -1378,9 +1379,7 @@
 								<li>API e integraciones disponibles</li>
 							</ul>
 							<div class="nx-cta-actions">
-								<a href="#contacto" class="nx-cta-btn nx-cta-btn--flotilla"
-									>Ver demo en 30 minutos</a
-								>
+								<a href="/#contacto" class="nx-cta-btn nx-cta-btn--flotilla">Solicitar una demo</a>
 							</div>
 						</div>
 					</div>
@@ -1515,7 +1514,7 @@
 								<li>Onboarding técnico incluido</li>
 							</ul>
 							<div class="nx-cta-actions">
-								<a href="#contacto" class="nx-cta-btn nx-cta-btn--partners"
+								<a href="/#contacto" class="nx-cta-btn nx-cta-btn--partners"
 									>Hablar sobre integración</a
 								>
 							</div>
