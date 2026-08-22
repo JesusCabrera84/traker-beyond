@@ -150,6 +150,10 @@
 		deleteConfirmationText = '';
 	}
 
+	function handleDeleteModalKeydown(event) {
+		if (event.key === 'Escape') handleCloseDeleteModal();
+	}
+
 	async function handleDeleteAccountSubmit() {
 		if (deleteConfirmationText !== user.email) return;
 
@@ -763,11 +767,14 @@
 				class="modal-overlay open"
 				role="dialog"
 				aria-modal="true"
+				aria-labelledby="delete-account-title"
+				tabindex="-1"
 				on:click|self={handleCloseDeleteModal}
+				on:keydown={handleDeleteModalKeydown}
 			>
 				<div class="modal-content danger-modal">
 					<div class="modal-header">
-						<h3 class="modal-title">¿Eliminar tu cuenta?</h3>
+						<h3 id="delete-account-title" class="modal-title">¿Eliminar tu cuenta?</h3>
 						<button class="modal-close" on:click={handleCloseDeleteModal} aria-label="Cerrar">
 							<svg class="close-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path
