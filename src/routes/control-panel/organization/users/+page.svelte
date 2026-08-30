@@ -55,7 +55,7 @@
 			users = response.users || [];
 		} catch (err) {
 			console.error('Error fetching users:', err);
-			toastStore.error('Error al cargar los usuarios de esta organización.');
+			toastStore.error(err);
 		} finally {
 			loadingUsers = false;
 		}
@@ -93,7 +93,7 @@
 			await fetchUsers();
 		} catch (err) {
 			console.error('Error adding user:', err);
-			toastStore.error('Error al agregar el usuario.');
+			toastStore.error(err);
 		} finally {
 			addingUser = false;
 		}
@@ -112,7 +112,7 @@
 			inviteEmail = '';
 		} catch (err) {
 			console.error('Error inviting user:', err);
-			toastStore.error('Error al enviar la invitación.');
+			toastStore.error(err);
 		} finally {
 			invitingUser = false;
 		}
@@ -124,7 +124,7 @@
 			toastStore.success('Verificación reenviada correctamente');
 		} catch (err) {
 			console.error('Error resending verification:', err);
-			toastStore.error('No se pudo reenviar la verificación.');
+			toastStore.error(err);
 		}
 	}
 
@@ -135,7 +135,7 @@
 			await fetchUsers();
 		} catch (err) {
 			console.error('Error updating role:', err);
-			toastStore.error('No se pudo actualizar el rol.');
+			toastStore.error(err);
 		}
 	}
 
@@ -147,7 +147,7 @@
 			await fetchUsers();
 		} catch (err) {
 			console.error('Error removing user:', err);
-			toastStore.error('No se pudo eliminar al usuario.');
+			toastStore.error(err);
 		}
 	}
 

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { get } from 'svelte/store';
-import { toastStore } from './toastStore.js';
+import { humanizeToastMessage, toastStore } from './toastStore.js';
 
 describe('toastStore', () => {
 	beforeEach(() => {
@@ -33,5 +33,29 @@ describe('toastStore', () => {
 		const id = toastStore.success('Done', 0);
 		expect(get(toastStore)[0]).toMatchObject({ type: 'success', message: 'Done' });
 		toastStore.remove(id);
+	});
+
+	it('never surfaces [object Object] from FastAPI 422 bodies', () => {
+		toastStore.error({
+			detail: [{ loc: ['body'], msg: 'Value error, setup_intent_id inválido' }]
+		});
+		expect(get(toastStore)[0].message).toBe('setup_intent_id inválido');
+	});
+
+	it('reads Error.message instead of [object Object]', () => {
+		toastStore.error(new Error('La tarjeta fue declinada'));
+		expect(get(toastStore)[0].message).toBe('La tarjeta fue declinada');
+	});
+});
+
+describe('humanizeToastMessage', () => {
+	it('strips FastAPI Value error prefix', () => {
+		expect(humanizeToastMessage([{ msg: 'Value error, setup_intent_id inválido' }])).toBe(
+			'setup_intent_id inválido'
+		);
+	});
+
+	it('rejects [object Object]', () => {
+		expect(humanizeToastMessage('[object Object]')).toBe('Algo salió mal. Intenta de nuevo.');
 	});
 });

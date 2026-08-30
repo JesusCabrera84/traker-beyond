@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { billingService } from '$lib/services/billingService.js';
 	import CheckoutModal from '$lib/components/CheckoutModal.svelte';
+	import { formatMxn, multiplyAmount } from '$lib/utils/currency.js';
 
 	let loading = true;
 	let plans = [];
@@ -32,28 +33,29 @@
 	});
 
 	function fmtMxn(v) {
-		return new Intl.NumberFormat('es-MX', {
-			style: 'currency',
-			currency: 'MXN',
-			maximumFractionDigits: 0
-		}).format(v ?? 0);
+		return formatMxn(v);
 	}
 
-	function yearlyMonthly(plan) {
-		return Number(plan.pricing?.yearly ?? plan.price_yearly ?? 0) / 12;
+	function quoteFor(plan, cyc = cycle) {
+		return cyc === 'YEARLY' ? plan.pricing?.yearly_quote : plan.pricing?.monthly_quote;
 	}
 
 	function savings(plan) {
-		const monthly = Number(plan.pricing?.monthly ?? plan.price_monthly ?? 0);
-		const yearlySplit = yearlyMonthly(plan);
-		if (!monthly || !yearlySplit) return 0;
-		return Math.round(((monthly - yearlySplit) / monthly) * 100);
+		return plan.pricing?.yearly_savings_percent ?? 0;
 	}
 
-	function currentPrice(plan) {
-		if (cycle === 'YEARLY') return yearlyMonthly(plan);
-		return Number(plan.pricing?.monthly ?? plan.price_monthly ?? 0);
+	/** Lo que costaría el año si se pagara mes a mes. No es el cargo anual. */
+	function yearAtMonthlyPrice(plan) {
+		const monthlyTotal = plan.pricing?.monthly_quote?.total;
+		if (monthlyTotal == null || monthlyTotal === '') return null;
+		try {
+			return multiplyAmount(monthlyTotal, 12);
+		} catch {
+			return null;
+		}
 	}
+
+	$: maxYearlySave = plans.length ? Math.max(0, ...plans.map(savings)) : 0;
 
 	function isPopular(plan) {
 		return plan.features?.is_popular === true || plan.is_popular === true;
@@ -139,7 +141,11 @@
 			<p class="plans-intro__eyebrow">Planes NEXUS</p>
 			<h2 class="plans-intro__title">Elige el plan adecuado para tu flota</h2>
 			<p class="plans-intro__sub">
-				Todos los planes incluyen acceso completo a la plataforma. Sin contratos forzosos.
+				{#if cycle === 'YEARLY'}
+					El precio anual es un solo cargo por 12 meses, no 12 pagos mensuales.
+				{:else}
+					Todos los planes incluyen acceso completo a la plataforma. Sin contratos forzosos.
+				{/if}
 			</p>
 		</div>
 	</div>
@@ -159,7 +165,9 @@
 				on:click={() => (cycle = 'YEARLY')}
 			>
 				Anual
-				<span class="save-badge">Ahorra hasta {Math.max(...plans.map(savings))}%</span>
+				{#if maxYearlySave > 0}
+					<span class="save-badge">Ahorra hasta {maxYearlySave}%</span>
+				{/if}
 			</button>
 		</div>
 	</div>
@@ -168,8 +176,9 @@
 		{#each plans as plan (plan.id)}
 			{@const popular = isPopular(plan)}
 			{@const current = isCurrent(plan)}
-			{@const price = currentPrice(plan)}
+			{@const quoted = quoteFor(plan, cycle)}
 			{@const savePct = savings(plan)}
+			{@const monthlyYear = yearAtMonthlyPrice(plan)}
 			<div class="plan-mini" class:plan-mini--popular={popular} class:plan-mini--current={current}>
 				<div class="plan-mini__main">
 					<div class="plan-mini__front">
@@ -183,17 +192,22 @@
 						</div>
 						<p class="plan-mini__name">{plan.name}</p>
 						<div class="plan-mini__price-block">
-							<p class="plan-mini__price">
-								{fmtMxn(price)}<span class="plan-mini__period">/mes</span>
+							<p class="plan-mini__price">{fmtMxn(quoted?.total)}</p>
+							<p class="plan-mini__period">
+								{cycle === 'YEARLY' ? 'un solo cargo · 12 meses' : 'al mes'}
 							</p>
-							{#if cycle === 'YEARLY'}
+							{#if cycle === 'YEARLY' && (savePct > 0 || monthlyYear)}
 								<p class="plan-mini__yearly">
-									{fmtMxn(Number(plan.pricing?.yearly ?? plan.price_yearly ?? 0))} / año
+									{#if monthlyYear}
+										<span class="plan-mini__was">{monthlyYear}</span>
+										<span class="plan-mini__was-label">si pagaras mes a mes</span>
+									{/if}
 									{#if savePct > 0}
 										<span class="plan-mini__save">−{savePct}%</span>
 									{/if}
 								</p>
 							{/if}
+							<p class="plan-mini__iva">IVA incluido</p>
 						</div>
 					</div>
 					<div class="plan-mini__peek app-scrollbar">
@@ -261,6 +275,19 @@
 					</tr>
 				</thead>
 				<tbody>
+					<tr class="compare-row">
+						<td class="compare-td compare-td--label">
+							{cycle === 'YEARLY' ? 'Precio (12 meses)' : 'Precio mensual'}
+						</td>
+						{#each plans as plan (plan.id)}
+							{@const quoted = quoteFor(plan, cycle)}
+							<td class="compare-td compare-td--val" class:compare-td--popular={isPopular(plan)}>
+								<div class="cell-center">
+									<span class="cap-val cap-val--price">{fmtMxn(quoted?.total)}</span>
+								</div>
+							</td>
+						{/each}
+					</tr>
 					{#each capRows as row (row.key)}
 						<tr class="compare-row">
 							<td class="compare-td compare-td--label">{row.label}</td>
@@ -308,9 +335,9 @@
 			/>
 		</svg>
 		<p>
-			Precios <strong>sin IVA</strong>. El IVA del 16% aplica al momento del cobro. Puedes cancelar
-			en cualquier momento desde tu panel. ¿Necesitas un plan personalizado o mayor capacidad?
-			Escríbenos a
+			Precios <strong>con IVA</strong> del 16%. El plan anual se cobra una sola vez por 12 meses; no
+			son 12 cargos mensuales. Puedes cancelar en cualquier momento desde tu panel. ¿Necesitas un
+			plan personalizado o mayor capacidad? Escríbenos a
 			<a href="mailto:ventas@geminislabs.io" class="note-link">ventas@geminislabs.io</a>.
 		</p>
 	</div>
@@ -329,6 +356,11 @@
 			showCheckout = false;
 			selectedPlan = null;
 			goto('/control-panel/billing/summary?checkout=success');
+		}}
+		on:pending={() => {
+			showCheckout = false;
+			selectedPlan = null;
+			goto('/control-panel/billing/summary?checkout=pending');
 		}}
 	/>
 {/if}
@@ -557,19 +589,31 @@
 		letter-spacing: -0.04em;
 	}
 	.plan-mini__period {
-		font-size: 13px;
-		font-weight: 500;
-		color: #64748b;
+		margin: 0;
+		font-size: 11px;
+		font-weight: 600;
+		color: #94a3b8;
+		letter-spacing: 0.02em;
 	}
 	.plan-mini__yearly {
-		margin: 0;
+		margin: 2px 0 0;
 		font-size: 10px;
-		color: #475569;
+		color: #64748b;
 		display: flex;
 		align-items: center;
 		gap: 6px;
 		flex-wrap: wrap;
 		justify-content: center;
+		line-height: 1.35;
+	}
+	.plan-mini__was {
+		text-decoration: line-through;
+		color: #64748b;
+		font-variant-numeric: tabular-nums;
+		font-weight: 600;
+	}
+	.plan-mini__was-label {
+		color: #475569;
 	}
 	.plan-mini__save {
 		background: rgba(52, 211, 153, 0.12);
@@ -579,6 +623,11 @@
 		padding: 1px 5px;
 		font-size: 9px;
 		font-weight: 700;
+	}
+	.plan-mini__iva {
+		margin: 2px 0 0;
+		font-size: 10px;
+		color: #475569;
 	}
 
 	.plan-mini__peek {
@@ -819,6 +868,10 @@
 		font-weight: 600;
 		color: #cbd5e1;
 		display: block;
+	}
+	.cap-val--price {
+		font-variant-numeric: tabular-nums;
+		color: #f1f5f9;
 	}
 
 	.plans-note {

@@ -14,6 +14,7 @@
 		{ href: '/control-panel/billing/summary', label: 'Resumen', icon: 'chart' },
 		{ href: '/control-panel/billing/plans', label: 'Planes', icon: 'layers' },
 		{ href: '/control-panel/billing/payment-methods', label: 'Métodos de pago', icon: 'card' },
+		{ href: '/control-panel/billing/tax-profile', label: 'Datos fiscales', icon: 'id' },
 		{ href: '/control-panel/billing/invoices', label: 'Facturas', icon: 'file' }
 	];
 
@@ -94,6 +95,21 @@
 						>
 							<rect x="2" y="5" width="20" height="14" rx="2" />
 							<path stroke-linecap="round" d="M2 10h20" />
+						</svg>
+					{:else if item.icon === 'id'}
+						<svg
+							width="15"
+							height="15"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								d="M15 9h3.75M15 12h3.75M15 15h3.75M4.5 19.5h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5zm6-10.125a1.875 1.875 0 11-3.75 0 1.875 1.875 0 013.75 0zm1.294 6.336a6.721 6.721 0 01-3.17.789 6.721 6.721 0 01-3.168-.789 3.376 3.376 0 016.338 0z"
+							/>
 						</svg>
 					{:else}
 						<svg

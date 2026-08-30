@@ -1,6 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { userService } from '$lib/services/userService.js';
+	import BillingSnapshot from '$lib/components/BillingSnapshot.svelte';
 
 	export let user = null;
 	export let users = [];
@@ -266,27 +267,25 @@
 						</div>
 						<div class="card-title-section">
 							<h3 class="card-title">Métodos de pago</h3>
-							<p class="card-description">Gestiona tus métodos de pago y facturación</p>
+							<p class="card-description">Plan, tarjetas guardadas y facturación</p>
 						</div>
-					</div>
-
-					<div class="card-content">
-						<div class="coming-soon">
-							<div class="coming-soon-icon">
-								<svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<div class="card-actions">
+							<a href="/control-panel/billing/payment-methods" class="invite-btn">
+								<svg class="btn-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path
 										stroke-linecap="round"
 										stroke-linejoin="round"
 										stroke-width="2"
-										d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+										d="M14 5l7 7m0 0l-7 7m7-7H3"
 									/>
 								</svg>
-							</div>
-							<h4 class="coming-soon-title">Próximamente disponible</h4>
-							<p class="coming-soon-description">
-								Podrás registrar tus métodos de pago aquí (tarjeta, PayPal, MercadoPago, etc.)
-							</p>
+								<span>Gestionar</span>
+							</a>
 						</div>
+					</div>
+
+					<div class="card-content">
+						<BillingSnapshot />
 					</div>
 				</div>
 			</div>
@@ -610,6 +609,7 @@
 		font-weight: 500;
 		cursor: pointer;
 		transition: all 0.3s ease;
+		text-decoration: none;
 	}
 
 	.invite-btn:disabled {
@@ -618,6 +618,12 @@
 	}
 
 	.invite-btn:not(:disabled):hover {
+		background: rgba(0, 166, 192, 0.15);
+		border-color: rgba(0, 166, 192, 0.4);
+		transform: translateY(-1px);
+	}
+
+	a.invite-btn:hover {
 		background: rgba(0, 166, 192, 0.15);
 		border-color: rgba(0, 166, 192, 0.4);
 		transform: translateY(-1px);
@@ -755,41 +761,6 @@
 
 	.empty-description {
 		color: var(--color-text-muted);
-		line-height: 1.5;
-		margin: 0;
-	}
-
-	.coming-soon {
-		text-align: center;
-		padding: 3rem 2rem;
-	}
-
-	.coming-soon-icon {
-		width: 4rem;
-		height: 4rem;
-		color: #60a5fa;
-		margin: 0 auto 1.5rem;
-		animation: comingSoonSpin 3s linear infinite;
-	}
-
-	@keyframes comingSoonSpin {
-		from {
-			transform: rotate(0deg);
-		}
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	.coming-soon-title {
-		font-size: 1.25rem;
-		font-weight: 600;
-		color: #60a5fa;
-		margin-bottom: 0.75rem;
-	}
-
-	.coming-soon-description {
-		color: #93c5fd;
 		line-height: 1.5;
 		margin: 0;
 	}
@@ -987,7 +958,6 @@
 			padding: 2rem;
 		}
 
-		.coming-soon,
 		.empty-users {
 			padding: 2rem 1rem;
 		}

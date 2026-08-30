@@ -1,6 +1,11 @@
 <script>
 	import { createEventDispatcher, onMount, onDestroy, tick } from 'svelte';
 	import { billingService } from '$lib/services/billingService.js';
+	import {
+		getOrCreatePaymentIdempotencyKey,
+		clearPaymentIdempotencyKey
+	} from '$lib/utils/idempotency.js';
+	import { formatMxn } from '$lib/utils/currency.js';
 
 	export let plan;
 	export let initialCycle = 'MONTHLY';
@@ -20,30 +25,44 @@
 
 	let loading = false;
 	let error = null;
+	let settled = true;
+	let quoting = false;
 
-	$: amountBase =
-		cycle === 'YEARLY'
-			? Number(plan?.pricing?.yearly ?? plan?.price_yearly ?? 0)
-			: Number(plan?.pricing?.monthly ?? plan?.price_monthly ?? 0);
-	$: amountIva = amountBase * 0.16;
-	$: amountTotal = amountBase * 1.16;
+	// Cotización oficial del backend. La interfaz no calcula IVA ni redondea.
+	let quote = null;
+
+	$: amountBase = quote?.subtotal ?? null;
+	$: amountIva = quote?.tax ?? null;
+	$: amountTotal = quote?.total ?? null;
+	$: amountCents = quote?.amount_cents ?? null;
 
 	function fmtMxn(v) {
-		return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v ?? 0);
+		return formatMxn(v);
 	}
 
 	onMount(async () => {
 		await new Promise((r) => setTimeout(r, 50));
 		visible = true;
-		if (savedMethods.length === 0) {
-			await initNewCard();
-		}
+		await loadQuote(cycle);
 	});
 
 	onDestroy(() => {
 		const el = document.getElementById('checkout-card-el');
 		if (el) el.innerHTML = '';
 	});
+
+	async function loadQuote(cyc) {
+		quoting = true;
+		error = null;
+		try {
+			quote = await billingService.getQuote(plan.id, cyc);
+		} catch (e) {
+			quote = null;
+			error = e.message ?? 'No se pudo obtener el precio';
+		} finally {
+			quoting = false;
+		}
+	}
 
 	async function initNewCard() {
 		step = 'new-card';
@@ -55,12 +74,19 @@
 		const existing = document.getElementById('checkout-card-el');
 		if (existing) existing.innerHTML = '';
 
+		if (!quote) await loadQuote(cycle);
+		if (!Number.isInteger(amountCents) || amountCents <= 0) {
+			error = 'No se pudo obtener el precio. Cierra e intenta de nuevo.';
+			loading = false;
+			return;
+		}
+
 		await tick();
 
 		try {
 			cardForm = await billingService.mountCardForm({
 				mountId: 'checkout-card-el',
-				amountMxn: amountBase,
+				amountCents,
 				gateway: 'stripe'
 			});
 			cardFormReady = true;
@@ -73,8 +99,8 @@
 	}
 
 	async function pay() {
-		if (!selectedPm) return;
-		step = 'processing';
+		if (!selectedPm || loading || !Number.isInteger(amountCents)) return;
+		step = 'authorizing';
 		loading = true;
 		error = null;
 
@@ -82,12 +108,22 @@
 			const pi = await billingService.createPaymentIntent({
 				planId: plan.id,
 				billingCycle: cycle,
-				gateway: 'stripe'
+				gateway: 'stripe',
+				idempotencyKey: getOrCreatePaymentIdempotencyKey(plan.id, cycle)
 			});
 
-			const { error: err } = await billingService.confirmWithSavedPM({
+			if (repriced(pi) !== null) {
+				step = 'confirm';
+				loading = false;
+				return;
+			}
+
+			step = 'authorizing';
+			const returnUrl = `${window.location.origin}/control-panel/billing/summary?checkout=resume`;
+			const { error: err, paymentIntent } = await billingService.confirmWithSavedPM({
 				clientSecret: pi.client_token,
 				paymentMethodToken: selectedPm.external_token,
+				returnUrl,
 				gateway: 'stripe'
 			});
 
@@ -98,9 +134,12 @@
 				return;
 			}
 
-			step = 'done';
-			setTimeout(() => dispatch('success'), 1500);
+			await settleIntent(paymentIntent, pi.client_token);
 		} catch (e) {
+			if (isAlreadyPaidError(e)) {
+				finishCheckout({ status: 'succeeded' }, 800);
+				return;
+			}
 			error = e.message ?? 'Error al procesar el pago';
 			step = 'confirm';
 			loading = false;
@@ -108,7 +147,7 @@
 	}
 
 	async function confirmNewCard() {
-		if (!cardForm || !cardFormReady) return;
+		if (!cardForm || !cardFormReady || loading) return;
 		loading = true;
 		error = null;
 
@@ -124,11 +163,25 @@
 			const pi = await billingService.createPaymentIntent({
 				planId: plan.id,
 				billingCycle: cycle,
-				gateway: 'stripe'
+				gateway: 'stripe',
+				idempotencyKey: getOrCreatePaymentIdempotencyKey(plan.id, cycle)
 			});
 
-			const returnUrl = `${window.location.origin}/control-panel/billing/summary?checkout=success`;
-			const { error: err } = await cardForm.confirmPayment(pi.client_token, returnUrl);
+			const newCents = repriced(pi);
+			if (newCents !== null) {
+				cardForm.updateAmount?.(newCents);
+				step = 'new-card';
+				loading = false;
+				return;
+			}
+
+			step = 'authorizing';
+			await tick();
+			const returnUrl = `${window.location.origin}/control-panel/billing/summary?checkout=resume`;
+			const { error: err, paymentIntent } = await cardForm.confirmPayment(
+				pi.client_token,
+				returnUrl
+			);
 
 			if (err) {
 				error = xlateStripeError(err);
@@ -137,15 +190,25 @@
 				return;
 			}
 
-			loading = false;
-			step = 'processing';
-			await tick();
-			step = 'done';
-			setTimeout(() => dispatch('success'), 1500);
+			await settleIntent(paymentIntent, pi.client_token);
 		} catch (e) {
+			if (isAlreadyPaidError(e)) {
+				finishCheckout({ status: 'succeeded' }, 800);
+				return;
+			}
 			error = e.message ?? 'Error al procesar el pago';
 			step = 'new-card';
 			loading = false;
+		}
+	}
+
+	async function selectCycle(val) {
+		if (cycle === val || loading || quoting) return;
+		cycle = val;
+		error = null;
+		await loadQuote(val);
+		if (Number.isInteger(amountCents)) {
+			cardForm?.updateAmount?.(amountCents);
 		}
 	}
 
@@ -170,6 +233,67 @@
 		return { label: (brand ?? 'Tarjeta').toUpperCase(), color: '#475569' };
 	}
 
+	/**
+	 * Si el banco pide autorización, esta ventana espera. No se cobra de nuevo.
+	 * Sólo `succeeded` / `requires_capture` se anuncian como pago concretado.
+	 */
+	async function settleIntent(paymentIntent, clientSecret) {
+		let pi = paymentIntent;
+		const pending = pi?.status === 'requires_action' || pi?.status === 'processing';
+		if (pending && clientSecret) {
+			step = 'authorizing';
+			const waited = await billingService.waitForPaymentIntent(clientSecret);
+			if (waited.error) {
+				error = xlateStripeError(waited.error);
+				step = savedMethods.length && !useNewCard ? 'confirm' : 'new-card';
+				loading = false;
+				return;
+			}
+			pi = waited.paymentIntent;
+		}
+		if (pi?.status === 'requires_payment_method' || pi?.status === 'canceled') {
+			error = 'El banco no autorizó el cargo. Puedes intentar con otra tarjeta.';
+			step = savedMethods.length && !useNewCard ? 'confirm' : 'new-card';
+			loading = false;
+			return;
+		}
+		finishCheckout(pi);
+	}
+
+	function finishCheckout(paymentIntent, delayMs = 1500) {
+		const status = paymentIntent?.status;
+		settled = !status || status === 'succeeded' || status === 'requires_capture';
+		clearPaymentIdempotencyKey(plan.id, cycle);
+		loading = false;
+		step = 'done';
+		setTimeout(() => dispatch(settled ? 'success' : 'pending'), delayMs);
+	}
+
+	/**
+	 * Nunca se confirma un cargo por un importe que el cliente no vio.
+	 * Se compara en centavos enteros, no en float.
+	 * @returns {number|null} los nuevos centavos si cambió
+	 */
+	function repriced(pi) {
+		const cents = pi?.amount_cents;
+		if (!Number.isInteger(cents) || cents === amountCents) return null;
+		quote = {
+			subtotal: pi.amount_mxn,
+			tax: pi.tax_mxn,
+			total: pi.amount_with_iva,
+			amount_cents: cents
+		};
+		error = `El precio de este plan cambió. El cargo sería de ${fmtMxn(pi.amount_with_iva)}. Revisa el importe y confirma de nuevo.`;
+		return cents;
+	}
+
+	function isAlreadyPaidError(err) {
+		return (
+			err?.code === 'PAYMENT_ALREADY_PROCESSED' ||
+			/ya fue procesado|ya fue pagado/i.test(err?.message ?? '')
+		);
+	}
+
 	function xlateStripeError(err) {
 		const codes = {
 			card_declined: 'Tarjeta declinada. Intenta con otra.',
@@ -177,18 +301,22 @@
 			expired_card: 'La tarjeta está vencida.',
 			incorrect_cvc: 'CVV incorrecto.',
 			invalid_number: 'Número de tarjeta inválido.',
+			authentication_required: 'Tu banco pide autorizar el cargo. Confírmalo en tu app.',
 			processing_error: 'Error de procesamiento. Intenta de nuevo.'
 		};
 		return codes[err?.code] ?? err?.message ?? 'Error al procesar el pago.';
 	}
 
-	$: canPayWithSaved = !useNewCard && !!selectedPm;
+	$: canPayWithSaved = !useNewCard && !!selectedPm && Number.isInteger(amountCents);
+	$: yearlySave = Number(plan?.pricing?.yearly_savings_percent ?? 0);
+	$: payLabel = amountTotal ? `Pagar ${fmtMxn(amountTotal)}` : 'Pagar';
 </script>
 
 <div
 	class="backdrop"
-	on:click|self={step !== 'processing' ? close : undefined}
-	on:keydown={(e) => e.key === 'Escape' && step !== 'processing' && close()}
+	on:click|self={step !== 'processing' && step !== 'authorizing' ? close : undefined}
+	on:keydown={(e) =>
+		e.key === 'Escape' && step !== 'processing' && step !== 'authorizing' && close()}
 	role="dialog"
 	aria-modal="true"
 	aria-label="Completar pago"
@@ -198,24 +326,30 @@
 		<div class="modal-head">
 			<div>
 				<h2 class="modal-title">
-					{#if step === 'done'}¡Pago exitoso!
-					{:else if step === 'new-card'}Datos de tarjeta
-					{:else}Completar suscripción{/if}
+					{#if step === 'done'}{settled ? 'Pago listo' : 'Estamos confirmando'}
+					{:else if step === 'authorizing' || step === 'processing'}Confirma en tu banco
+					{:else if step === 'new-card'}Tu tarjeta
+					{:else}Pagar {plan.name}{/if}
 				</h2>
 				<p class="modal-sub">
 					{#if step === 'new-card'}
-						Cifrado TLS · PCI DSS · procesado por Stripe
+						Los datos van a Stripe. Nosotros no los vemos.
+					{:else if step === 'authorizing' || step === 'processing'}
+						{plan.name} · {fmtMxn(amountTotal)}
+					{:else if step === 'done'}
+						{plan.name}
 					{:else}
-						{plan.name} · {cycle === 'YEARLY' ? 'Anual' : 'Mensual'}
+						{cycle === 'YEARLY' ? '12 meses · un solo cargo' : '1 mes'} · IVA incluido
 					{/if}
 				</p>
 			</div>
 
-			{#if step !== 'processing' && step !== 'done'}
+			{#if step !== 'processing' && step !== 'authorizing' && step !== 'done'}
 				<button
 					class="close-btn"
+					type="button"
 					on:click={step === 'new-card' && savedMethods.length > 0 ? goBackToConfirm : close}
-					aria-label="Cerrar"
+					aria-label={step === 'new-card' && savedMethods.length > 0 ? 'Volver' : 'Cerrar'}
 				>
 					{#if step === 'new-card' && savedMethods.length > 0}
 						<svg
@@ -266,36 +400,57 @@
 		{/if}
 
 		{#if step === 'confirm'}
-			<div class="cycle-toggle">
+			<div class="cycle-toggle" role="tablist" aria-label="Ciclo de facturación">
 				{#each [['MONTHLY', 'Mensual'], ['YEARLY', 'Anual']] as [val, label] (val)}
 					<button
 						class="cycle-btn"
 						class:cycle-btn--on={cycle === val}
-						on:click={() => (cycle = val)}
+						on:click={() => selectCycle(val)}
+						disabled={loading || quoting}
+						type="button"
 					>
 						{label}
-						{#if val === 'YEARLY'}<span class="cycle-save">−17%</span>{/if}
+						{#if val === 'YEARLY' && yearlySave > 0}
+							<span class="cycle-save">−{yearlySave}%</span>
+						{/if}
 					</button>
 				{/each}
 			</div>
 
-			<div class="price-box">
-				<div class="price-line">
-					<span class="price-line__label">Plan {plan.name}</span>
-					<span class="price-line__val">{fmtMxn(amountBase)}</span>
-				</div>
-				<div class="price-line">
-					<span class="price-line__label">IVA (16%)</span>
-					<span class="price-line__val price-line__val--dim">+ {fmtMxn(amountIva)}</span>
-				</div>
-				<div class="price-line price-line--total">
-					<span class="price-line__label--bold">Total a pagar</span>
-					<span class="price-line__big">{fmtMxn(amountTotal)}</span>
-				</div>
+			<div class="price-box" aria-live="polite">
+				{#if quoting || !quote}
+					<div class="price-line">
+						<span class="skel skel--label"></span><span class="skel skel--val"></span>
+					</div>
+					<div class="price-line">
+						<span class="skel skel--label"></span><span class="skel skel--val"></span>
+					</div>
+					<div class="price-line price-line--total">
+						<span class="skel skel--label"></span><span class="skel skel--big"></span>
+					</div>
+				{:else}
+					<div class="price-line">
+						<span class="price-line__label">{plan.name}</span>
+						<span class="price-line__val">{fmtMxn(amountBase)}</span>
+					</div>
+					<div class="price-line">
+						<span class="price-line__label">IVA (16%)</span>
+						<span class="price-line__val price-line__val--dim">+ {fmtMxn(amountIva)}</span>
+					</div>
+					<div class="price-line price-line--total">
+						<span class="price-line__label--bold"
+							>{cycle === 'YEARLY' ? 'Total a pagar · 12 meses' : 'Total a pagar · 1 mes'}</span
+						>
+						<span class="price-line__big">{fmtMxn(amountTotal)}</span>
+					</div>
+					{#if cycle === 'YEARLY'}
+						<p class="price-year-hint">Un solo cargo por el año. No son 12 pagos mensuales.</p>
+					{/if}
+				{/if}
 			</div>
 
 			<div class="pm-section">
-				<p class="pm-section__title">Método de pago</p>
+				<p class="pm-section__title">Cómo pagas</p>
 
 				{#if savedMethods.length > 0}
 					<div class="pm-list">
@@ -304,6 +459,7 @@
 							<button
 								class="pm-row"
 								class:pm-row--on={selectedPm?.external_token === pm.external_token && !useNewCard}
+								type="button"
 								on:click={() => {
 									selectedPm = pm;
 									useNewCard = false;
@@ -313,23 +469,16 @@
 									class="pm-chip"
 									style="background:{meta.color}18; border-color:{meta.color}40;"
 								>
-									<span
-										style="color:{meta.color}; font-size:10px; font-weight:800; letter-spacing:.04em;"
-										>{meta.label}</span
-									>
+									<span class="pm-chip__label" style="color:{meta.color};">{meta.label}</span>
 								</div>
-								<div style="flex:1; min-width:0;">
-									<p
-										style="margin:0; font-size:14px; font-weight:600; color:#e2e8f0; font-family:'Courier New',monospace;"
-									>
-										•••• {pm.last4}
-									</p>
-									<p style="margin:2px 0 0; font-size:11px; color:#475569;">
+								<div class="pm-row__meta">
+									<p class="pm-row__last4">•••• {pm.last4}</p>
+									<p class="pm-row__exp">
 										{String(pm.exp_month).padStart(2, '0')}/{String(pm.exp_year).slice(-2)}
 									</p>
 								</div>
 								{#if selectedPm?.external_token === pm.external_token && !useNewCard}
-									<div class="pm-check">
+									<div class="pm-check" aria-hidden="true">
 										<svg
 											width="11"
 											height="11"
@@ -345,52 +494,64 @@
 							</button>
 						{/each}
 					</div>
-				{/if}
-
-				<button
-					class="add-btn"
-					on:click={() => {
-						useNewCard = true;
-						selectedPm = null;
-						initNewCard();
-					}}
-				>
-					<svg
-						width="14"
-						height="14"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						stroke-width="2"
+					<button
+						class="add-btn"
+						type="button"
+						on:click={() => {
+							useNewCard = true;
+							selectedPm = null;
+							initNewCard();
+						}}
 					>
-						<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-					</svg>
-					{savedMethods.length > 0 ? 'Usar otra tarjeta' : 'Agregar tarjeta de pago'}
-				</button>
+						<svg
+							width="14"
+							height="14"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor"
+							stroke-width="2"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+						</svg>
+						Usar otra tarjeta
+					</button>
+				{:else}
+					<p class="pm-empty">
+						Aún no tienes una tarjeta guardada. En el siguiente paso la agregas.
+					</p>
+				{/if}
 			</div>
 
 			<div class="cta-row">
-				<button class="btn-cancel" on:click={close}>Cancelar</button>
-				<button class="btn-pay" on:click={pay} disabled={!canPayWithSaved}>
-					<svg
-						width="14"
-						height="14"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="currentColor"
-						stroke-width="2"
-						style="flex-shrink:0"
+				<button class="btn-cancel" type="button" on:click={close}>Cancelar</button>
+				{#if savedMethods.length === 0}
+					<button
+						class="btn-pay"
+						type="button"
+						on:click={initNewCard}
+						disabled={loading || quoting || !Number.isInteger(amountCents)}
 					>
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-						/>
-					</svg>
-					Pagar {fmtMxn(amountTotal)}
-				</button>
+						Continuar
+					</button>
+				{:else}
+					<button
+						class="btn-pay"
+						type="button"
+						on:click={pay}
+						disabled={loading || quoting || !canPayWithSaved}
+					>
+						{payLabel}
+					</button>
+				{/if}
 			</div>
+			<p class="trust-note">Pago seguro con Stripe · IVA incluido</p>
 		{:else if step === 'new-card'}
+			<div class="price-recap">
+				<span class="price-recap__label"
+					>{plan.name} · {cycle === 'YEARLY' ? '12 meses · un solo cargo' : '1 mes'}</span
+				>
+				<span class="price-recap__total">{fmtMxn(amountTotal)}</span>
+			</div>
 			<div class="stripe-slot-wrap">
 				{#if !cardFormReady && !error}
 					<div class="card-loading card-loading--overlay">
@@ -402,60 +563,75 @@
 			</div>
 
 			<div class="cta-row">
-				{#if savedMethods.length > 0}
-					<button class="btn-cancel" on:click={goBackToConfirm}>Volver</button>
-				{/if}
+				<button
+					class="btn-cancel"
+					type="button"
+					on:click={savedMethods.length > 0 ? goBackToConfirm : close}
+					>{savedMethods.length > 0 ? 'Volver' : 'Cancelar'}</button
+				>
 				<button
 					class="btn-pay"
-					class:btn-pay--solo={savedMethods.length === 0}
+					type="button"
 					on:click={confirmNewCard}
 					disabled={loading || !cardFormReady}
 				>
 					{#if loading}
 						<span class="spin spin--xs spin--white"></span>
-						Procesando…
+						Un momento…
 					{:else}
-						<svg
-							width="14"
-							height="14"
-							fill="none"
-							viewBox="0 0 24 24"
-							stroke="currentColor"
-							stroke-width="2"
-							style="flex-shrink:0"
-						>
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-							/>
-						</svg>
-						Pagar {fmtMxn(amountTotal)}
+						{payLabel}
 					{/if}
 				</button>
 			</div>
-		{:else if step === 'processing'}
-			<div class="state-center">
+			<p class="trust-note">Los datos de la tarjeta van a Stripe. Nosotros no los vemos.</p>
+		{:else if step === 'processing' || step === 'authorizing'}
+			<div class="state-center" aria-live="polite" aria-busy="true">
 				<span class="spin spin--lg"></span>
-				<p class="state-title">Procesando tu pago…</p>
-				<p class="state-sub">No cierres esta ventana</p>
+				<p class="state-title">Autoriza {fmtMxn(amountTotal)} en tu banco</p>
+				<p class="state-sub">
+					Abre tu app bancaria y confirma. Esta ventana espera: no cierres ni vuelvas a pagar.
+				</p>
 			</div>
 		{:else if step === 'done'}
 			<div class="state-center">
-				<div class="done-ring">
-					<svg
-						width="30"
-						height="30"
-						fill="none"
-						viewBox="0 0 24 24"
-						stroke="#4ade80"
-						stroke-width="2.5"
-					>
-						<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-					</svg>
-				</div>
-				<p class="state-title">¡Suscripción activada!</p>
-				<p class="state-sub">El recibo llegará a tu correo electrónico</p>
+				{#if settled}
+					<div class="done-ring">
+						<svg
+							width="30"
+							height="30"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="#4ade80"
+							stroke-width="2.5"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+						</svg>
+					</div>
+					<p class="state-title">¡Suscripción activada!</p>
+					<p class="state-sub">
+						El recibo también llega a tu correo. El comprobante en PDF está en Facturas y
+						comprobantes.
+					</p>
+				{:else}
+					<div class="done-ring done-ring--wait">
+						<svg
+							width="30"
+							height="30"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="#fbbf24"
+							stroke-width="2.5"
+						>
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 2" />
+							<circle cx="12" cy="12" r="9" />
+						</svg>
+					</div>
+					<p class="state-title">Estamos confirmando tu pago</p>
+					<p class="state-sub">
+						Tu banco aún no confirma la operación. No vuelvas a pagar: en cuanto se acredite, la
+						suscripción se activa sola y verás el cobro en tu historial.
+					</p>
+				{/if}
 			</div>
 		{/if}
 	</div>
@@ -650,6 +826,64 @@
 		font-variant-numeric: tabular-nums;
 		letter-spacing: -0.03em;
 	}
+	.price-year-hint {
+		margin: 0;
+		padding: 8px 16px 12px;
+		font-size: 11px;
+		color: #64748b;
+		line-height: 1.4;
+	}
+	.skel {
+		display: inline-block;
+		border-radius: 6px;
+		background: linear-gradient(
+			90deg,
+			rgba(255, 255, 255, 0.04) 0%,
+			rgba(255, 255, 255, 0.1) 50%,
+			rgba(255, 255, 255, 0.04) 100%
+		);
+		background-size: 200% 100%;
+		animation: shimmer 1.2s ease-in-out infinite;
+	}
+	.skel--label {
+		width: 88px;
+		height: 12px;
+	}
+	.skel--val {
+		width: 72px;
+		height: 12px;
+	}
+	.skel--big {
+		width: 110px;
+		height: 22px;
+	}
+	@keyframes shimmer {
+		to {
+			background-position: -200% 0;
+		}
+	}
+	.price-recap {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		padding: 12px 16px;
+		margin-bottom: 16px;
+		border-radius: 12px;
+		background: rgba(99, 102, 241, 0.06);
+		border: 1px solid rgba(99, 102, 241, 0.18);
+	}
+	.price-recap__label {
+		font-size: 12px;
+		color: #64748b;
+	}
+	.price-recap__total {
+		font-size: 16px;
+		font-weight: 700;
+		color: #f1f5f9;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: -0.02em;
+	}
 
 	.pm-section {
 		margin-bottom: 24px;
@@ -700,6 +934,34 @@
 		border-radius: 8px;
 		border: 1px solid;
 		flex-shrink: 0;
+	}
+	.pm-chip__label {
+		font-size: 10px;
+		font-weight: 800;
+		letter-spacing: 0.04em;
+	}
+	.pm-row__meta {
+		flex: 1;
+		min-width: 0;
+	}
+	.pm-row__last4 {
+		margin: 0;
+		font-size: 14px;
+		font-weight: 600;
+		color: #e2e8f0;
+		font-family: ui-monospace, 'Courier New', monospace;
+		font-variant-numeric: tabular-nums;
+	}
+	.pm-row__exp {
+		margin: 2px 0 0;
+		font-size: 11px;
+		color: #475569;
+	}
+	.pm-empty {
+		margin: 0;
+		font-size: 13px;
+		line-height: 1.45;
+		color: #64748b;
 	}
 	.pm-check {
 		width: 20px;
@@ -784,9 +1046,6 @@
 		letter-spacing: -0.01em;
 		white-space: nowrap;
 	}
-	.btn-pay--solo {
-		flex: 1;
-	}
 	.btn-pay:hover:not(:disabled) {
 		filter: brightness(1.1);
 		box-shadow:
@@ -863,6 +1122,11 @@
 		justify-content: center;
 	}
 
+	.done-ring--wait {
+		background: rgba(251, 191, 36, 0.1);
+		border-color: rgba(251, 191, 36, 0.25);
+	}
+
 	.spin {
 		display: inline-block;
 		border-radius: 50%;
@@ -894,6 +1158,43 @@
 	@keyframes spinning {
 		to {
 			transform: rotate(360deg);
+		}
+	}
+
+	.trust-note {
+		margin: 12px 0 0;
+		text-align: center;
+		font-size: 11px;
+		color: #334155;
+	}
+
+	.cycle-btn:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	.close-btn:focus-visible,
+	.cycle-btn:focus-visible,
+	.pm-row:focus-visible,
+	.add-btn:focus-visible,
+	.btn-cancel:focus-visible,
+	.btn-pay:focus-visible {
+		outline: 2px solid #818cf8;
+		outline-offset: 2px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.modal,
+		.spin,
+		.skel,
+		.close-btn,
+		.cycle-btn,
+		.pm-row,
+		.add-btn,
+		.btn-cancel,
+		.btn-pay {
+			animation: none;
+			transition: none;
 		}
 	}
 </style>

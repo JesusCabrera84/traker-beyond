@@ -1,35 +1,65 @@
 import { writable } from 'svelte/store';
 
+const MAX_VISIBLE = 4;
+const FALLBACK = 'Algo salió mal. Intenta de nuevo.';
+
 /**
- * Store para manejar notificaciones toast
+ * Convierte lo que sea que le pasen al toast en una frase para humanos.
+ * FastAPI manda `detail` como string, objeto o lista; `throw err` a veces
+ * llega como Error, a veces como objeto crudo. Nunca debe verse [object Object].
  */
+export function humanizeToastMessage(input, fallback = FALLBACK) {
+	if (input == null || input === '') return fallback;
+	if (typeof input === 'string') {
+		const text = input
+			.trim()
+			.replace(/^Value error,\s*/i, '')
+			.trim();
+		if (!text || text === '[object Object]') return fallback;
+		return text;
+	}
+	if (input instanceof Error) return humanizeToastMessage(input.message, fallback);
+	if (Array.isArray(input) && input.length > 0) {
+		return humanizeToastMessage(input[0], fallback);
+	}
+	if (typeof input === 'object') {
+		const nested = input.detail ?? input.message ?? input.msg ?? input.error;
+		if (nested != null && nested !== input) {
+			return humanizeToastMessage(nested, fallback);
+		}
+	}
+	return fallback;
+}
+
 function createToastStore() {
 	const { subscribe, update } = writable([]);
 
 	return {
 		subscribe,
 
-		/**
-		 * Agrega una nueva notificación
-		 */
 		add(message, type = 'info', duration = 5000) {
-			// Soporte para ambos formatos: add(message, type) y add(toastObject)
 			let toastData;
-			if (typeof message === 'string') {
+			if (typeof message === 'string' || message instanceof Error) {
 				toastData = { message, type, duration };
-			} else {
+			} else if (message && typeof message === 'object' && !Array.isArray(message)) {
 				toastData = { type: 'info', duration: 5000, ...message };
+			} else {
+				toastData = { message, type, duration };
 			}
 
 			const id = Date.now() + Math.random();
 			const newToast = {
 				id,
-				...toastData
+				type: toastData.type || 'info',
+				duration: toastData.duration ?? 5000,
+				message: humanizeToastMessage(toastData.message ?? toastData)
 			};
 
-			update((toasts) => [...toasts, newToast]);
+			update((toasts) => {
+				const next = [...toasts, newToast];
+				return next.length > MAX_VISIBLE ? next.slice(next.length - MAX_VISIBLE) : next;
+			});
 
-			// Auto-remover después de la duración especificada
 			if (newToast.duration > 0) {
 				setTimeout(() => {
 					this.remove(id);
@@ -39,23 +69,14 @@ function createToastStore() {
 			return id;
 		},
 
-		/**
-		 * Remueve una notificación por ID
-		 */
 		remove(id) {
 			update((toasts) => toasts.filter((toast) => toast.id !== id));
 		},
 
-		/**
-		 * Limpia todas las notificaciones
-		 */
 		clear() {
 			update(() => []);
 		},
 
-		/**
-		 * Métodos de conveniencia para diferentes tipos
-		 */
 		success(message, duration = 5000) {
 			return this.add({ type: 'success', message, duration });
 		},

@@ -3,23 +3,24 @@
 	import Toast from './Toast.svelte';
 </script>
 
-<!-- Contenedor de notificaciones -->
-<div class="toast-container-wrapper pointer-events-none fixed top-0 right-0 z-50 p-4">
+<div class="toasts" aria-live="polite" aria-relevant="additions text">
 	{#each $toastStore as toast (toast.id)}
-		<div class="mb-3">
-			<Toast
-				type={toast.type}
-				message={toast.message}
-				duration={0}
-				onClose={() => toastStore.remove(toast.id)}
-			/>
-		</div>
+		<Toast type={toast.type} message={toast.message} onClose={() => toastStore.remove(toast.id)} />
 	{/each}
 </div>
 
 <style>
-	.toast-container-wrapper {
-		max-height: 100vh;
-		overflow-y: auto;
+	.toasts {
+		position: fixed;
+		top: max(16px, env(safe-area-inset-top));
+		right: max(16px, env(safe-area-inset-right));
+		z-index: 20000;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		width: min(380px, calc(100vw - 32px));
+		max-height: calc(100vh - 32px);
+		overflow: auto;
+		pointer-events: none;
 	}
 </style>
