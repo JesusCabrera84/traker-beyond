@@ -328,6 +328,7 @@ describe('billingService', () => {
 	});
 
 	it('createPaymentIntent uses explicit idempotencyKey when provided', async () => {
+		const explicitIdem = 'explicit-idem-12345678';
 		fetch.mockResolvedValueOnce({
 			ok: true,
 			status: 201,
@@ -336,9 +337,9 @@ describe('billingService', () => {
 		await billingService.createPaymentIntent({
 			planId: 'plan-x',
 			billingCycle: 'YEARLY',
-			idempotencyKey: 'explicit-key-12345678'
+			idempotencyKey: explicitIdem
 		});
-		expect(fetch.mock.calls[0][1].headers['Idempotency-Key']).toBe('explicit-key-12345678');
+		expect(fetch.mock.calls[0][1].headers['Idempotency-Key']).toBe(explicitIdem);
 	});
 
 	it('createPaymentIntent refuses to call the API without a key', async () => {
