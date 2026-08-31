@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Checkout Stripe with server-quoted prices, tax profile, and on-demand CFDI in the billing panel
 - Data Processing Agreement (`docs/legal/05-Convenio-de-Tratamiento-de-Datos-Personales`), signed with each client as Annex E of the Master Agreement. It is what contractually sustains the processor role the privacy notice describes; without it, the obligations placed on the client are a unilateral statement
 - Retention specification for the team implementing data purging (`docs/legal/retencion-plazos-declarados.md`): the periods already published, four technical constraints found in the code, and acceptance criteria
 - Third scenario in the privacy notice for individuals contracting for personal or household use, where Geminis Labs is the controller of everything including geolocation. Mexican data protection law does not reach individuals processing data for exclusively personal use, so no obligation can be passed to them

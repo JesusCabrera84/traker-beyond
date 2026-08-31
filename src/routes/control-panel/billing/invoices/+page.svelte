@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { SvelteSet } from 'svelte/reactivity';
 	import { billingService } from '$lib/services/billingService.js';
+	import { toastStore } from '$lib/stores/toastStore.js';
 	import { formatMxn } from '$lib/utils/currency.js';
 	import { formatDateLocal } from '$lib/utils/datetime.js';
 
@@ -16,10 +17,25 @@
 	let error = null;
 	let yearFilter = 'all';
 	let statusFilter = 'all';
+	let downloadingId = null;
+	let downloadError = null;
+	let taxProfile = null;
+	let stampInv = null;
+	let stampUse = 'G03';
+	let stamping = false;
+	let stampVisible = false;
 
 	onMount(async () => {
-		await fetchPage(0, true);
+		await Promise.all([fetchPage(0, true), loadTaxProfile()]);
 	});
+
+	async function loadTaxProfile() {
+		try {
+			taxProfile = await billingService.getTaxProfile();
+		} catch {
+			taxProfile = null;
+		}
+	}
 
 	async function fetchPage(newOffset, reset = false) {
 		if (reset) {
@@ -76,11 +92,83 @@
 	function rowDesc(inv) {
 		return inv.description ?? inv.concepto ?? 'Suscripción NEXUS';
 	}
-	function rowUrl(inv) {
-		return inv.invoice_url ?? inv.stripe_receipt_url ?? inv.invoice_pdf_url ?? null;
-	}
 	function rowPaymentId(inv) {
 		return inv.payment_id ?? null;
+	}
+	function canDownloadReceipt(inv) {
+		if (inv.has_receipt === true) return true;
+		const s = (inv.status || '').toUpperCase();
+		return s === 'PAID' || s === 'PAGADA' || s === 'PAID_OUT';
+	}
+	function hasCfdi(inv) {
+		return inv.has_cfdi === true || Boolean(inv.cfdi_uuid);
+	}
+	function canStamp(inv) {
+		return canDownloadReceipt(inv) && !hasCfdi(inv);
+	}
+	async function downloadReceipt(inv) {
+		if (!canDownloadReceipt(inv) || downloadingId) return;
+		downloadingId = `receipt-${inv.id}`;
+		downloadError = null;
+		try {
+			await billingService.downloadInvoiceReceipt(inv.id, rowNumber(inv));
+		} catch (e) {
+			downloadError = e?.message ?? 'No se pudo descargar el comprobante.';
+			toastStore.error(e);
+		} finally {
+			downloadingId = null;
+		}
+	}
+	async function downloadCfdi(inv, format) {
+		if (!hasCfdi(inv) || downloadingId) return;
+		downloadingId = `cfdi-${format}-${inv.id}`;
+		downloadError = null;
+		try {
+			await billingService.downloadInvoiceCfdi(inv.id, format, rowNumber(inv));
+		} catch (e) {
+			downloadError = e?.message ?? 'No se pudo descargar el CFDI.';
+			toastStore.error(e);
+		} finally {
+			downloadingId = null;
+		}
+	}
+	function openStamp(inv) {
+		if (!canStamp(inv)) return;
+		if (!taxProfile?.is_complete) return;
+		stampInv = inv;
+		stampUse = taxProfile.default_cfdi_use || 'G03';
+		requestAnimationFrame(() => {
+			stampVisible = true;
+		});
+	}
+	function closeStamp() {
+		stampVisible = false;
+		setTimeout(() => {
+			if (!stamping) stampInv = null;
+		}, 200);
+	}
+	async function confirmStamp() {
+		if (!stampInv || stamping) return;
+		stamping = true;
+		try {
+			const updated = await billingService.stampInvoiceCfdi(stampInv.id, stampUse);
+			rows = rows.map((row) =>
+				row.id === stampInv.id
+					? {
+							...row,
+							...updated,
+							has_cfdi: true,
+							cfdi_uuid: updated.cfdi_uuid ?? row.cfdi_uuid
+						}
+					: row
+			);
+			toastStore.success('CFDI timbrado. Ya puedes descargar PDF y XML.');
+			closeStamp();
+		} catch (e) {
+			toastStore.error(e);
+		} finally {
+			stamping = false;
+		}
 	}
 
 	function statusInfo(status) {
@@ -99,12 +187,19 @@
 				bg: 'rgba(251,191,36,0.08)',
 				border: 'rgba(251,191,36,0.2)'
 			};
-		if (s === 'OVERDUE')
+		if (s === 'OVERDUE' || s === 'PAST_DUE')
 			return {
 				label: 'Vencida',
 				color: '#f87171',
 				bg: 'rgba(248,113,113,0.08)',
 				border: 'rgba(248,113,113,0.2)'
+			};
+		if (s === 'UNCOLLECTIBLE')
+			return {
+				label: 'Cargo revertido',
+				color: '#fb923c',
+				bg: 'rgba(251,146,60,0.08)',
+				border: 'rgba(251,146,60,0.2)'
 			};
 		if (s === 'VOID' || s === 'CANCELADA')
 			return {
@@ -258,6 +353,26 @@
 		</div>
 	</div>
 
+	{#if downloadError}
+		<div class="error-card mb-4">
+			<p>{downloadError}</p>
+			<button type="button" class="btn-link" on:click={() => (downloadError = null)}>Cerrar</button>
+		</div>
+	{/if}
+
+	{#if taxProfile && !taxProfile.is_complete}
+		<div class="tax-banner mb-4">
+			<div>
+				<p class="tax-banner__title">Faltan datos fiscales para emitir CFDI</p>
+				<p class="tax-banner__text">
+					El comprobante de pago ya está disponible. Para el XML/PDF del SAT completa RFC, régimen y
+					código postal.
+				</p>
+			</div>
+			<a href="/control-panel/billing/tax-profile" class="tax-banner__cta">Completar perfil</a>
+		</div>
+	{/if}
+
 	<div class="filters-bar mb-4">
 		<div class="filters-bar__group">
 			<label for="yr" class="filter-label">Período</label>
@@ -314,7 +429,7 @@
 					<th class="th">Fecha emisión</th>
 					<th class="th">Fecha pago</th>
 					<th class="th th--center">Estado</th>
-					<th class="th th--center">Comprobante</th>
+					<th class="th th--center">Documentos</th>
 				</tr>
 			</thead>
 			<tbody>
@@ -344,10 +459,12 @@
 					{#each filtered as inv, invIdx (inv.id ?? `inv-${invIdx}-${rowNumber(inv) ?? ''}-${rowDate(inv) ?? ''}`)}
 						{@const st = statusInfo(inv.status)}
 						{@const num = rowNumber(inv)}
-						{@const url = rowUrl(inv)}
 						{@const sub = rowSub(inv)}
 						{@const tot = rowTotal(inv)}
 						{@const showSubIva = sub != null && tot != null && Number(tot) > Number(sub) + 0.009}
+						{@const canDl = canDownloadReceipt(inv)}
+						{@const stamped = hasCfdi(inv)}
+						{@const stampable = canStamp(inv)}
 						<tr class="tbody-row">
 							<td class="td td--num">
 								{#if num}
@@ -382,52 +499,76 @@
 								</span>
 							</td>
 							<td class="td td--center">
-								{#if url}
-									<a
-										href={url}
-										target="_blank"
-										rel="noopener noreferrer"
-										class="dl-btn dl-btn--active"
-										title="Descargar comprobante"
-									>
-										<svg
-											width="12"
-											height="12"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-											stroke-width="2.5"
+								<div class="docs">
+									{#if canDl}
+										<button
+											type="button"
+											class="dl-btn dl-btn--active"
+											disabled={downloadingId === `receipt-${inv.id}`}
+											title="Descargar comprobante de pago (no es CFDI)"
+											on:click={() => downloadReceipt(inv)}
 										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-											/>
-										</svg>
-										PDF
-									</a>
-								{:else}
-									<span
-										class="dl-btn dl-btn--disabled"
-										title="Disponible cuando el esquema fiscal esté vinculado"
-									>
-										<svg
-											width="12"
-											height="12"
-											fill="none"
-											viewBox="0 0 24 24"
-											stroke="currentColor"
-											stroke-width="2.5"
+											<svg
+												width="12"
+												height="12"
+												fill="none"
+												viewBox="0 0 24 24"
+												stroke="currentColor"
+												stroke-width="2.5"
+											>
+												<path
+													stroke-linecap="round"
+													stroke-linejoin="round"
+													d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+												/>
+											</svg>
+											{downloadingId === `receipt-${inv.id}` ? '…' : 'Comprobante'}
+										</button>
+									{:else}
+										<span
+											class="dl-btn dl-btn--disabled"
+											title="Disponible cuando el pago se acredite"
 										>
-											<path
-												stroke-linecap="round"
-												stroke-linejoin="round"
-												d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-											/>
-										</svg>
-										PDF
-									</span>
-								{/if}
+											Comprobante
+										</span>
+									{/if}
+									{#if stamped}
+										<button
+											type="button"
+											class="dl-btn dl-btn--cfdi"
+											disabled={downloadingId === `cfdi-pdf-${inv.id}`}
+											title="CFDI PDF"
+											on:click={() => downloadCfdi(inv, 'pdf')}
+										>
+											{downloadingId === `cfdi-pdf-${inv.id}` ? '…' : 'CFDI PDF'}
+										</button>
+										<button
+											type="button"
+											class="dl-btn dl-btn--cfdi"
+											disabled={downloadingId === `cfdi-xml-${inv.id}`}
+											title="CFDI XML"
+											on:click={() => downloadCfdi(inv, 'xml')}
+										>
+											{downloadingId === `cfdi-xml-${inv.id}` ? '…' : 'XML'}
+										</button>
+									{:else if stampable && taxProfile?.is_complete}
+										<button
+											type="button"
+											class="dl-btn dl-btn--stamp"
+											on:click={() => openStamp(inv)}
+										>
+											Facturar
+										</button>
+									{:else if stampable}
+										<a
+											href="/control-panel/billing/tax-profile"
+											class="dl-btn dl-btn--stamp"
+											title="Completa los datos fiscales para timbrar"
+										>
+											Facturar
+										</a>
+									{/if}
+								</div>
 							</td>
 						</tr>
 					{/each}
@@ -478,11 +619,80 @@
 			/>
 		</svg>
 		<p>
-			Importes mostrados <strong>con IVA incluido</strong>. Las descargas PDF se habilitan cuando el
-			esquema fiscal esté vinculado a tu organización. Cargos bajo cláusulas generales
-			<strong>Nexus by GeminisLabs</strong>. ¿Requieres CFDI? Contacta a
-			<a href="mailto:facturacion@geminislabs.io" class="note-link">facturacion@geminislabs.io</a>.
+			Importes mostrados <strong>con IVA incluido</strong>. El <strong>comprobante</strong> es el
+			recibo interno de pago; el <strong>CFDI</strong> (PDF/XML) es la factura fiscal del SAT y se emite
+			a petición cuando tus datos fiscales están completos.
 		</p>
+	</div>
+{/if}
+
+{#if stampInv}
+	<div
+		class="modal-backdrop"
+		role="presentation"
+		on:click={closeStamp}
+		on:keydown={(e) => e.key === 'Escape' && closeStamp()}
+	>
+		<div
+			class="modal"
+			class:modal--visible={stampVisible}
+			role="dialog"
+			tabindex="-1"
+			aria-modal="true"
+			aria-labelledby="stamp-title"
+			on:click|stopPropagation
+			on:keydown={(e) => e.key === 'Escape' && closeStamp()}
+		>
+			<div class="modal__head">
+				<div>
+					<h3 id="stamp-title" class="modal__title">Emitir CFDI</h3>
+					<p class="modal__sub">Se timbrará el cobro {rowNumber(stampInv) || ''} a nombre de:</p>
+				</div>
+				<button type="button" class="modal__close" on:click={closeStamp} aria-label="Cerrar">
+					<svg
+						width="14"
+						height="14"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor"
+						stroke-width="2.5"
+					>
+						<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+					</svg>
+				</button>
+			</div>
+			<dl class="stamp-meta">
+				<div>
+					<dt>RFC</dt>
+					<dd>{taxProfile?.rfc || '—'}</dd>
+				</div>
+				<div>
+					<dt>Razón social</dt>
+					<dd>{taxProfile?.legal_name || '—'}</dd>
+				</div>
+			</dl>
+			<label class="stamp-field">
+				<span>Uso de CFDI</span>
+				<select bind:value={stampUse} disabled={stamping}>
+					{#each taxProfile?.cfdi_uses ?? [] as item (item.code)}
+						<option value={item.code}>{item.code} · {item.name}</option>
+					{/each}
+				</select>
+			</label>
+			<div class="modal__actions">
+				<button type="button" class="modal__btn-cancel" disabled={stamping} on:click={closeStamp}>
+					Cancelar
+				</button>
+				<button
+					type="button"
+					class="modal__btn-confirm"
+					disabled={stamping}
+					on:click={confirmStamp}
+				>
+					{stamping ? 'Timbrando…' : 'Confirmar y facturar'}
+				</button>
+			</div>
+		</div>
 	</div>
 {/if}
 
@@ -732,7 +942,7 @@
 	}
 	.inv-table {
 		width: 100%;
-		min-width: 760px;
+		min-width: 920px;
 		border-collapse: collapse;
 		font-size: 13px;
 	}
@@ -788,7 +998,8 @@
 	}
 	.inv-number {
 		font-family: 'Courier New', monospace;
-		font-size: 12px;
+		font-size: 11px;
+		letter-spacing: 0.02em;
 		font-weight: 700;
 		color: #6366f1;
 		background: rgba(99, 102, 241, 0.08);
@@ -853,6 +1064,7 @@
 		border-radius: 7px;
 		border: 1px solid;
 		padding: 4px 10px;
+		font-family: inherit;
 		font-size: 11px;
 		font-weight: 700;
 		white-space: nowrap;
@@ -868,15 +1080,76 @@
 	.dl-btn--active:hover {
 		filter: brightness(1.25);
 	}
-	.dl-btn--active:focus-visible {
-		outline: 2px solid rgba(129, 140, 248, 0.6);
-		outline-offset: 2px;
+	.dl-btn--active:disabled {
+		opacity: 0.6;
+		cursor: wait;
 	}
 	.dl-btn--disabled {
 		background: rgba(255, 255, 255, 0.02);
 		border-color: rgba(255, 255, 255, 0.07);
 		color: #334155;
 		cursor: not-allowed;
+	}
+	.dl-btn--cfdi {
+		background: rgba(74, 222, 128, 0.08);
+		border-color: rgba(74, 222, 128, 0.28);
+		color: #86efac;
+		cursor: pointer;
+	}
+	.dl-btn--cfdi:hover {
+		filter: brightness(1.2);
+	}
+	.dl-btn--cfdi:disabled {
+		opacity: 0.6;
+		cursor: wait;
+	}
+	.dl-btn--stamp {
+		background: rgba(251, 191, 36, 0.1);
+		border-color: rgba(251, 191, 36, 0.3);
+		color: #fcd34d;
+		cursor: pointer;
+	}
+	.dl-btn--stamp:hover {
+		filter: brightness(1.15);
+	}
+	.docs {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 6px;
+	}
+	.tax-banner {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 16px;
+		background: rgba(251, 191, 36, 0.06);
+		border: 1px solid rgba(251, 191, 36, 0.18);
+		border-radius: 14px;
+		padding: 14px 16px;
+	}
+	.tax-banner__title {
+		margin: 0 0 4px;
+		font-size: 13px;
+		font-weight: 700;
+		color: #fcd34d;
+	}
+	.tax-banner__text {
+		margin: 0;
+		font-size: 12px;
+		line-height: 1.55;
+		color: #94a3b8;
+		max-width: 62ch;
+	}
+	.tax-banner__cta {
+		flex-shrink: 0;
+		border-radius: 10px;
+		background: linear-gradient(135deg, #6366f1, #7c3aed);
+		color: #fff;
+		font-size: 12px;
+		font-weight: 700;
+		padding: 9px 14px;
+		text-decoration: none;
 	}
 
 	.tfoot-row {
@@ -984,11 +1257,147 @@
 	.fiscal-note strong {
 		color: #475569;
 	}
-	.note-link {
-		color: #6366f1;
-		text-decoration: none;
+	.modal-backdrop {
+		position: fixed;
+		inset: 0;
+		z-index: 100;
+		display: flex;
+		align-items: flex-end;
+		justify-content: center;
+		background: rgba(0, 0, 0, 0.7);
+		backdrop-filter: blur(12px);
 	}
-	.note-link:hover {
-		text-decoration: underline;
+	@media (min-width: 640px) {
+		.modal-backdrop {
+			align-items: center;
+			padding: 20px;
+		}
+	}
+	.modal {
+		width: 100%;
+		max-width: 440px;
+		background: #0d1520;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 28px 28px 0 0;
+		padding: 28px;
+		box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+		transform: translateY(20px);
+		opacity: 0;
+		transition:
+			transform 0.25s ease-out,
+			opacity 0.25s ease-out;
+	}
+	@media (min-width: 640px) {
+		.modal {
+			border-radius: 24px;
+		}
+	}
+	.modal--visible {
+		transform: translateY(0);
+		opacity: 1;
+	}
+	.modal__head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 12px;
+		margin-bottom: 18px;
+	}
+	.modal__title {
+		font-size: 18px;
+		font-weight: 700;
+		color: #f1f5f9;
+		margin: 0 0 4px;
+	}
+	.modal__sub {
+		font-size: 12px;
+		color: #475569;
+		margin: 0;
+	}
+	.modal__close {
+		background: rgba(255, 255, 255, 0.05);
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		border-radius: 8px;
+		padding: 6px;
+		cursor: pointer;
+		color: #64748b;
+		display: flex;
+	}
+	.stamp-meta {
+		margin: 0 0 16px;
+		display: grid;
+		gap: 10px;
+	}
+	.stamp-meta dt {
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #334155;
+	}
+	.stamp-meta dd {
+		margin: 2px 0 0;
+		font-size: 13px;
+		color: #e2e8f0;
+		font-weight: 600;
+	}
+	.stamp-field {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		margin-bottom: 20px;
+	}
+	.stamp-field span {
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #334155;
+	}
+	.stamp-field select {
+		appearance: none;
+		background: rgba(10, 16, 26, 0.7);
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 10px;
+		padding: 10px 12px;
+		font-size: 13px;
+		color: #e2e8f0;
+	}
+	.modal__actions {
+		display: flex;
+		gap: 10px;
+	}
+	.modal__btn-cancel {
+		flex: 1;
+		border-radius: 12px;
+		border: 1px solid rgba(255, 255, 255, 0.07);
+		background: rgba(255, 255, 255, 0.04);
+		padding: 12px;
+		font-size: 13px;
+		font-weight: 500;
+		color: #475569;
+		cursor: pointer;
+	}
+	.modal__btn-confirm {
+		flex: 2;
+		border-radius: 12px;
+		border: none;
+		background: linear-gradient(135deg, #6366f1, #7c3aed);
+		padding: 12px;
+		font-size: 13px;
+		font-weight: 700;
+		color: #fff;
+		cursor: pointer;
+	}
+	.modal__btn-confirm:disabled,
+	.modal__btn-cancel:disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+	@media (max-width: 640px) {
+		.tax-banner {
+			flex-direction: column;
+			align-items: stretch;
+		}
 	}
 </style>

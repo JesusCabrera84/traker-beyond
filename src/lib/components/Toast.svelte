@@ -1,110 +1,223 @@
 <script>
-	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 
-	export let type = 'info'; // 'success', 'error', 'warning', 'info'
+	export let type = 'info';
 	export let message = '';
-	export let duration = 5000; // Duración en milisegundos
 	export let onClose = () => {};
 
-	let visible = true;
-	let timeoutId;
+	const copy = {
+		success: { label: 'Listo', icon: 'check' },
+		error: { label: 'Error', icon: 'cross' },
+		warning: { label: 'Atención', icon: 'warn' },
+		info: { label: 'Aviso', icon: 'info' }
+	};
 
-	onMount(() => {
-		if (duration > 0) {
-			timeoutId = setTimeout(() => {
-				close();
-			}, duration);
-		}
-
-		return () => {
-			if (timeoutId) {
-				clearTimeout(timeoutId);
-			}
-		};
-	});
-
-	function close() {
-		visible = false;
-		setTimeout(() => {
-			onClose();
-		}, 300); // Esperar a que termine la animación
-	}
-
-	// Configuración de estilos según el tipo
-	$: typeStyles = {
-		success: {
-			bg: 'bg-green-500/20',
-			border: 'border-green-500/30',
-			text: 'text-green-200',
-			icon: '✓'
-		},
-		error: {
-			bg: 'bg-red-500/20',
-			border: 'border-red-500/30',
-			text: 'text-red-200',
-			icon: '✕'
-		},
-		warning: {
-			bg: 'bg-yellow-500/20',
-			border: 'border-yellow-500/30',
-			text: 'text-yellow-200',
-			icon: '⚠'
-		},
-		info: {
-			bg: 'bg-blue-500/20',
-			border: 'border-blue-500/30',
-			text: 'text-blue-200',
-			icon: 'ℹ'
-		}
-	}[type];
+	$: kind = copy[type] ?? copy.info;
+	$: text =
+		typeof message === 'string' && message.trim() && message !== '[object Object]'
+			? message.trim()
+			: 'Algo salió mal. Intenta de nuevo.';
 </script>
 
-{#if visible}
-	<div class="toast-container fixed top-4 right-4 z-50" transition:fly={{ x: 300, duration: 300 }}>
-		<div
-			class="toast-content {typeStyles.bg} {typeStyles.border} {typeStyles.text} 
-				   max-w-96 min-w-80 rounded-lg border p-4 shadow-lg backdrop-blur-md"
-		>
-			<div class="flex items-start gap-3">
-				<div class="toast-icon flex-shrink-0 text-xl font-bold">
-					{typeStyles.icon}
-				</div>
-				<div class="toast-message flex-1 text-sm leading-relaxed">
-					{message}
-				</div>
-				<button
-					class="toast-close flex-shrink-0 text-lg leading-none opacity-70 transition-opacity hover:opacity-100"
-					on:click={close}
-					aria-label="Cerrar notificación"
-				>
-					×
-				</button>
-			</div>
-		</div>
+<div
+	class="toast"
+	class:toast--success={type === 'success'}
+	class:toast--error={type === 'error'}
+	class:toast--warning={type === 'warning'}
+	class:toast--info={type !== 'success' && type !== 'error' && type !== 'warning'}
+	role={type === 'error' ? 'alert' : 'status'}
+	transition:fly={{ x: 18, duration: 220 }}
+>
+	<span class="toast__rail" aria-hidden="true"></span>
+	<span class="toast__glyph" aria-hidden="true">
+		{#if kind.icon === 'check'}
+			<svg
+				width="14"
+				height="14"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				stroke-width="2.4"
+			>
+				<path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+			</svg>
+		{:else if kind.icon === 'cross'}
+			<svg
+				width="14"
+				height="14"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				stroke-width="2.4"
+			>
+				<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+			</svg>
+		{:else if kind.icon === 'warn'}
+			<svg
+				width="14"
+				height="14"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				stroke-width="2.2"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+				/>
+			</svg>
+		{:else}
+			<svg
+				width="14"
+				height="14"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+				stroke-width="2.2"
+			>
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+				/>
+			</svg>
+		{/if}
+	</span>
+	<div class="toast__body">
+		<p class="toast__label">{kind.label}</p>
+		<p class="toast__msg">{text}</p>
 	</div>
-{/if}
+	<button type="button" class="toast__close" on:click={onClose} aria-label="Cerrar aviso">
+		<svg
+			width="12"
+			height="12"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+			stroke-width="2.4"
+		>
+			<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+		</svg>
+	</button>
+</div>
 
 <style>
-	.toast-container {
+	.toast {
 		pointer-events: auto;
-	}
-
-	.toast-content {
+		display: grid;
+		grid-template-columns: 3px 32px 1fr 28px;
+		align-items: stretch;
+		gap: 0;
+		width: 100%;
+		background: #101820;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		border-radius: 12px;
+		overflow: hidden;
 		box-shadow:
-			0 8px 32px rgba(0, 0, 0, 0.3),
-			inset 0 1px 0 rgba(255, 255, 255, 0.1);
+			0 18px 40px rgba(0, 0, 0, 0.45),
+			0 0 0 1px rgba(255, 255, 255, 0.03) inset;
 	}
 
-	.toast-close {
-		width: 20px;
-		height: 20px;
+	.toast__rail {
+		display: block;
+		align-self: stretch;
+		background: #64748b;
+	}
+	.toast--success .toast__rail {
+		background: #34d399;
+	}
+	.toast--error .toast__rail {
+		background: #f87171;
+	}
+	.toast--warning .toast__rail {
+		background: #fbbf24;
+	}
+	.toast--info .toast__rail {
+		background: #818cf8;
+	}
+
+	.toast__glyph {
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		background: none;
+		align-self: start;
+		width: 32px;
+		height: 40px;
+		margin-top: 10px;
+	}
+	.toast--success .toast__glyph {
+		color: #34d399;
+	}
+	.toast--error .toast__glyph {
+		color: #f87171;
+	}
+	.toast--warning .toast__glyph {
+		color: #fbbf24;
+	}
+	.toast--info .toast__glyph {
+		color: #a5b4fc;
+	}
+
+	.toast__body {
+		padding: 12px 8px 14px 0;
+		min-width: 0;
+	}
+	.toast__label {
+		margin: 0 0 3px;
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: #64748b;
+	}
+	.toast--success .toast__label {
+		color: #6ee7b7;
+	}
+	.toast--error .toast__label {
+		color: #fca5a5;
+	}
+	.toast--warning .toast__label {
+		color: #fcd34d;
+	}
+	.toast--info .toast__label {
+		color: #a5b4fc;
+	}
+	.toast__msg {
+		margin: 0;
+		font-size: 13px;
+		line-height: 1.45;
+		font-weight: 500;
+		color: #e2e8f0;
+		overflow-wrap: anywhere;
+	}
+
+	.toast__close {
+		width: 28px;
+		height: 28px;
+		margin: 8px 6px 0 0;
+		align-self: start;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: transparent;
 		border: none;
+		border-radius: 7px;
+		color: #64748b;
 		cursor: pointer;
-		color: inherit;
+	}
+	.toast__close:hover {
+		background: rgba(255, 255, 255, 0.06);
+		color: #cbd5e1;
+	}
+	.toast__close:focus-visible {
+		outline: 2px solid rgba(129, 140, 248, 0.7);
+		outline-offset: 1px;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.toast {
+			transition: none;
+		}
 	}
 </style>

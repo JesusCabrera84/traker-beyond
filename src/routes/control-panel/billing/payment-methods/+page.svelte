@@ -24,11 +24,23 @@
 		const si = $page.url.searchParams.get('setup_intent');
 		const status = $page.url.searchParams.get('redirect_status');
 		if (si && status === 'succeeded') {
-			addSuccess = true;
-			setTimeout(load, 2000);
-		} else {
-			await load();
+			try {
+				methods = await billingService.confirmSetupIntent(si, 'stripe');
+				addSuccess = true;
+			} catch (e) {
+				const msg = typeof e?.message === 'string' ? e.message : '';
+				error =
+					msg && msg !== '[object Object]'
+						? msg
+						: 'La tarjeta se autorizó pero no quedó registrada.';
+				await load();
+				return;
+			} finally {
+				loading = false;
+			}
+			return;
 		}
+		await load();
 	});
 
 	async function load() {
@@ -64,19 +76,34 @@
 	}
 
 	async function confirmAdd() {
-		if (!cardFlow) return;
+		if (!cardFlow || addLoading) return;
 		addLoading = true;
 		addError = null;
 		const returnUrl = `${window.location.origin}/control-panel/billing/payment-methods`;
-		const { error: err } = await cardFlow.confirmSetup(returnUrl);
+		const { error: err, setupIntent } = await cardFlow.confirmSetup(returnUrl);
 		if (err) {
 			addError = xlate(err);
 			addLoading = false;
 			return;
 		}
-		addSuccess = true;
-		closeAdd();
-		setTimeout(load, 2500);
+		if (!setupIntent?.id) {
+			addError = 'Stripe no devolvió el guardado. Intenta de nuevo.';
+			addLoading = false;
+			return;
+		}
+		try {
+			methods = await billingService.confirmSetupIntent(setupIntent.id, 'stripe');
+			addSuccess = true;
+			closeAdd();
+		} catch (e) {
+			const msg = typeof e?.message === 'string' ? e.message : '';
+			addError =
+				msg && msg !== '[object Object]'
+					? msg
+					: 'La tarjeta se autorizó pero no quedó registrada. Intenta de nuevo.';
+		} finally {
+			addLoading = false;
+		}
 	}
 
 	function closeAdd() {

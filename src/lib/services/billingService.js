@@ -1,6 +1,7 @@
 import { get } from 'svelte/store';
 import { authStore } from '$lib/stores/authStore.js';
 import { loadStripe } from '@stripe/stripe-js';
+import { getOrCreatePaymentIdempotencyKey } from '$lib/utils/idempotency.js';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:8100';
 const _sdkInstances = {};
@@ -19,16 +20,52 @@ function _getToken() {
 async function authFetch(path, options = {}) {
 	const token = _getToken();
 	if (!token) throw new Error('Sesión no iniciada');
-	const res = await fetch(`${API_BASE}${path}`, {
-		...options,
-		headers: {
-			'Content-Type': 'application/json',
-			Authorization: `Bearer ${token}`,
-			...(options.headers ?? {})
+	let res;
+	try {
+		res = await fetch(`${API_BASE}${path}`, {
+			...options,
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+				...(options.headers ?? {})
+			}
+		});
+	} catch (e) {
+		const msg = typeof e?.message === 'string' ? e.message : '';
+		if (e?.name === 'TypeError' || /failed to fetch|networkerror|load failed/i.test(msg)) {
+			throw new Error(
+				'No se pudo conectar con el servidor. Revisa que la API esté en marcha e intenta de nuevo.'
+			);
 		}
-	});
+		throw e;
+	}
 	if (res.status === 401) throw new Error('Tu sesión expiró. Por favor inicia sesión de nuevo.');
 	return res;
+}
+
+/** FastAPI puede mandar `detail` como string, objeto o lista de errores 422. */
+function apiDetail(body, fallback = null) {
+	const detail = body?.detail;
+	if (typeof detail === 'string' && detail.trim()) return detail.trim();
+	if (Array.isArray(detail) && detail.length > 0) {
+		const first = detail[0];
+		if (typeof first === 'string' && first.trim()) return first.trim();
+		if (first && typeof first === 'object') {
+			const msg = first.msg ?? first.message;
+			if (typeof msg === 'string' && msg.trim()) {
+				return msg.replace(/^Value error,\s*/i, '').trim();
+			}
+		}
+	}
+	if (detail && typeof detail === 'object') {
+		const msg = detail.message ?? detail.detail ?? detail.msg;
+		if (typeof msg === 'string' && msg.trim()) return msg.trim();
+	}
+	return fallback;
+}
+
+function apiError(body, fallback) {
+	return new Error(apiDetail(body, fallback) ?? fallback);
 }
 
 async function getGatewayConfig(gateway) {
@@ -102,7 +139,7 @@ async function getSummary() {
 	const res = await authFetch('/api/v1/billing/summary');
 	if (!res.ok) {
 		const b = await res.json().catch(() => ({}));
-		throw new Error(b.detail ?? `Error ${res.status}`);
+		throw apiError(b, `Error ${res.status}`);
 	}
 	return res.json();
 }
@@ -113,7 +150,7 @@ async function getPayments({ limit = 20, offset = 0, status = null } = {}) {
 	const res = await authFetch(url);
 	if (!res.ok) {
 		const b = await res.json().catch(() => ({}));
-		throw new Error(b.detail ?? `Error ${res.status}`);
+		throw apiError(b, `Error ${res.status}`);
 	}
 	const body = await res.json();
 	const payments = (body.payments ?? []).map((p) => ({
@@ -129,14 +166,17 @@ async function getInvoices({ limit = 20, offset = 0 } = {}) {
 	const res = await authFetch(`/api/v1/billing/invoices?limit=${limit}&offset=${offset}`);
 	if (!res.ok) {
 		const b = await res.json().catch(() => ({}));
-		throw new Error(b.detail ?? `Error ${res.status}`);
+		throw apiError(b, `Error ${res.status}`);
 	}
 	const body = await res.json();
 	const invoices = (body.invoices ?? []).map((inv) => ({
 		...inv,
 		total_mxn: inv.total_mxn ?? inv.total_amount ?? inv.amount ?? null,
 		amount: inv.amount ?? inv.total_amount ?? null,
-		invoice_url: inv.invoice_url ?? inv.stripe_receipt_url ?? inv.invoice_pdf_url ?? null
+		invoice_url: inv.invoice_url ?? inv.stripe_receipt_url ?? inv.invoice_pdf_url ?? null,
+		has_receipt: inv.has_receipt === true,
+		has_cfdi: inv.has_cfdi === true || Boolean(inv.cfdi_uuid),
+		cfdi_uuid: inv.cfdi_uuid ?? null
 	}));
 	return { data: invoices, total: body.total ?? 0, has_more: body.has_more ?? false };
 }
@@ -152,7 +192,7 @@ async function getPaymentMethods(gateway = 'stripe') {
 	const res = await authFetch(`/api/v1/stripe/payment-methods?gateway=${gateway}`);
 	if (!res.ok) {
 		const b = await res.json().catch(() => ({}));
-		throw new Error(b.detail ?? `Error ${res.status}`);
+		throw apiError(b, `Error ${res.status}`);
 	}
 	const data = await res.json();
 	return Array.isArray(data) ? data : [];
@@ -162,7 +202,7 @@ async function initAddPaymentMethodFlow(mountId, gateway = 'stripe') {
 	const res = await authFetch(`/api/v1/stripe/setup-intent?gateway=${gateway}`, { method: 'POST' });
 	if (!res.ok) {
 		const b = await res.json().catch(() => ({}));
-		throw new Error(b.detail ?? 'Error al inicializar el guardado de tarjeta');
+		throw apiError(b, 'Error al inicializar el guardado de tarjeta');
 	}
 	const { client_token } = await res.json();
 	if (gateway === 'stripe') {
@@ -187,6 +227,19 @@ async function initAddPaymentMethodFlow(mountId, gateway = 'stripe') {
 	throw new Error(`Flujo no implementado para '${gateway}'`);
 }
 
+async function confirmSetupIntent(setupIntentId, gateway = 'stripe') {
+	const res = await authFetch('/api/v1/stripe/payment-methods/confirm', {
+		method: 'POST',
+		body: JSON.stringify({ setup_intent_id: setupIntentId, gateway })
+	});
+	if (!res.ok) {
+		const b = await res.json().catch(() => ({}));
+		throw apiError(b, 'No se pudo registrar la tarjeta');
+	}
+	const data = await res.json();
+	return Array.isArray(data) ? data : [];
+}
+
 async function deletePaymentMethod(externalToken, gateway = 'stripe') {
 	const res = await authFetch(
 		`/api/v1/stripe/payment-methods/${encodeURIComponent(externalToken)}?gateway=${gateway}`,
@@ -194,7 +247,7 @@ async function deletePaymentMethod(externalToken, gateway = 'stripe') {
 	);
 	if (res.status === 204) return { ok: true };
 	const b = await res.json().catch(() => ({}));
-	throw new Error(b.detail ?? 'Error al eliminar');
+	throw apiError(b, 'Error al eliminar');
 }
 
 async function setDefaultPaymentMethod(externalToken, gateway = 'stripe') {
@@ -204,30 +257,141 @@ async function setDefaultPaymentMethod(externalToken, gateway = 'stripe') {
 	});
 	if (!res.ok) {
 		const b = await res.json().catch(() => ({}));
-		throw new Error(b.detail ?? 'Error al actualizar');
+		throw apiError(b, 'Error al actualizar');
 	}
 	return res.json();
 }
 
-async function createPaymentIntent({ planId, billingCycle, gateway = 'stripe' }) {
+async function setAutoRenew(autoRenew) {
+	const res = await authFetch('/api/v1/stripe/auto-renew', {
+		method: 'PATCH',
+		body: JSON.stringify({ auto_renew: autoRenew })
+	});
+	if (!res.ok) {
+		const b = await res.json().catch(() => ({}));
+		throw apiError(b, 'Error al actualizar la renovación automática');
+	}
+	return res.json();
+}
+
+function paymentApiError(status, body, fallback) {
+	const err = new Error(apiDetail(body, fallback) ?? fallback);
+	if (status === 409) {
+		const detail = body?.detail;
+		err.code =
+			(detail && typeof detail === 'object' && !Array.isArray(detail) && detail.code) ||
+			'PAYMENT_ALREADY_PROCESSED';
+	}
+	return err;
+}
+
+async function getQuote(planId, billingCycle) {
+	const res = await authFetch(
+		`/api/v1/stripe/quote?plan_id=${encodeURIComponent(planId)}&billing_cycle=${encodeURIComponent(billingCycle)}`
+	);
+	if (!res.ok) {
+		const b = await res.json().catch(() => ({}));
+		throw apiError(b, 'No se pudo obtener el precio');
+	}
+	return res.json();
+}
+
+async function downloadInvoiceReceipt(invoiceId, invoiceNumber) {
+	if (!invoiceId) throw new Error('Factura no encontrada');
+	const res = await authFetch(`/api/v1/billing/invoices/${invoiceId}/receipt.pdf`);
+	if (!res.ok) {
+		const b = await res.json().catch(() => ({}));
+		throw apiError(b, 'No se pudo descargar el comprobante');
+	}
+	await _saveBlob(res, `comprobante-${invoiceNumber || invoiceId}.pdf`);
+}
+
+async function getTaxProfile() {
+	const res = await authFetch('/api/v1/billing/tax-profile');
+	if (!res.ok) {
+		const b = await res.json().catch(() => ({}));
+		throw apiError(b, 'No se pudieron cargar los datos fiscales');
+	}
+	return res.json();
+}
+
+async function saveTaxProfile(payload) {
+	const res = await authFetch('/api/v1/billing/tax-profile', {
+		method: 'PUT',
+		body: JSON.stringify(payload)
+	});
+	if (!res.ok) {
+		const b = await res.json().catch(() => ({}));
+		throw apiError(b, 'No se pudieron guardar los datos fiscales');
+	}
+	return res.json();
+}
+
+async function stampInvoiceCfdi(invoiceId, use) {
+	if (!invoiceId) throw new Error('Factura no encontrada');
+	const res = await authFetch(`/api/v1/billing/invoices/${invoiceId}/cfdi`, {
+		method: 'POST',
+		body: JSON.stringify(use ? { use } : {})
+	});
+	if (!res.ok) {
+		const b = await res.json().catch(() => ({}));
+		throw apiError(b, 'No se pudo timbrar el CFDI');
+	}
+	return res.json();
+}
+
+async function downloadInvoiceCfdi(invoiceId, format, invoiceNumber) {
+	if (!invoiceId) throw new Error('Factura no encontrada');
+	const fmt = format === 'xml' ? 'xml' : 'pdf';
+	const res = await authFetch(`/api/v1/billing/invoices/${invoiceId}/cfdi.${fmt}`);
+	if (!res.ok) {
+		const b = await res.json().catch(() => ({}));
+		throw apiError(b, `No se pudo descargar el CFDI (${fmt.toUpperCase()})`);
+	}
+	await _saveBlob(res, `cfdi-${invoiceNumber || invoiceId}.${fmt}`);
+}
+
+async function _saveBlob(res, filename) {
+	const blob = await res.blob();
+	const url = URL.createObjectURL(blob);
+	try {
+		const a = document.createElement('a');
+		a.href = url;
+		a.download = filename;
+		document.body.appendChild(a);
+		a.click();
+		a.remove();
+	} finally {
+		URL.revokeObjectURL(url);
+	}
+}
+
+async function createPaymentIntent({ planId, billingCycle, gateway = 'stripe', idempotencyKey }) {
+	const key = idempotencyKey ?? getOrCreatePaymentIdempotencyKey(planId, billingCycle);
+	if (!key) {
+		throw new Error('No se pudo generar la clave de idempotencia del pago');
+	}
 	const res = await authFetch('/api/v1/stripe/payment-intent', {
 		method: 'POST',
+		headers: { 'Idempotency-Key': key },
 		body: JSON.stringify({ plan_id: planId, billing_cycle: billingCycle, gateway })
 	});
 	if (!res.ok) {
 		const b = await res.json().catch(() => ({}));
-		if (res.status === 409) throw new Error(b.detail ?? 'Este período ya fue pagado');
-		if (res.status === 403) throw new Error(b.detail ?? 'Sin permiso para gestionar pagos');
-		throw new Error(b.detail ?? 'Error al inicializar el pago');
+		if (res.status === 409) throw paymentApiError(409, b, 'Este período ya fue pagado');
+		if (res.status === 403) throw new Error(apiDetail(b) ?? 'Sin permiso para gestionar pagos');
+		throw new Error(apiDetail(b) ?? 'Error al inicializar el pago');
 	}
 	return res.json();
 }
 
-async function mountCardForm({ mountId, amountMxn, gateway = 'stripe' }) {
+async function mountCardForm({ mountId, amountCents, gateway = 'stripe' }) {
 	if (gateway !== 'stripe') throw new Error(`Gateway '${gateway}' no soportado`);
+	if (!Number.isInteger(amountCents) || amountCents <= 0) {
+		throw new Error('El formulario de pago requiere el importe en centavos del backend');
+	}
 
 	const stripe = await getSDK('stripe');
-	const amountCents = Math.round(Number(amountMxn) * 100);
 
 	const elements = stripe.elements({
 		mode: 'payment',
@@ -243,6 +407,11 @@ async function mountCardForm({ mountId, amountMxn, gateway = 'stripe' }) {
 	elements.create('payment').mount(el);
 
 	return {
+		/** El monto de Elements debe seguir al del PaymentIntent que se confirmará. */
+		updateAmount(nextAmountCents) {
+			if (!Number.isInteger(nextAmountCents) || nextAmountCents <= 0) return;
+			elements.update({ amount: nextAmountCents });
+		},
 		async submit() {
 			const { error } = await elements.submit();
 			return { error };
@@ -258,12 +427,51 @@ async function mountCardForm({ mountId, amountMxn, gateway = 'stripe' }) {
 	};
 }
 
-async function confirmWithSavedPM({ clientSecret, paymentMethodToken, gateway = 'stripe' }) {
+async function retrievePaymentIntent(clientSecret, gateway = 'stripe') {
 	if (gateway !== 'stripe') throw new Error(`Gateway '${gateway}' no soportado`);
 	const stripe = await getSDK('stripe');
-	return stripe.confirmCardPayment(clientSecret, {
-		payment_method: paymentMethodToken
-	});
+	return stripe.retrievePaymentIntent(clientSecret);
+}
+
+/**
+ * Espera a que el banco confirme (3DS / banca móvil) o a que el cargo falle.
+ * No cobra de nuevo: solo consulta el mismo PaymentIntent.
+ */
+async function waitForPaymentIntent(
+	clientSecret,
+	{ timeoutMs = 90000, intervalMs = 2000, gateway = 'stripe' } = {}
+) {
+	const started = Date.now();
+	let last = await retrievePaymentIntent(clientSecret, gateway);
+	if (last.error) return last;
+	while (Date.now() - started < timeoutMs) {
+		const status = last.paymentIntent?.status;
+		if (
+			status === 'succeeded' ||
+			status === 'requires_capture' ||
+			status === 'canceled' ||
+			status === 'requires_payment_method'
+		) {
+			return last;
+		}
+		await new Promise((r) => setTimeout(r, intervalMs));
+		last = await retrievePaymentIntent(clientSecret, gateway);
+		if (last.error) return last;
+	}
+	return last;
+}
+
+async function confirmWithSavedPM({
+	clientSecret,
+	paymentMethodToken,
+	returnUrl,
+	gateway = 'stripe'
+}) {
+	if (gateway !== 'stripe') throw new Error(`Gateway '${gateway}' no soportado`);
+	const stripe = await getSDK('stripe');
+	const data = { payment_method: paymentMethodToken };
+	if (returnUrl) data.return_url = returnUrl;
+	return stripe.confirmCardPayment(clientSecret, data);
 }
 
 export const billingService = {
@@ -275,9 +483,19 @@ export const billingService = {
 	getPlans,
 	getPaymentMethods,
 	initAddPaymentMethodFlow,
+	confirmSetupIntent,
 	deletePaymentMethod,
 	setDefaultPaymentMethod,
+	setAutoRenew,
+	getQuote,
+	downloadInvoiceReceipt,
+	getTaxProfile,
+	saveTaxProfile,
+	stampInvoiceCfdi,
+	downloadInvoiceCfdi,
 	createPaymentIntent,
 	mountCardForm,
-	confirmWithSavedPM
+	confirmWithSavedPM,
+	retrievePaymentIntent,
+	waitForPaymentIntent
 };

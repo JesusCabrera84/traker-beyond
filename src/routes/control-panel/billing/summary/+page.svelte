@@ -4,6 +4,7 @@
 	import { billingService } from '$lib/services/billingService.js';
 	import CheckoutModal from '$lib/components/CheckoutModal.svelte';
 	import { goto } from '$app/navigation';
+	import { formatMxn, toCents } from '$lib/utils/currency.js';
 
 	let loading = true;
 	let summary = null;
@@ -16,31 +17,83 @@
 	let checkoutPlan = null;
 	let savedMethods = [];
 	let checkoutSuccess = false;
+	let checkoutPending = false;
 
 	let dismissedPending = false;
+	let autoRenewOverride = null;
+	let autoRenewSaving = false;
+	let autoRenewError = null;
 
 	onMount(async () => {
-		const fromCheckout = $page.url.searchParams.get('checkout') === 'success';
+		const params = $page.url.searchParams;
+		const clientSecret = params.get('payment_intent_client_secret');
+		const checkoutFlag = params.get('checkout');
 
-		if (fromCheckout) {
-			checkoutSuccess = true;
+		if (clientSecret || checkoutFlag) {
 			const next = new URL($page.url.href);
 			next.searchParams.delete('checkout');
+			next.searchParams.delete('payment_intent');
+			next.searchParams.delete('payment_intent_client_secret');
+			next.searchParams.delete('redirect_status');
 			const qs = next.searchParams.toString();
 			history.replaceState({}, '', `${next.pathname}${qs ? `?${qs}` : ''}${next.hash}`);
 		}
 
+		if (clientSecret) {
+			try {
+				const { paymentIntent, error: piError } =
+					await billingService.retrievePaymentIntent(clientSecret);
+				if (!piError) {
+					applyReturnedIntent(paymentIntent?.status);
+				}
+			} catch {
+				/* el resumen dirá si la suscripción ya quedó activa */
+			}
+		}
+
 		await loadData();
 
-		if (fromCheckout && !summary?.has_active_subscription) {
+		if ((clientSecret || checkoutFlag) && !summary?.has_active_subscription) {
 			await new Promise((r) => setTimeout(r, 3000));
 			await loadData();
 		}
-		if (fromCheckout && !summary?.has_active_subscription) {
+		if ((clientSecret || checkoutFlag) && !summary?.has_active_subscription) {
 			await new Promise((r) => setTimeout(r, 4000));
 			await loadData();
 		}
+
+		reconcileCheckoutBanners(checkoutFlag, clientSecret);
 	});
+
+	function applyReturnedIntent(status) {
+		if (status === 'succeeded' || status === 'requires_capture') {
+			checkoutSuccess = true;
+			checkoutPending = false;
+			return;
+		}
+		if (status === 'processing' || status === 'requires_action') {
+			checkoutSuccess = false;
+			checkoutPending = true;
+		}
+	}
+
+	function reconcileCheckoutBanners(checkoutFlag, clientSecret) {
+		if (!checkoutFlag && !clientSecret) return;
+		if (summary?.has_active_subscription) {
+			checkoutSuccess = true;
+			checkoutPending = false;
+			return;
+		}
+		if (
+			checkoutPending ||
+			checkoutFlag === 'pending' ||
+			checkoutFlag === 'resume' ||
+			checkoutFlag === 'success'
+		) {
+			checkoutSuccess = false;
+			checkoutPending = true;
+		}
+	}
 
 	async function loadData() {
 		loading = true;
@@ -79,13 +132,22 @@
 
 	function onPaymentSuccess() {
 		checkoutSuccess = true;
+		checkoutPending = false;
+		showCheckout = false;
+		setTimeout(loadData, 2000);
+	}
+
+	function onPaymentPending() {
+		checkoutSuccess = false;
+		checkoutPending = true;
 		showCheckout = false;
 		setTimeout(loadData, 2000);
 	}
 
 	$: plan = summary?.current_plan;
+	$: planQuote = plan?.quote ?? null;
 	$: stats = summary?.stats;
-	$: pendingAmount = Number(summary?.pending_amount ?? 0);
+	$: pendingAmount = summary?.pending_amount ?? '0';
 
 	$: days = (() => {
 		if (!plan?.next_billing_date) return null;
@@ -95,11 +157,69 @@
 	$: urgencyColor =
 		days === null ? '#34d399' : days <= 3 ? '#f87171' : days <= 7 ? '#fbbf24' : '#34d399';
 
+	$: renewal = summary?.renewal;
+	$: graceLabel = renewal?.grace_until ? fmtDate(renewal.grace_until) : null;
+	$: autoRenew = autoRenewOverride ?? renewal?.auto_renew ?? true;
+
+	async function toggleAutoRenew(next) {
+		if (autoRenewSaving) return;
+		autoRenewSaving = true;
+		autoRenewError = null;
+		// Optimista, pero se revierte si el backend rechaza: el interruptor nunca
+		// debe quedar mostrando algo distinto a lo que está guardado.
+		autoRenewOverride = next;
+		try {
+			const res = await billingService.setAutoRenew(next);
+			autoRenewOverride = res.auto_renew;
+		} catch (e) {
+			autoRenewOverride = !next;
+			autoRenewError = e.message ?? 'No pudimos guardar el cambio';
+		} finally {
+			autoRenewSaving = false;
+		}
+	}
+
+	// Cada estado pide una acción distinta del cliente, así que el aviso lo dice
+	// en lugar de mandarlo a adivinar qué salió mal.
+	$: renewalAlert = (() => {
+		switch (renewal?.state) {
+			case 'action_required':
+				return {
+					title: 'Tu banco pide autorizar el cargo',
+					message:
+						'La renovación quedó pendiente de confirmación. Autorízala para no perder el servicio.',
+					cta: 'Autorizar cargo'
+				};
+			case 'no_payment_method':
+				return {
+					title: 'No tenemos una tarjeta para renovar',
+					message: 'Agrega un método de pago para que tu plan se renueve automáticamente.',
+					cta: 'Agregar tarjeta'
+				};
+			case 'past_due':
+				return {
+					title: 'No pudimos cobrar la renovación',
+					message: renewal?.message ?? 'Revisa tu método de pago e inténtalo de nuevo.',
+					cta: 'Reintentar pago'
+				};
+			default:
+				return null;
+		}
+	})();
+
 	$: daysLabel =
 		days === 0 ? 'Hoy' : days === 1 ? 'Mañana' : days !== null ? `En ${days} días` : '—';
 
 	function fmtMxn(v) {
-		return new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(v ?? 0);
+		return formatMxn(v);
+	}
+
+	function toCentsSafe(v) {
+		try {
+			return toCents(v);
+		} catch {
+			return 0;
+		}
 	}
 
 	function fmtDate(d) {
@@ -150,6 +270,34 @@
 				bg: 'rgba(129,140,248,0.08)',
 				border: 'rgba(129,140,248,0.2)'
 			};
+		if (s === 'PARTIALLY_REFUNDED')
+			return {
+				label: 'Reembolso parcial',
+				color: '#818cf8',
+				bg: 'rgba(129,140,248,0.08)',
+				border: 'rgba(129,140,248,0.2)'
+			};
+		if (s === 'DISPUTED')
+			return {
+				label: 'En disputa',
+				color: '#fb923c',
+				bg: 'rgba(251,146,60,0.08)',
+				border: 'rgba(251,146,60,0.2)'
+			};
+		if (s === 'PROCESSING' || s === 'REQUIRES_ACTION')
+			return {
+				label: 'En confirmación',
+				color: '#fbbf24',
+				bg: 'rgba(251,191,36,0.08)',
+				border: 'rgba(251,191,36,0.2)'
+			};
+		if (s === 'CANCELED')
+			return {
+				label: 'Cancelado',
+				color: '#64748b',
+				bg: 'rgba(100,116,139,0.08)',
+				border: 'rgba(100,116,139,0.2)'
+			};
 		return {
 			label: status || '—',
 			color: '#64748b',
@@ -199,9 +347,37 @@
 			aria-label="Cerrar">✕</button
 		>
 	</div>
+{:else if checkoutPending}
+	<div class="alert alert--info" role="status">
+		<svg
+			width="16"
+			height="16"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+			stroke-width="2"
+			class="shrink-0"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+			/>
+		</svg>
+		<span
+			><strong>Estamos confirmando tu pago.</strong> Tu banco aún no cierra la operación. No vuelvas a
+			pagar: la suscripción se activa sola cuando se acredite.</span
+		>
+		<button
+			type="button"
+			on:click={() => (checkoutPending = false)}
+			class="alert__close"
+			aria-label="Cerrar">✕</button
+		>
+	</div>
 {/if}
 
-{#if !loading && pendingAmount > 0 && !dismissedPending}
+{#if !loading && toCentsSafe(pendingAmount) > 0 && !dismissedPending && !checkoutSuccess && !checkoutPending}
 	<div class="alert alert--warning" role="alert">
 		<svg
 			width="16"
@@ -234,6 +410,40 @@
 				aria-label="Ignorar"
 			>
 				✕
+			</button>
+		</div>
+	</div>
+{/if}
+
+{#if !loading && renewalAlert}
+	<div class="alert alert--warning" role="alert">
+		<svg
+			width="16"
+			height="16"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+			stroke-width="2"
+			class="shrink-0"
+		>
+			<path
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"
+			/>
+		</svg>
+		<div class="flex-1">
+			<strong>{renewalAlert.title}</strong>
+			<p class="alert__sub">
+				{renewalAlert.message}
+				{#if graceLabel}
+					Tu servicio sigue activo hasta el {graceLabel}.
+				{/if}
+			</p>
+		</div>
+		<div class="alert__actions">
+			<button type="button" class="alert__cta" on:click={openCheckout}>
+				{renewalAlert.cta}
 			</button>
 		</div>
 	</div>
@@ -322,7 +532,7 @@
 			<div class="kpi-body">
 				<p class="kpi-label">A cobrar (con IVA)</p>
 				{#if plan}
-					<p class="kpi-value" style="color:#e2e8f0;">{fmtMxn(Number(plan.amount_due) * 1.16)}</p>
+					<p class="kpi-value" style="color:#e2e8f0;">{fmtMxn(planQuote?.total ?? '0')}</p>
 					<p class="kpi-sub">{plan.billing_cycle === 'YEARLY' ? 'Ciclo anual' : 'Ciclo mensual'}</p>
 				{:else}
 					<p class="kpi-value" style="color:#475569;">—</p>
@@ -353,7 +563,7 @@
 			</div>
 			<div class="kpi-body">
 				<p class="kpi-label">Total pagado histórico</p>
-				<p class="kpi-value" style="color:#34d399;">{fmtMxn(Number(stats?.total_paid ?? 0))}</p>
+				<p class="kpi-value" style="color:#34d399;">{fmtMxn(stats?.total_paid ?? '0')}</p>
 				<p class="kpi-sub">
 					{stats?.payments_count ?? 0}
 					{stats?.payments_count === 1 ? 'pago realizado' : 'pagos realizados'}
@@ -432,20 +642,40 @@
 				</div>
 				<div class="plan-row">
 					<span class="plan-row__label">Precio sin IVA</span>
-					<span class="plan-row__value plan-row__mono">{fmtMxn(Number(plan.amount_due))}</span>
+					<span class="plan-row__value plan-row__mono">{fmtMxn(planQuote?.subtotal ?? '0')}</span>
 				</div>
 				<div class="plan-row">
 					<span class="plan-row__label">IVA (16%)</span>
-					<span class="plan-row__value plan-row__mono"
-						>{fmtMxn(Number(plan.amount_due) * 0.16)}</span
-					>
+					<span class="plan-row__value plan-row__mono">{fmtMxn(planQuote?.tax ?? '0')}</span>
 				</div>
 				<div class="plan-row plan-row--total">
 					<span class="plan-row__label">Total con IVA</span>
 					<span class="plan-row__value plan-row__mono plan-row__total-val"
-						>{fmtMxn(Number(plan.amount_due) * 1.16)}</span
+						>{fmtMxn(planQuote?.total ?? '0')}</span
 					>
 				</div>
+				<div class="plan-row">
+					<span class="plan-row__label">
+						Renovación automática
+						<span class="plan-row__hint">
+							{autoRenew
+								? 'Se cobrará solo, 3 días antes de vencer'
+								: 'Tu plan vence sin volver a cobrarse'}
+						</span>
+					</span>
+					<label class="switch">
+						<input
+							type="checkbox"
+							checked={autoRenew}
+							disabled={autoRenewSaving}
+							on:change={(e) => toggleAutoRenew(e.currentTarget.checked)}
+						/>
+						<span class="switch__track"><span class="switch__thumb"></span></span>
+					</label>
+				</div>
+				{#if autoRenewError}
+					<p class="plan-row__error">{autoRenewError}</p>
+				{/if}
 			</div>
 
 			{#if defaultCard}
@@ -545,7 +775,7 @@
 					</div>
 					<div class="stats-fallback__item">
 						<span class="stats-fallback__label">Total acumulado</span>
-						<span class="stats-fallback__val">{fmtMxn(Number(stats.total_paid))}</span>
+						<span class="stats-fallback__val">{fmtMxn(stats.total_paid)}</span>
 					</div>
 					{#if stats.last_payment_date}
 						<div class="stats-fallback__item">
@@ -619,7 +849,7 @@
 							<span class="payment-row__date">{fmtDateShort(pmt.paid_at ?? pmt.created_at)}</span>
 						</div>
 						<div class="payment-row__right">
-							<span class="payment-row__amount">{fmtMxn(Number(pmt.amount))}</span>
+							<span class="payment-row__amount">{fmtMxn(pmt.amount)}</span>
 							<span
 								class="status-pill"
 								style="color:{st.color}; background:{st.bg}; border-color:{st.border};"
@@ -694,6 +924,7 @@
 		{savedMethods}
 		on:close={() => (showCheckout = false)}
 		on:success={onPaymentSuccess}
+		on:pending={onPaymentPending}
 	/>
 {/if}
 
@@ -718,6 +949,11 @@
 		background: rgba(251, 191, 36, 0.07);
 		border-color: rgba(251, 191, 36, 0.2);
 		color: #fbbf24;
+	}
+	.alert--info {
+		background: rgba(99, 102, 241, 0.08);
+		border-color: rgba(99, 102, 241, 0.25);
+		color: #a5b4fc;
 	}
 	.alert__close {
 		margin-left: auto;
@@ -1008,6 +1244,69 @@
 	}
 	.plan-row__mono {
 		font-variant-numeric: tabular-nums;
+	}
+	.plan-row__hint {
+		display: block;
+		margin-top: 2px;
+		font-size: 11px;
+		color: #334155;
+	}
+	.plan-row__error {
+		margin: 0;
+		padding: 8px 16px;
+		font-size: 12px;
+		color: #f87171;
+	}
+	.switch {
+		display: inline-flex;
+		align-items: center;
+		cursor: pointer;
+	}
+	.switch input {
+		position: absolute;
+		opacity: 0;
+		width: 0;
+		height: 0;
+	}
+	.switch__track {
+		position: relative;
+		display: block;
+		width: 38px;
+		height: 21px;
+		border-radius: 999px;
+		background: rgba(255, 255, 255, 0.08);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		transition:
+			background 0.18s ease,
+			border-color 0.18s ease;
+	}
+	.switch__thumb {
+		position: absolute;
+		top: 2px;
+		left: 2px;
+		width: 15px;
+		height: 15px;
+		border-radius: 50%;
+		background: #94a3b8;
+		transition:
+			transform 0.18s ease,
+			background 0.18s ease;
+	}
+	.switch input:checked + .switch__track {
+		background: rgba(74, 222, 128, 0.18);
+		border-color: rgba(74, 222, 128, 0.4);
+	}
+	.switch input:checked + .switch__track .switch__thumb {
+		transform: translateX(17px);
+		background: #4ade80;
+	}
+	.switch input:focus-visible + .switch__track {
+		outline: 2px solid rgba(74, 222, 128, 0.5);
+		outline-offset: 2px;
+	}
+	.switch input:disabled + .switch__track {
+		opacity: 0.5;
+		cursor: not-allowed;
 	}
 	.plan-row__total-val {
 		font-size: 16px;
