@@ -1,5 +1,5 @@
 # Dockerfile alternativo usando imagen base estándar
-FROM node:20 AS builder
+FROM node:26 AS builder
 
 # Argumentos para variables de entorno de build
 ARG VITE_API_BASE_URL
@@ -28,7 +28,7 @@ RUN npm run build
 RUN npm ci --only=production --ignore-scripts
 
 # Etapa de producción
-FROM node:20 AS runner
+FROM node:26 AS runner
 
 # Instalar dumb-init para manejo de señales
 RUN apt-get update && apt-get install -y dumb-init && rm -rf /var/lib/apt/lists/*
