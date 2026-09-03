@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- Cleared eight advisories that CI started reporting after `v1.11.0` shipped, without a single source change: `qs` 6.15.2 → 6.16.0, `fast-uri` 4.1.2 → 4.1.4, `postcss-selector-parser` 7.1.1 → 7.1.6 and `@humanfs/node` 0.16.7 → 0.16.8. `npm audit fix` resolved all of them without `--force` and without a major bump, so only `package-lock.json` changed. `qs` is the one that sits in the production dependency tree (`pixi.js` → `@pixi/utils` → `url`); the other three are build tooling
 - Raised the `nanoid` override to `^3.3.18` (GHSA-2v37-7h3g-55p8). The lockfile resolved to 3.3.16, which made `npm run audit --audit-level=high` fail
 - Raised the `fast-uri` override from `>=3.1.4` to `>=4.1.2`. The former resolved to 4.1.1, affected by GHSA-7p8r-x3mc-p8w7, which made `npm run audit` fail on every pull request — all four open Dependabot PRs were red for a reason unrelated to what they were bumping
 - Added `.claude/` to `.prettierignore`. It is in `.gitignore` but Prettier still checked it, so `prettier --check .` failed locally on an unversioned file and, because the lint script chains with `&&`, eslint never ran at all
