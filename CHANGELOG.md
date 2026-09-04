@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Deploy no longer runs `docker container prune` and `docker volume prune` on the EC2 host. Both sweep the entire machine, which is shared with `siscom-api`, `siscom-admin-api` and a Valkey container holding data-token scope state, and neither reclaimed anything belonging to this project: the web container is already removed by name a few lines above, and the image is static and creates no volumes. `docker image prune` stays, since dangling images are where the disk actually goes
 - Nexus product page CTAs now point to `/#contacto` (the contact form lives on the home page; `#contacto` on `/products/nexus` was a dead hash). Fleet CTA label is "Solicitar una demo". Fleet ROI card no longer mentions Excel
 - Account-deletion confirmation dialog is keyboard-accessible: `tabindex`, Escape to dismiss, and an `aria-labelledby` title
 

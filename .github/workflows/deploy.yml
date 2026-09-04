@@ -78,10 +78,12 @@ jobs:
             docker stop geminislabs-web || true
             docker rm geminislabs-web || true
 
-            echo "=== Limpiando espacio en disco ==="
-            docker container prune -f || true
+            echo "=== Limpiando imágenes colgantes ==="
+            # Esta EC2 es compartida con siscom-api, siscom-admin-api y Valkey.
+            # `container prune` y `volume prune` barren todo el host y no
+            # recuperaban nada nuestro: el contenedor de la web ya se borra por
+            # nombre arriba y la imagen es estática, sin volúmenes.
             docker image prune -f || true
-            docker volume prune -f || true
 
             echo "Espacio disponible en /tmp:"
             df -h /tmp
