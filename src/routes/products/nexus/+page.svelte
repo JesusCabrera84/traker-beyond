@@ -1503,9 +1503,10 @@
 								</div>
 								<div class="nx-cta-segment-label">Para partners</div>
 							</div>
-							<h3 class="nx-cta-title">Tu hardware. Nuestra infraestructura.</h3>
+							<h3 class="nx-cta-title">Nexus Connect y Nexus Platform</h3>
 							<p class="nx-cta-desc">
-								Conecta tu hardware a Geminis TaaS y lanza tu servicio esta semana.
+								Conecta tu propio hardware a nuestra infraestructura, o lanza la plataforma completa
+								bajo tu marca.
 							</p>
 							<ul class="nx-cta-bullets">
 								<li>TCP, MQTT y REST API</li>
@@ -1517,6 +1518,11 @@
 								<a href="/#contacto" class="nx-cta-btn nx-cta-btn--partners"
 									>Hablar sobre integración</a
 								>
+								<p class="nx-cta-sub-note">
+									<a href="/products/nexus/partners" class="nx-cta-link-sm"
+										>Ver detalles técnicos →</a
+									>
+								</p>
 							</div>
 						</div>
 					</div>

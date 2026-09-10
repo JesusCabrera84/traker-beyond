@@ -1,0 +1,58 @@
+/* ===================================================================
+   TOKENS DE MARCA
+   ===================================================================
+
+   Solo lo que consume la obra nueva. El CSS existente NO se migra aquí:
+   `+page.svelte` y `nexus.css` llevan su paleta dentro, y reescribirlos no
+   tiene valor comercial. Cada sección vieja se migra el día que se toque por
+   otro motivo.
+
+   La escalera teal y la crema son las que ya usaba la landing; se extraen tal
+   cual para que la sección de servicios no las copie a mano por tercera vez.
+   Los `--sv-*` son nuevos: el azul-teal profundo de servicios no es ninguno de
+   los tres negros de producto, a propósito. Verde, plata y rojo pertenecen a
+   Nexus, Orion y Signum; si servicios usara uno, el sitio se leería como tres
+   empresas distintas.
+   ================================================================== */
+
+:root {
+	/* Tinta y papel */
+	--gl-ink-900: #0a2540;
+	--gl-ink-500: #475569;
+	--gl-ink-300: #e2e8f0;
+	--gl-paper: #eceff2;
+	--gl-cream: #f4f1e8;
+
+	/* Escalera teal de marca */
+	--gl-teal-900: #0e3a4a;
+	--gl-teal-600: #0a5266;
+	--gl-teal-500: #0a6a80;
+	--gl-teal-400: #0883a0;
+	--gl-teal-200: #7fe3f5;
+
+	/* Servicios */
+	--sv-bg: #071a22;
+	--sv-bg-2: #0a222c;
+	--sv-rule: rgba(244, 241, 232, 0.1);
+	--sv-row-hover: rgba(127, 227, 245, 0.045);
+	--sv-accent: #7fe3f5;
+	/* Sobre --sv-accent como fondo, la tinta va oscura: blanco daría 1.3:1. */
+	--sv-accent-ink: #062029;
+	--sv-text: #f4f1e8;
+	/* Suelo de contraste sobre --sv-bg: por debajo de .62 cae de AA. */
+	--sv-text-muted: rgba(244, 241, 232, 0.66);
+	--sv-text-faint: rgba(244, 241, 232, 0.44);
+
+	/* Geometría y movimiento */
+	--gl-r-sm: 8px;
+	--gl-r-md: 16px;
+	--gl-r-lg: 20px;
+	--gl-r-pill: 999px;
+	--gl-ease: cubic-bezier(0.22, 1, 0.36, 1);
+	--gl-dur: 0.35s;
+
+	/* Tipografía */
+	--gl-font-display: 'Dune Rise', system-ui, sans-serif;
+	--gl-font-label: 'Audiowide', system-ui, sans-serif;
+	--gl-font-body: 'Inter', system-ui, -apple-system, sans-serif;
+}

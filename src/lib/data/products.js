@@ -1,3 +1,5 @@
+import { nexusModels } from './nexusModels.js';
+
 /**
  * Catálogo de productos de la landing.
  *
@@ -5,111 +7,102 @@
  * el verde de Nexus del rojo de Signum, que son complementarios y vibrarían si
  * quedaran adyacentes en el rail.
  *
- * `rail` es el descriptor funcional que se muestra bajo el nombre. No es
- * decorativo: un visitante que solo lea el rail y nunca abra el panel debe
- * saber qué son los tres productos.
+ * `rail` es el descriptor funcional que se muestra bajo el nombre y `audience`
+ * el "para quién". No son decorativos: un visitante que solo lea el rail y
+ * nunca abra el panel debe saber qué son los tres productos y cuál es el suyo.
+ *
+ * Los campos del panel responden, en orden, a las preguntas que el visitante se
+ * hace: qué es (`oneLiner`), si es para él (`problem`), qué tendría que hacer
+ * (`howItWorks`), cómo se compra (`models`) y si es real (`proof`). El esquema
+ * anterior —subtítulo de 45 palabras y doce chips del mismo peso— respondía
+ * bien a ninguna: los tres paneles quedaban con la misma silueta y la sección
+ * comunicaba "hay tres cosas parecidas".
+ *
+ * `models` es un slot fijo en los tres productos y solo varía cuántas píldoras
+ * lleva. Ahí es donde SaaS y white-label dejan de ser el chip número once y
+ * ocupan el mismo lugar jerárquico que "compra única".
  */
 export const products = [
 	{
 		id: 'nexus',
 		name: 'NEXUS',
 		rail: 'Rastreo GPS en tiempo real',
+		kind: 'Plataforma · SaaS y white-label',
 		audience: 'Familias y flotillas',
-		subtitle:
-			'Nexus es una plataforma de rastreo inteligente diseñada para proteger vehículos, personas y operaciones mediante ubicación en tiempo real, alertas y análisis de movilidad',
+		oneLiner: 'Dónde está, a dónde fue y cuándo salió de la zona.',
+		problem: 'No saber dónde están tus vehículos, tu carga o tu gente.',
+		howItWorks: ['Conectas el dispositivo', 'Ves todo en el panel', 'Recibes la alerta'],
+		models: nexusModels,
+		proof: 'Panel web + apps nativas iOS y Android',
 		mark: '/img/products/mark-nexus.webp',
 		logo: '/img/logo-nexus-3x.png',
 		logoAlt: 'Logotipo de Nexus',
 		href: '/products/nexus',
 		external: false,
-		cta: 'Explorar Nexus',
-		audiences: [
-			{ label: 'Para familia', benefit: 'Protege a quienes más quieres' },
-			{ label: 'Para flotillas', benefit: 'Control donde quiera que estés' },
-			{ label: 'Para negocios', benefit: 'Integra fácil tus datos' }
-		],
-		featuresTitle: 'Características',
-		features: [
-			'Ubicación en tiempo real',
-			'Historial de recorridos',
-			'Geocercas personalizadas',
-			'Notificaciones',
-			'Panel web + App móvil',
-			'API para integradores'
-		],
-		useCases: [
-			'Protección vehicular',
-			'Rastreo familiar',
-			'Control de flotillas',
-			'Recuperación ante robo',
-			'Seguridad en campo',
-			'Integración con terceros'
-		]
+		primaryCta: 'Explorar Nexus',
+		secondaryCta: { label: '¿Tienes tu propio hardware?', href: '/products/nexus/partners' }
 	},
 	{
 		id: 'orion',
 		name: 'ORION',
 		rail: 'API de geolocalización sin GPS',
+		kind: 'API · pago por uso',
 		audience: 'Desarrolladores e integradores',
-		subtitle:
-			'Una capa silenciosa de inteligencia geoespacial para productos que requieren localización, análisis territorial y validación de eventos sin depender exclusivamente del GPS.',
+		oneLiner: 'Ubica un dispositivo por señal celular, sin GPS a bordo.',
+		problem: 'Necesitas ubicar equipos que no traen GPS, o validar que un evento pasó donde dice.',
+		howItWorks: ['Envías el Cell ID', 'Recibes coordenadas y radio', 'Enriqueces tu telemetría'],
+		models: [
+			{
+				key: 'consumo',
+				label: 'API por consumo',
+				axis: 'Pagas lo que consultas',
+				line: 'Sin mínimos ni contrato: cada consulta se cobra por separado.',
+				tech: 'REST · consultas en tiempo real'
+			},
+			{
+				key: 'volumen',
+				label: 'Contrato por volumen',
+				axis: 'Pagas por bloque',
+				line: 'Tarifa por lote para integraciones que resuelven millones de consultas.',
+				tech: 'Procesamiento por lotes · SLA a convenir'
+			}
+		],
+		proof: 'API REST · consultas en tiempo real y por lotes',
 		mark: '/img/products/mark-orion.webp',
 		logo: '/img/products/logo-orion.png',
 		logoAlt: 'Logotipo de Orion',
 		href: 'https://orion.geminislabs.com/',
 		external: true,
-		cta: 'Explorar Orion',
-		audiences: null,
-		featuresTitle: 'Características principales',
-		features: [
-			'Localización por Cell ID',
-			'API de geolocalización',
-			'Enriquecimiento geoespacial',
-			'Soporte para múltiples operadores',
-			'Integración con plataformas IoT',
-			'Procesamiento por lotes'
-		],
-		useCases: [
-			'Localización sin GPS',
-			'Validación de eventos IoT',
-			'Enriquecimiento de telemetría',
-			'Seguridad vehicular',
-			'Sistemas antifraude',
-			'Integración con ERPs o CRMs'
-		]
+		primaryCta: 'Explorar Orion',
+		secondaryCta: null
 	},
 	{
 		id: 'signum',
 		name: 'SIGNUM',
 		rail: 'Identidad médica de emergencia',
+		kind: 'Servicio · compra única',
 		audience: 'Motociclistas y outdoor',
 		badge: 'Nuevo',
-		subtitle:
-			'Identificación médica de emergencia mediante un código QR. Al escanearlo se abre una página de 11 KB con tipo de sangre, alergias, padecimientos, medicamentos y contactos: sin instalar una app y sin crear una cuenta.',
+		oneLiner: 'Un QR que habla por ti cuando tú no puedes.',
+		problem: 'En un accidente, quien te auxilia no sabe nada de ti.',
+		howItWorks: ['Llenas tu ficha', 'Pegas el QR en el casco', 'Quien te auxilia lo escanea'],
+		models: [
+			{
+				key: 'compra-unica',
+				label: 'Compra única',
+				axis: 'Sin cuenta ni suscripción',
+				line: 'Pagas una vez por tu QR. No hay app que instalar ni mensualidad.',
+				tech: 'Página pública de 11 KB · etiquetas bilingües ES/EN'
+			}
+		],
+		proof: 'Página de 11 KB · abre con mala señal',
 		mark: '/img/products/mark-signum.webp',
 		logo: '/img/products/logo-signum.webp',
 		logoAlt: 'Logotipo de Signum',
 		href: 'https://signum.geminislabs.com/',
 		external: true,
-		cta: 'Explorar Signum',
-		audiences: null,
-		featuresTitle: 'Características principales',
-		features: [
-			'QR único por persona',
-			'Página pública de 11 KB',
-			'Funciona con mala señal',
-			'Etiquetas bilingües ES/EN',
-			'Tipo de sangre impreso',
-			'Control total de privacidad'
-		],
-		useCases: [
-			'Motociclismo',
-			'Deporte al aire libre',
-			'Condiciones crónicas',
-			'Adultos mayores',
-			'Menores de edad',
-			'Viajes y trabajo de campo'
-		]
+		primaryCta: 'Explorar Signum',
+		secondaryCta: null
 	}
 ];
 

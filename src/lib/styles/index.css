@@ -3,6 +3,7 @@
 /* ===================================================================
    SISTEMA DE TEMAS Y BASE
    ================================================================== */
+@import './tokens.css';
 @import './themes.css';
 @import './base.css';
 @import './layout.css';

@@ -7,6 +7,7 @@
 	import HeroTitle from '$lib/components/HeroTitle.svelte';
 	import { buildApiUrl, API_CONFIG } from '$lib/config/api.js';
 	import { products, neighborProduct } from '$lib/data/products.js';
+	import { processSteps, scenePins } from '$lib/data/services.js';
 
 	// Variables para efectos parallax
 	let scrollY = 0;
@@ -751,7 +752,7 @@
 			class="hero-particle-buttons"
 			style="transform: translateY({isMobile ? 0 : -scrollY * 0.08}px)"
 		>
-			<a href="#servicios" class="btn-primary">Descubre Nuestros Servicios</a>
+			<a href="/servicios" class="btn-primary">Descubre Nuestros Servicios</a>
 			<a href="#contacto" class="btn-secondary">Contactar Ahora</a>
 		</div>
 	</div>
@@ -759,7 +760,7 @@
 
 <!-- Sección Laboratorio Tecnológico -->
 <section id="ecosistema" class="lab-section">
-	<span id="servicios" style="position:absolute; top:-80px;"></span>
+	<span id="nosotros" style="position:absolute; top:-80px;"></span>
 	<div class="lab-noise" aria-hidden="true"></div>
 	<div class="lab-head">
 		<h2 class="landing-section-title lab-section-title">
@@ -955,7 +956,7 @@
 <section id="productos" class="nexus-section">
 	<div class="nexus-head">
 		<h2 class="landing-section-title">Nuestros Productos</h2>
-		<p class="nx-kicker">Tres productos</p>
+		<p class="nx-kicker">Tres productos · tres públicos · tres formas de comprarlos</p>
 	</div>
 
 	<!-- Rail de cámaras: las tres marcas visibles siempre, sin depender de hover.
@@ -984,6 +985,7 @@
 				<span class="nx-cell-text">
 					<span class="nx-cell-name">{p.name}</span>
 					<span class="nx-cell-desc">{p.rail}</span>
+					<span class="nx-cell-for">{p.audience}</span>
 				</span>
 				{#if p.badge}
 					<span class="nx-cell-badge">{p.badge}</span>
@@ -1000,10 +1002,10 @@
 			on:mouseleave={onNxLeave}
 		>
 			<div class="nx-bg" aria-hidden="true"></div>
-			<div class="nx-panels">
+			<div class="nx-slides">
 				{#each products as p (p.id)}
 					<div
-						class="nx-panel"
+						class="nx-slide"
 						data-product={p.id}
 						class:is-active={activeProduct === p.id}
 						id="panel-{p.id}"
@@ -1022,24 +1024,26 @@
 						{/if}
 
 						<div class="nx-content">
-							<p class="nx-eyebrow">Producto</p>
+							<p class="nx-eyebrow">{p.kind}</p>
 							<h3 class="nx-title">{p.name}</h3>
-							<p class="nx-subtitle">{p.subtitle}</p>
+							<p class="nx-subtitle">{p.oneLiner}</p>
+							<p class="nx-problem">{p.problem}</p>
 
-							{#if p.audiences}
-								<ul class="nx-audiences">
-									{#each p.audiences as aud (aud.label)}
-										<li class="nx-aud">
-											<span class="nx-aud-label">{aud.label}</span>
-											<span class="nx-aud-benefit">{aud.benefit}</span>
-										</li>
-									{/each}
-								</ul>
-							{/if}
+							<ol class="nx-steps">
+								{#each p.howItWorks as step, si (step)}
+									<li class="nx-step">
+										<span class="nx-step-n" aria-hidden="true">{si + 1}</span>
+										<span class="nx-step-text">{step}</span>
+									</li>
+								{/each}
+							</ol>
 
-							<div class="nx-lists">
+							<!-- Banda de contratación. Es un slot fijo en los tres productos y solo
+							     varía cuántas píldoras lleva: así SaaS y white-label ocupan el mismo
+							     lugar jerárquico que "compra única" en vez de perderse entre chips. -->
+							<div class="nx-models">
 								{#if p.id === 'signum'}
-									<!-- Trazo de electrocardiograma que se dibuja detrás de los chips.
+									<!-- Trazo de electrocardiograma que se dibuja detrás de la banda.
 									     Decorativo: no aporta información, así que queda fuera del
 									     árbol de accesibilidad y se apaga con reduced-motion. -->
 									<svg
@@ -1054,34 +1058,42 @@
 										/>
 									</svg>
 								{/if}
-								<div class="nx-list-col">
-									<h4 class="nx-list-title">{p.featuresTitle}</h4>
-									<ul class="nx-chips">
-										{#each p.features as feat (feat)}
-											<li class="nx-chip">{feat}</li>
-										{/each}
-									</ul>
-								</div>
-								<div class="nx-list-col">
-									<h4 class="nx-list-title">Casos de uso</h4>
-									<ul class="nx-chips">
-										{#each p.useCases as uc (uc)}
-											<li class="nx-chip nx-chip--case">{uc}</li>
-										{/each}
-									</ul>
-								</div>
+								<h4 class="nx-models-title">Cómo se contrata</h4>
+								<ul class="nx-models-list" data-count={p.models.length}>
+									{#each p.models as m (m.key)}
+										<li class="nx-model">
+											<span class="nx-model-axis">{m.axis}</span>
+											<span class="nx-model-label">{m.label}</span>
+											<span class="nx-model-line">{m.line}</span>
+											<span class="nx-model-tech">{m.tech}</span>
+										</li>
+									{/each}
+								</ul>
 							</div>
 
-							<a
-								class="nx-cta"
-								href={p.href}
-								tabindex={activeProduct === p.id ? 0 : -1}
-								target={p.external ? '_blank' : null}
-								rel={p.external ? 'noopener noreferrer' : null}
-							>
-								{p.cta}
-								<span class="nx-cta-arrow" aria-hidden="true">→</span>
-							</a>
+							<p class="nx-evidence">{p.proof}</p>
+
+							<div class="nx-actions">
+								<a
+									class="nx-cta"
+									href={p.href}
+									tabindex={activeProduct === p.id ? 0 : -1}
+									target={p.external ? '_blank' : null}
+									rel={p.external ? 'noopener noreferrer' : null}
+								>
+									{p.primaryCta}
+									<span class="nx-cta-arrow" aria-hidden="true">→</span>
+								</a>
+								{#if p.secondaryCta}
+									<a
+										class="nx-cta-secondary"
+										href={p.secondaryCta.href}
+										tabindex={activeProduct === p.id ? 0 : -1}
+									>
+										{p.secondaryCta.label}
+									</a>
+								{/if}
+							</div>
 						</div>
 
 						<!-- Escenario decorativo: el nombre ya lo da el h3, así que el logo no
@@ -1095,6 +1107,89 @@
 				{/each}
 			</div>
 		</article>
+	</div>
+</section>
+
+<!-- Sección Servicios. Va DESPUÉS de Productos a propósito: los productos son
+     la prueba de lo que esta sección afirma, y el "también" del titular necesita
+     que el visitante ya los haya visto para tener antecedente. -->
+<section id="servicios" class="sv-teaser">
+	<div class="sv-teaser-grid">
+		<div class="sv-teaser-copy">
+			<p class="sv-teaser-overline">Ingeniería y consultoría</p>
+			<h2 class="landing-section-title sv-teaser-title">
+				También construimos la tecnología de otros
+			</h2>
+			<p class="sv-teaser-lead">
+				Tomamos un problema de negocio desde que todavía es una idea y lo llevamos hasta una
+				solución operando: estrategia, arquitectura, software, hardware e infraestructura.
+				<strong>Un solo equipo, de la estrategia a producción.</strong>
+			</p>
+			<p class="sv-teaser-proof">
+				Nexus, Orion y Signum los diseñamos, construimos y operamos nosotros. La consultoría es ese
+				mismo equipo, aplicado a tu problema.
+			</p>
+
+			<div class="sv-teaser-actions">
+				<a href="/servicios" class="sv-teaser-cta">
+					Ver las seis capacidades
+					<span class="sv-teaser-arrow" aria-hidden="true">→</span>
+				</a>
+				<a href="/servicios/diagnostico" class="sv-teaser-cta-secondary">
+					Empezar por un diagnóstico
+				</a>
+			</div>
+		</div>
+
+		<!-- La cadena completa, ilustrada. Las etiquetas se posicionan en % sobre
+		     la imagen para que escalen con ella; por debajo de 1000px se apagan y
+		     el mismo contenido se lee como lista. -->
+		<figure class="sv-scene">
+			<div class="sv-scene-frame">
+				<img
+					src="/img/servicios-cadena.webp"
+					alt="Del dispositivo en campo a la aplicación: camión y sensores en carretera y cultivo, antena, servidores y nube, y paneles de datos en laptop, tablet y teléfono."
+					width="1400"
+					height="933"
+					class="sv-scene-img"
+					loading="lazy"
+					decoding="async"
+				/>
+				{#each scenePins as pin, pi (pin.title)}
+					<span
+						class="sv-pin"
+						style="--x: {pin.x}%; --y: {pin.y}%; --ly: {pin.labelY}%; --d: {pi * 0.62}s;"
+						aria-hidden="true"
+					>
+						<span class="sv-pin-ring"></span>
+						<span class="sv-pin-line"></span>
+						<span class="sv-pin-label">
+							<span class="sv-pin-title">{pin.title}</span>
+							<span class="sv-pin-desc">{pin.desc}</span>
+						</span>
+					</span>
+				{/each}
+			</div>
+			<figcaption class="sv-scene-legend">
+				<ul>
+					{#each scenePins as pin (pin.title)}
+						<li><strong>{pin.title}</strong> — {pin.desc}</li>
+					{/each}
+				</ul>
+			</figcaption>
+		</figure>
+
+		<ol class="sv-flowline">
+			{#each processSteps as step, i (step.key)}
+				<li class="sv-flowline-step">
+					<span class="sv-flowline-label">{step.label}</span>
+					<span class="sv-flowline-short">{step.short}</span>
+					{#if i < processSteps.length - 1}
+						<span class="sv-flowline-sep" aria-hidden="true">→</span>
+					{/if}
+				</li>
+			{/each}
+		</ol>
 	</div>
 </section>
 
@@ -1890,6 +1985,18 @@
 		font-weight: 700;
 	}
 	@media (prefers-reduced-motion: reduce) {
+		.sv-pin-line::after,
+		.sv-pin-ring::after,
+		.sv-teaser::after {
+			animation: none;
+		}
+		.sv-pin-line::after,
+		.sv-pin-ring::after {
+			display: none;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
 		.lab-bulb {
 			animation: none;
 		}
@@ -2126,6 +2233,404 @@
 	.tc-message strong {
 		color: #0883a0;
 		font-weight: 700;
+	}
+
+	/* ── Sección de servicios ────────────────────────────
+	   Banda oscura entre la sección de productos y "¿Por qué existimos?".
+	   Era la única sección de la landing sin imagen, sin profundidad y con el
+	   mismo gesto de rejilla que "Tecnologías que convergen" tenía encima: por
+	   eso se leía vacía aunque el texto estuviera. La ilustración anotada carga
+	   ahora ese peso y la rejilla de seis capacidades se fue a /servicios. */
+	.sv-teaser {
+		background: linear-gradient(180deg, #001725 0%, #00121e 48%, #000c15 100%);
+		color: var(--sv-text);
+		padding: clamp(3.5rem, 7vw, 6rem) 0;
+		position: relative;
+		overflow: hidden;
+		/* El `section { min-height: 100vh; display: flex; align-items: center }`
+		   sin scope de login-page.css estiraba esta banda a pantalla completa y
+		   centraba el contenido, dejando un hueco enorme arriba y abajo. */
+		min-height: 0;
+		display: block;
+		border-top: 1px solid rgba(127, 227, 245, 0.18);
+	}
+	.sv-teaser::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: radial-gradient(120% 80% at 8% 0%, rgba(8, 131, 160, 0.26), transparent 58%);
+	}
+	/* Segunda luz, muy tenue, que deriva despacio por detrás de la escena: da
+	   profundidad sin que se lea como una animación. */
+	.sv-teaser::after {
+		content: '';
+		position: absolute;
+		inset: -20% -10%;
+		pointer-events: none;
+		background: radial-gradient(38% 42% at 62% 46%, rgba(127, 227, 245, 0.09), transparent 70%);
+		animation: svDeriva 26s ease-in-out infinite alternate;
+	}
+	@keyframes svDeriva {
+		from {
+			transform: translate3d(-3%, 2%, 0) scale(1);
+		}
+		to {
+			transform: translate3d(4%, -3%, 0) scale(1.12);
+		}
+	}
+	.sv-teaser-grid {
+		position: relative;
+		z-index: 1;
+		display: grid;
+		grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+		gap: clamp(2rem, 3vw, 3rem) clamp(2rem, 4vw, 3.5rem);
+		align-items: center;
+		/* Alineado con `.container` (1200px + 2rem) por la izquierda; por la
+		   derecha la escena sangra hasta casi el borde. */
+		padding-left: max(2rem, calc((100% - 1200px) / 2 + 2rem));
+		padding-right: 0;
+	}
+	.sv-flowline {
+		grid-column: 1 / -1;
+	}
+	/* El texto va por encima de la escena, que se le mete por debajo. */
+	.sv-teaser-copy {
+		position: relative;
+		z-index: 2;
+	}
+	.sv-teaser-overline {
+		font-family: var(--gl-font-label);
+		font-size: 0.72rem;
+		letter-spacing: 0.24em;
+		text-transform: uppercase;
+		color: var(--sv-accent);
+		margin: 0 0 0.9rem;
+	}
+	.sv-teaser-title {
+		color: var(--sv-text);
+		background: none;
+		-webkit-text-fill-color: currentColor;
+		text-align: left;
+		max-width: 16ch;
+		margin: 0 0 1.1rem;
+	}
+	.sv-teaser-lead {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: clamp(0.98rem, 1.15vw, 1.08rem);
+		line-height: 1.65;
+		color: var(--sv-text-muted);
+		max-width: 46ch;
+		margin: 0;
+	}
+	.sv-teaser-lead strong {
+		color: var(--sv-text);
+		font-weight: 600;
+	}
+	/* Prueba sin adjetivos ni cifras: un inventario verificable de lo que ya
+	   existe. Funciona aquí porque los productos acaban de pasar por pantalla. */
+	.sv-teaser-proof {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.88rem;
+		line-height: 1.6;
+		color: var(--sv-text-faint);
+		max-width: 46ch;
+		margin: 1rem 0 0;
+		padding-left: 0.9rem;
+		border-left: 2px solid rgba(127, 227, 245, 0.35);
+	}
+
+	/* Riel de proceso: es una secuencia real, por eso lleva flechas. */
+	.sv-flowline {
+		list-style: none;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-start;
+		gap: 0.75rem 1.25rem;
+		padding: 1.5rem 0 0;
+		margin: clamp(1.5rem, 3vw, 2.5rem) 0 0;
+		border-top: 1px solid var(--sv-rule);
+	}
+	.sv-flowline-step {
+		display: grid;
+		grid-template-columns: auto auto;
+		grid-template-areas: 'label sep' 'short sep';
+		align-items: center;
+		gap: 0 0.5rem;
+	}
+	.sv-flowline-label {
+		grid-area: label;
+		font-family: var(--gl-font-label);
+		font-size: 0.66rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--sv-accent);
+	}
+	.sv-flowline-short {
+		grid-area: short;
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.76rem;
+		color: var(--sv-text-faint);
+	}
+	.sv-flowline-sep {
+		grid-area: sep;
+		color: rgba(127, 227, 245, 0.4);
+		font-size: 0.9rem;
+		padding: 0 0.25rem;
+	}
+
+	.sv-teaser-actions {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.9rem 1.5rem;
+		margin-top: clamp(1.75rem, 3vw, 2.25rem);
+	}
+	.sv-teaser-cta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.45rem;
+		min-height: 44px;
+		padding: 0.7rem 1.5rem;
+		border-radius: var(--gl-r-sm);
+		background: var(--sv-accent);
+		color: var(--sv-accent-ink);
+		border: 1px solid var(--sv-accent);
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.95rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			transform var(--gl-dur) var(--gl-ease),
+			background var(--gl-dur) var(--gl-ease);
+	}
+	.sv-teaser-cta:hover {
+		transform: translateY(-2px);
+		background: #a4ecf9;
+	}
+	.sv-teaser-cta:focus-visible {
+		outline: 2px solid var(--sv-accent);
+		outline-offset: 3px;
+	}
+	.sv-teaser-arrow {
+		transition: transform var(--gl-dur) var(--gl-ease);
+	}
+	.sv-teaser-cta:hover .sv-teaser-arrow {
+		transform: translateX(4px);
+	}
+	.sv-teaser-cta-secondary {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.9rem;
+		font-weight: 500;
+		color: var(--sv-text-muted);
+		text-decoration: none;
+		border-bottom: 1px solid var(--sv-rule);
+		padding-bottom: 1px;
+		transition:
+			color var(--gl-dur) var(--gl-ease),
+			border-color var(--gl-dur) var(--gl-ease);
+	}
+	.sv-teaser-cta-secondary:hover {
+		color: var(--sv-text);
+		border-bottom-color: var(--sv-accent);
+	}
+	.sv-teaser-cta-secondary:focus-visible {
+		outline: 2px solid var(--sv-accent);
+		outline-offset: 3px;
+	}
+
+	/* ── La escena y sus etiquetas ─────────────────────── */
+	.sv-scene {
+		/* Se solapa con la columna de texto: la ilustración entra por debajo y su
+		   borde izquierdo, ya difuminado por la máscara, muere sobre el fondo. */
+		margin: 0 0 0 clamp(-7rem, -5vw, -2rem);
+		padding-top: 14%;
+	}
+	.sv-scene-frame {
+		position: relative;
+	}
+	/* La ilustración lleva canal alfa: su fondo se eliminó del archivo, derivando
+	   la transparencia de la luminancia contra un modelo del propio degradado de
+	   fondo. Por eso no necesita máscara ni que la sección le iguale el color:
+	   simplemente no hay rectángulo. */
+	.sv-scene-img {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	/* El pin cubre todo el marco en vez de ser un punto de tamaño cero: los
+	   porcentajes se resuelven contra la altura del contenedor, y con un
+	   contenedor de altura 0 se resolvían contra 0. */
+	.sv-pin {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+	}
+	/* El anillo abre la guía arriba, junto al rótulo; la línea baja de ahí hasta
+	   el punto de la ilustración y se desvanece al llegar, sin marcarlo con un
+	   punto. */
+	.sv-pin-ring {
+		position: absolute;
+		left: var(--x);
+		top: var(--ly);
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		border: 1.5px solid var(--sv-accent);
+		transform: translate(-50%, -50%);
+	}
+	.sv-pin-line {
+		position: absolute;
+		left: var(--x);
+		top: var(--ly);
+		height: calc(var(--y) - var(--ly));
+		width: 1px;
+		transform: translateX(-50%);
+		background: linear-gradient(
+			180deg,
+			var(--sv-accent) 0%,
+			rgba(127, 227, 245, 0.5) 55%,
+			rgba(127, 227, 245, 0) 100%
+		);
+	}
+	/* El rótulo cuelga a la derecha de la línea, alineado a la izquierda: la guía
+	   queda siempre al costado del texto y nunca lo cruza. */
+	/* Un pulso de señal baja por cada guía, del rótulo al dibujo. No es adorno:
+	   es lo que hace la plataforma —telemetría que viaja del dispositivo al
+	   panel— y repite el ritmo de las trazas de la propia ilustración. Los
+	   retardos van escalonados para que se lea como una cadena, no como cinco
+	   cosas parpadeando a la vez. */
+	.sv-pin-line::after {
+		content: '';
+		position: absolute;
+		left: -1px;
+		width: 3px;
+		height: 26%;
+		border-radius: 2px;
+		background: linear-gradient(180deg, transparent, var(--sv-accent), transparent);
+		animation: svFlujo 3.6s linear infinite;
+		animation-delay: var(--d);
+	}
+	@keyframes svFlujo {
+		0% {
+			top: -26%;
+			opacity: 0;
+		}
+		14% {
+			opacity: 1;
+		}
+		78% {
+			opacity: 1;
+		}
+		100% {
+			top: 100%;
+			opacity: 0;
+		}
+	}
+	/* Latido del anillo, en fase con el pulso que sale de él. */
+	.sv-pin-ring::after {
+		content: '';
+		position: absolute;
+		inset: -3px;
+		border-radius: 50%;
+		border: 1px solid var(--sv-accent);
+		animation: svLatido 3.6s ease-out infinite;
+		animation-delay: var(--d);
+	}
+	@keyframes svLatido {
+		0% {
+			transform: scale(0.5);
+			opacity: 0.75;
+		}
+		55% {
+			transform: scale(2.1);
+			opacity: 0;
+		}
+		100% {
+			transform: scale(2.1);
+			opacity: 0;
+		}
+	}
+
+	.sv-pin-label {
+		position: absolute;
+		left: calc(var(--x) + 0.85rem);
+		top: calc(var(--ly) - 0.5rem);
+		width: max-content;
+		max-width: min(8rem, 14%);
+		overflow-wrap: anywhere;
+		text-align: left;
+	}
+	.sv-pin-title {
+		display: block;
+		font-family: var(--gl-font-label);
+		font-size: 0.56rem;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+		color: var(--sv-accent);
+		margin-bottom: 0.25rem;
+	}
+	.sv-pin-desc {
+		display: block;
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.75rem;
+		line-height: 1.4;
+		color: rgba(244, 241, 232, 0.72);
+	}
+	/* En pantallas anchas la leyenda es redundante: las etiquetas ya están sobre
+	   la imagen. Se conserva para lectores de pantalla y para el móvil. */
+	.sv-scene-legend {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	@media (max-width: 1280px) {
+		.sv-teaser-grid {
+			grid-template-columns: 1fr;
+		}
+		.sv-teaser-title {
+			max-width: 20ch;
+		}
+		/* Etiquetas fuera: sobre una imagen pequeña se pisan y no se leen. El
+		   mismo contenido pasa a leerse como lista debajo. */
+		.sv-pin {
+			display: none;
+		}
+		.sv-scene-legend {
+			position: static;
+			width: auto;
+			height: auto;
+			margin: 1.25rem 0 0;
+			clip: auto;
+			white-space: normal;
+			overflow: visible;
+		}
+		.sv-scene-legend ul {
+			list-style: none;
+			padding: 0;
+			margin: 0;
+			display: grid;
+			gap: 0.6rem;
+		}
+		.sv-scene-legend li {
+			font-family: 'Inter', system-ui, sans-serif;
+			font-size: 0.85rem;
+			line-height: 1.5;
+			color: var(--sv-text-faint);
+			padding-left: 0.9rem;
+			border-left: 2px solid rgba(127, 227, 245, 0.3);
+		}
+		.sv-scene-legend strong {
+			color: var(--sv-text);
+			font-weight: 600;
+		}
 	}
 
 	/* --- scroll-reveal (solo opacity/transform) ---
@@ -3195,7 +3700,8 @@
 		font-size: 0.72rem;
 		letter-spacing: 0.28em;
 		text-transform: uppercase;
-		color: rgba(10, 37, 64, 0.55);
+		/* 0.55 daba ~4.3:1 sobre #eceff2 a 0.72rem: fallo de AA. */
+		color: rgba(10, 37, 64, 0.7);
 		margin: 0.5rem 0 0;
 	}
 
@@ -3343,6 +3849,17 @@
 		font-size: 0.78rem;
 		line-height: 1.35;
 		color: rgba(244, 241, 232, 0.58);
+	}
+	/* El "para quién". El rail es lo único que un visitante lee de los tres
+	   productos a la vez, así que sin esto la comparación se queda en qué hace
+	   cada uno y no en cuál es el suyo. */
+	.nx-cell-for {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.7rem;
+		font-weight: 600;
+		letter-spacing: 0.04em;
+		line-height: 1.3;
+		color: rgba(244, 241, 232, 0.42);
 	}
 	.nx-cell-badge {
 		display: inline-flex;
@@ -3513,12 +4030,12 @@
 		mix-blend-mode: overlay;
 	}
 	/* Pila de paneles: ambos en la misma celda → altura estable, crossfade */
-	.nx-panels {
+	.nx-slides {
 		position: relative;
 		z-index: 3;
 		display: grid;
 	}
-	.nx-panel {
+	.nx-slide {
 		grid-area: 1 / 1;
 		display: grid;
 		/* El escenario se llevaba el 42% del ancho para un logotipo que no lo
@@ -3536,7 +4053,7 @@
 			transform 0.28s ease,
 			visibility 0s linear 0.28s;
 	}
-	.nx-panel.is-active {
+	.nx-slide.is-active {
 		opacity: 1;
 		visibility: visible;
 		transform: none;
@@ -3553,31 +4070,34 @@
 	}
 
 	/* Acentos Orion (plata) */
-	.nx-panel[data-product='orion'] .nx-eyebrow {
+	.nx-slide[data-product='orion'] .nx-eyebrow {
 		color: rgba(205, 213, 221, 0.85);
 	}
-	.nx-panel[data-product='orion'] .nx-title {
+	.nx-slide[data-product='orion'] .nx-title {
 		background: linear-gradient(120deg, #ffffff 0%, #dfe5ea 45%, #aeb8c2 100%);
 		-webkit-background-clip: text;
 		background-clip: text;
 		-webkit-text-fill-color: transparent;
 	}
-	.nx-panel[data-product='orion'] .nx-chip {
-		border-color: rgba(205, 213, 221, 0.28);
+	.nx-slide[data-product='orion'] .nx-step-n {
+		color: #cdd5dd;
 	}
-	.nx-panel[data-product='orion'] .nx-chip::before {
-		background: #c3ccd6;
+	.nx-slide[data-product='orion'] .nx-model {
+		border-color: rgba(205, 213, 221, 0.26);
 	}
-	.nx-panel[data-product='orion'] .nx-chip--case {
-		border-color: rgba(205, 213, 221, 0.16);
+	.nx-slide[data-product='orion'] .nx-model:hover {
+		border-color: rgba(205, 213, 221, 0.8);
 	}
-	.nx-panel[data-product='orion'] .nx-cta {
+	.nx-slide[data-product='orion'] .nx-cta-secondary:hover {
+		border-bottom-color: #d7dde4;
+	}
+	.nx-slide[data-product='orion'] .nx-cta {
 		color: #d7dde4;
 	}
-	.nx-panel[data-product='orion'] .nx-cta:focus-visible {
+	.nx-slide[data-product='orion'] .nx-cta:focus-visible {
 		outline-color: #d7dde4;
 	}
-	.nx-panel[data-product='orion'] .nx-halo {
+	.nx-slide[data-product='orion'] .nx-halo {
 		background: radial-gradient(
 			circle,
 			rgba(232, 237, 242, 0.22) 0%,
@@ -3585,11 +4105,11 @@
 			transparent 72%
 		);
 	}
-	.nx-panel[data-product='orion'] .nx-logo {
+	.nx-slide[data-product='orion'] .nx-logo {
 		filter: drop-shadow(0 0 14px rgba(228, 234, 240, 0.5))
 			drop-shadow(0 14px 30px rgba(0, 0, 0, 0.5));
 	}
-	.nx-panel[data-product='orion'] .nx-floor {
+	.nx-slide[data-product='orion'] .nx-floor {
 		background: radial-gradient(ellipse at center, rgba(228, 234, 240, 0.14) 0%, transparent 70%);
 	}
 
@@ -3599,10 +4119,10 @@
 	   token que Signum ya usa en su propio sistema. */
 	/* A opacidad .9 sobre el fondo rojo daba 4.49:1, justo por debajo de AA.
 	   A plena opacidad sube a 5.27:1. */
-	.nx-panel[data-product='signum'] .nx-eyebrow {
+	.nx-slide[data-product='signum'] .nx-eyebrow {
 		color: #e8565a;
 	}
-	.nx-panel[data-product='signum'] .nx-title {
+	.nx-slide[data-product='signum'] .nx-title {
 		background: linear-gradient(
 			115deg,
 			#f2f2f2 0%,
@@ -3620,35 +4140,34 @@
 	   construcción bimaterial del logotipo. */
 	/* Fondo más opaco que el resto para que el trazo del ECG pase por detrás
 	   del chip y no cruce el texto. */
-	.nx-panel[data-product='signum'] .nx-chip {
-		border-color: rgba(214, 47, 50, 0.3);
-		background: rgba(17, 11, 12, 0.82);
+	.nx-slide[data-product='signum'] .nx-step-n {
+		color: #e8565a;
 	}
-	.nx-panel[data-product='signum'] .nx-chip::before {
-		background: #d62f32;
+	.nx-slide[data-product='signum'] .nx-model {
+		border-color: rgba(232, 86, 90, 0.3);
 	}
-	.nx-panel[data-product='signum'] .nx-chip--case {
-		border-color: rgba(192, 192, 192, 0.2);
+	.nx-slide[data-product='signum'] .nx-model:hover {
+		border-color: rgba(232, 86, 90, 0.8);
 	}
-	.nx-panel[data-product='signum'] .nx-chip:hover {
-		border-color: rgba(232, 86, 90, 0.75);
+	.nx-slide[data-product='signum'] .nx-cta-secondary:hover {
+		border-bottom-color: #e8565a;
 	}
-	.nx-panel[data-product='signum'] .nx-cta {
+	.nx-slide[data-product='signum'] .nx-cta {
 		background: #b5121b;
 		border-color: #b5121b;
 		color: #fbfaf7;
 	}
 	/* El hover oscurece en vez de aclarar: #d62f32 con texto blanco da 4.9:1 y
 	   aclarar más rompería AA. */
-	.nx-panel[data-product='signum'] .nx-cta:hover {
+	.nx-slide[data-product='signum'] .nx-cta:hover {
 		background: #d62f32;
 		border-color: #d62f32;
 		box-shadow: 0 8px 16px rgba(181, 18, 27, 0.35);
 	}
-	.nx-panel[data-product='signum'] .nx-cta:focus-visible {
+	.nx-slide[data-product='signum'] .nx-cta:focus-visible {
 		outline-color: #e8565a;
 	}
-	.nx-panel[data-product='signum'] .nx-halo {
+	.nx-slide[data-product='signum'] .nx-halo {
 		background: radial-gradient(
 			circle,
 			rgba(214, 47, 50, 0.2) 0%,
@@ -3656,11 +4175,11 @@
 			transparent 72%
 		);
 	}
-	.nx-panel[data-product='signum'] .nx-logo {
+	.nx-slide[data-product='signum'] .nx-logo {
 		filter: drop-shadow(0 0 16px rgba(181, 18, 27, 0.38))
 			drop-shadow(0 14px 30px rgba(0, 0, 0, 0.55));
 	}
-	.nx-panel[data-product='signum'] .nx-floor {
+	.nx-slide[data-product='signum'] .nx-floor {
 		background: radial-gradient(ellipse at center, rgba(181, 18, 27, 0.18) 0%, transparent 70%);
 	}
 
@@ -3710,7 +4229,7 @@
 		position: relative;
 		z-index: 2;
 	}
-	.nx-panel[data-product='orion'] .nx-content::before {
+	.nx-slide[data-product='orion'] .nx-content::before {
 		content: '';
 		position: absolute;
 		inset: 0;
@@ -3745,72 +4264,170 @@
 		-webkit-text-fill-color: transparent;
 		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 	}
+	/* El oneLiner: responde "¿qué es?" antes de que el visitante decida seguir
+	   leyendo. Sustituye al subtítulo de 45 palabras que nadie leía. */
 	.nx-subtitle {
 		font-family: 'Inter', system-ui, sans-serif;
-		font-size: clamp(1rem, 1.25vw, 1.18rem);
-		font-weight: 400;
-		color: rgba(244, 241, 232, 0.78);
-		line-height: 1.55;
-		max-width: 46ch;
+		font-size: clamp(1.05rem, 1.35vw, 1.32rem);
+		font-weight: 500;
+		color: rgba(244, 241, 232, 0.92);
+		line-height: 1.45;
+		max-width: 30ch;
 		margin: 0;
 	}
+	/* El problema: deja que el visitante se autoseleccione. Va deliberadamente
+	   más callado que el oneLiner — es la segunda pregunta, no la primera. */
+	.nx-problem {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: clamp(0.92rem, 1.05vw, 1rem);
+		color: rgba(244, 241, 232, 0.6);
+		line-height: 1.5;
+		max-width: 44ch;
+		margin: 0.65rem 0 0;
+	}
 
-	/* Audiences */
-	.nx-audiences {
+	/* Los tres pasos: "¿y yo qué tengo que hacer?". Es una secuencia real, así
+	   que va numerada; los doce chips que había antes no lo eran. */
+	.nx-steps {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1.35rem;
 		list-style: none;
+		padding: 1.25rem 0 0;
+		margin: 1.25rem 0 0;
+		border-top: 1px solid rgba(244, 241, 232, 0.1);
+	}
+	.nx-step {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.5rem;
+		min-width: 0;
+	}
+	.nx-step-n {
+		font-family: 'Audiowide', system-ui, sans-serif;
+		font-size: 0.68rem;
+		line-height: 1;
+		color: #3fae3a;
+		flex: none;
+	}
+	.nx-step-text {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.88rem;
+		color: rgba(244, 241, 232, 0.78);
+	}
+
+	/* Banda de contratación */
+	.nx-models {
+		position: relative;
+		margin-top: clamp(1.25rem, 2.4vw, 1.75rem);
+	}
+	.nx-models-title {
+		font-family: 'Audiowide', system-ui, sans-serif;
+		font-weight: 700;
+		font-size: 0.72rem;
+		text-transform: uppercase;
+		letter-spacing: 0.18em;
+		color: rgba(244, 241, 232, 0.5);
+		margin: 0 0 0.7rem;
+	}
+	/* Auto-fit con mínimo: Nexus reparte tres columnas, Orion dos y Signum una
+	   sin que ninguna quede huérfana estirándose sobre espacio muerto. */
+	.nx-models-list {
+		position: relative;
+		z-index: 1;
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+		gap: 0.6rem;
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+	.nx-model {
+		cursor: default;
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
-		border-top: 1px solid rgba(244, 241, 232, 0.1);
-		padding: 1.5rem 0 0;
-		margin: 1.5rem 0 0;
+		gap: 0.18rem;
+		padding: 0.75rem 0.85rem;
+		border: 1px solid rgba(63, 174, 58, 0.3);
+		border-radius: 10px;
+		background: rgba(255, 255, 255, 0.035);
+		transition:
+			border-color 0.25s ease,
+			transform 0.25s ease;
 	}
-	.nx-aud {
-		display: flex;
-		align-items: baseline;
+	.nx-model:hover {
+		border-color: rgba(95, 209, 88, 0.75);
+		transform: translateY(-2px);
 	}
-	.nx-aud::before {
-		content: '';
-		flex: 0 0 auto;
-		width: 3px;
-		height: 1.1em;
-		background: #3fae3a;
-		border-radius: 2px;
-		margin-right: 0.75rem;
-		align-self: flex-start;
-		transform: translateY(0.15em);
-	}
-	.nx-aud-label {
+	.nx-model-axis {
 		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.66rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.14em;
+		color: rgba(244, 241, 232, 0.5);
+	}
+	.nx-model-label {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.98rem;
 		font-weight: 700;
 		color: #eef2e9;
-		min-width: 9.5rem;
 	}
-	.nx-aud-benefit {
+	.nx-model-line {
 		font-family: 'Inter', system-ui, sans-serif;
-		color: rgba(244, 241, 232, 0.65);
+		font-size: 0.84rem;
+		line-height: 1.45;
+		color: rgba(244, 241, 232, 0.72);
+	}
+	/* El acrónimo técnico vive aquí y solo aquí: el gancho comercial es
+	   `.nx-model-label`. Las tres modalidades de Nexus son SaaS, así que
+	   etiquetar solo a Connect como tal se leería impreciso. */
+	.nx-model-tech {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.72rem;
+		line-height: 1.4;
+		color: rgba(244, 241, 232, 0.42);
+		margin-top: 0.15rem;
 	}
 
-	/* Spec sheet lists */
-	.nx-lists {
-		position: relative;
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: clamp(1.5rem, 3vw, 3rem);
-		margin-top: clamp(1.5rem, 3vw, 2.5rem);
+	.nx-evidence {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.8rem;
+		color: rgba(244, 241, 232, 0.5);
+		margin: 1rem 0 0;
 	}
-	/* En Nexus el separador lo aporta el borde superior de .nx-audiences.
-	   Donde no hay audiencias, las listas van pegadas al subtítulo y se
-	   quedaban sin él: se lo damos a quien ocupe ese sitio, sin nombrar
-	   productos, para que un cuarto lo herede solo. */
-	.nx-subtitle + .nx-lists {
-		border-top: 1px solid rgba(244, 241, 232, 0.1);
-		padding-top: 1.5rem;
-		margin-top: 1.5rem;
+
+	.nx-actions {
+		margin-top: clamp(1.5rem, 3vw, 2.25rem);
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.75rem 1.25rem;
+	}
+	/* Ruta al público B2B sin robarle protagonismo al CTA principal. */
+	.nx-cta-secondary {
+		font-family: 'Inter', system-ui, sans-serif;
+		font-size: 0.87rem;
+		font-weight: 500;
+		color: rgba(244, 241, 232, 0.72);
+		text-decoration: none;
+		border-bottom: 1px solid rgba(244, 241, 232, 0.3);
+		padding-bottom: 1px;
+		transition:
+			color 0.25s ease,
+			border-color 0.25s ease;
+	}
+	.nx-cta-secondary:hover {
+		color: #eef2e9;
+		border-bottom-color: #5fd158;
+	}
+	.nx-cta-secondary:focus-visible {
+		outline: 2px solid #5fd158;
+		outline-offset: 3px;
 	}
 
 	/* Electrocardiograma de Signum: se dibuja de izquierda a derecha detrás de
-	   los chips y se desvanece. Anima stroke-dashoffset sobre un único trazo,
+	   la banda de contratación y se desvanece. Anima stroke-dashoffset sobre un único trazo,
 	   así que no provoca reflow. */
 	/* Altura fija y centrada: si se estira a todo el alto del bloque, el
 	   preserveAspectRatio="none" deforma los picos y deja de leerse como un
@@ -3840,10 +4457,6 @@
 		animation: sgEcg 6s cubic-bezier(0.5, 0, 0.5, 1) infinite;
 	}
 	/* Los chips van por encima del trazo */
-	.nx-lists .nx-list-col {
-		position: relative;
-		z-index: 1;
-	}
 	@keyframes sgEcg {
 		0% {
 			stroke-dashoffset: 1400;
@@ -3865,67 +4478,6 @@
 			opacity: 0;
 		}
 	}
-	.nx-list-col {
-		min-width: 0;
-	}
-	.nx-list-title {
-		font-family: 'Audiowide', system-ui, sans-serif;
-		font-weight: 700;
-		font-size: 0.82rem;
-		text-transform: uppercase;
-		letter-spacing: 0.18em;
-		color: rgba(244, 241, 232, 0.55);
-		margin: 0 0 0.75rem;
-	}
-	.nx-chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem 0.55rem;
-		list-style: none;
-		padding: 0;
-		margin: 0;
-	}
-	.nx-chip {
-		display: inline-flex;
-		align-items: center;
-		padding: 0.34rem 0.7rem;
-		border-radius: 999px;
-		border: 1px solid rgba(63, 174, 58, 0.28);
-		background: rgba(255, 255, 255, 0.03);
-		color: rgba(244, 241, 232, 0.82);
-		font-family: 'Inter', system-ui, sans-serif;
-		font-size: 0.82rem;
-		font-weight: 500;
-		line-height: 1.2;
-		transition:
-			transform 0.25s ease,
-			opacity 0.25s ease,
-			box-shadow 0.25s ease;
-	}
-	.nx-chip::before {
-		content: '';
-		flex: 0 0 auto;
-		width: 4px;
-		height: 4px;
-		border-radius: 50%;
-		background: #3fae3a;
-		margin-right: 0.45rem;
-	}
-	.nx-chip--case {
-		border-color: rgba(0, 166, 192, 0.22);
-	}
-	.nx-chip--case::before {
-		content: none;
-	}
-	.nx-chip:hover {
-		transform: translateY(-2px);
-		opacity: 1;
-		box-shadow: 0 6px 18px -10px rgba(0, 0, 0, 0.7);
-		border-color: rgba(95, 209, 88, 0.8);
-	}
-	.nx-panel[data-product='orion'] .nx-chip:hover {
-		border-color: rgba(205, 213, 221, 0.8);
-	}
 
 	/* CTA */
 	.nx-cta {
@@ -3933,7 +4485,6 @@
 		align-items: center;
 		gap: 0.4rem;
 		align-self: flex-start;
-		margin-top: clamp(1.5rem, 3vw, 2.25rem);
 		font-family: 'Inter', system-ui, sans-serif;
 		font-size: 0.95rem;
 		font-weight: 600;
@@ -3966,12 +4517,12 @@
 	.nx-cta:hover .nx-cta-arrow {
 		transform: translateX(4px);
 	}
-	.nx-panel[data-product='orion'] .nx-cta {
+	.nx-slide[data-product='orion'] .nx-cta {
 		background: #d7dde4;
 		color: #08090a;
 		border-color: #d7dde4;
 	}
-	.nx-panel[data-product='orion'] .nx-cta:hover {
+	.nx-slide[data-product='orion'] .nx-cta:hover {
 		background: #ffffff;
 		border-color: #ffffff;
 		box-shadow: 0 8px 16px rgba(200, 210, 220, 0.28);
@@ -4014,7 +4565,7 @@
 	/* El logotipo de Signum es retrato (353×512). Dentro de una caja cuadrada
 	   con object-fit:contain se ajustaría por altura y quedaría un 31% más
 	   estrecho que los otros dos, así que aquí se controla por altura. */
-	.nx-panel[data-product='signum'] .nx-logo {
+	.nx-slide[data-product='signum'] .nx-logo {
 		width: auto;
 		max-width: 100%;
 		aspect-ratio: 353 / 512;
@@ -4053,7 +4604,7 @@
 		.nx-card {
 			min-height: auto;
 		}
-		.nx-panel {
+		.nx-slide {
 			grid-template-columns: 1fr;
 		}
 		.nx-stage {
@@ -4063,7 +4614,7 @@
 		.nx-logo {
 			width: clamp(200px, 38vw, 300px);
 		}
-		.nx-panel[data-product='signum'] .nx-logo {
+		.nx-slide[data-product='signum'] .nx-logo {
 			height: clamp(220px, 40vw, 320px);
 		}
 		.nx-cell {
@@ -4089,17 +4640,11 @@
 		.nx-logo {
 			width: clamp(150px, 50vw, 220px);
 		}
-		.nx-panel[data-product='signum'] .nx-logo {
+		.nx-slide[data-product='signum'] .nx-logo {
 			height: clamp(170px, 52vw, 250px);
 		}
-		.nx-lists {
+		.nx-models-list {
 			grid-template-columns: 1fr;
-		}
-		.nx-aud {
-			flex-direction: column;
-		}
-		.nx-aud-label {
-			min-width: 0;
 		}
 
 		/* Las tres celdas siguen en fila y siempre visibles: un carril con
@@ -4146,9 +4691,9 @@
 			animation: none;
 		}
 		.nx-card,
-		.nx-chip,
+		.nx-model,
 		.nx-cta-arrow,
-		.nx-panel,
+		.nx-slide,
 		.nx-cell,
 		.nx-cell-mark,
 		.nx-cell-name {
