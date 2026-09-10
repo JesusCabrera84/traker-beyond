@@ -3,7 +3,12 @@
 ## 📌 Descripción
 
 Página de inicio (landing page) de Geminis Labs.
-Presenta productos (Orion, Nexus), formulario de contacto, y secciones informativas.
+Presenta los tres productos (Nexus, Orion, Signum), la oferta de ingeniería y
+consultoría, el formulario de contacto y secciones informativas.
+
+Es además el único punto del sitio con formulario de contacto: las páginas de
+servicios y de partners delegan aquí su conversión en vez de duplicar un
+formulario con su propio reCAPTCHA.
 
 ---
 
@@ -36,9 +41,16 @@ Presenta productos (Orion, Nexus), formulario de contacto, y secciones informati
 ### Navegación general
 
 1. Usuario accede a `/` (home)
-2. Renderizar secciones: Hero, Productos (Orion, Nexus), Contacto
+2. Renderizar secciones, en este orden: Hero → ¿Qué es Geminis Labs? (`#nosotros`)
+   → Tecnologías que convergen (`#tecnologias`) → Productos (`#productos`)
+   → Servicios (`#servicios`) → ¿Por qué existimos? → Futuro → Contacto (`#contacto`)
 3. Animaciones de scroll y efectos visuales
-4. Navegación a productos específicos (`/products/nexus`)
+4. Navegación a productos (`/products/nexus`, y sitios externos de Orion y Signum)
+   y a servicios (`/servicios`, `/servicios/diagnostico`)
+
+> **El orden de Productos antes de Servicios es intencional**: los productos son
+> la prueba de lo que la sección de servicios afirma, y el «también» de su
+> titular necesita que el visitante ya los haya visto para tener antecedente.
 
 ### Formulario de contacto
 
@@ -48,6 +60,47 @@ Presenta productos (Orion, Nexus), formulario de contacto, y secciones informati
 4. POST a `/api/v1/contact/send-message` con datos + recaptcha_token
 5. Mostrar mensaje de confirmación o error
 6. Limpiar formulario si exitoso
+
+---
+
+## 📊 Fuentes de datos
+
+| Archivo                       | Sección                                                       |
+| ----------------------------- | ------------------------------------------------------------- |
+| `src/lib/data/products.js`    | Rail y panel de `#productos`                                  |
+| `src/lib/data/nexusModels.js` | Banda de contratación de Nexus (suscripción/SaaS/white-label) |
+| `src/lib/data/services.js`    | Riel de proceso y anotaciones de `#servicios`                 |
+
+---
+
+## 🎨 Notas de la sección de servicios
+
+- La ilustración `/img/servicios-cadena.webp` **lleva canal alfa generado a
+  medida**: su fondo se eliminó del archivo derivando la transparencia de la
+  luminancia contra un modelo por bloques del propio degradado de la imagen.
+  Igualar el color de la sección no funcionaba porque la ilustración va de
+  `#000911` en una esquina a `#001b29` en otra
+- Las anotaciones (`scenePins`) **están calculadas, no ajustadas a ojo**: la
+  silueta del dibujo se midió columna a columna y cada `labelY` se fija para que
+  el rótulo quede por encima del punto más alto de la silueta en todo su rango
+  horizontal. La tabla está en `services.js`. **Si se alarga un texto y le crece
+  una línea, hay que rebajar su `labelY`**
+- Por debajo de 1280px las anotaciones se apagan y el mismo contenido se lee como
+  lista
+
+---
+
+## ⚠️ Colisiones de CSS global
+
+`nexus.css` y `login-page.css` son hojas **sin scope**. SvelteKit carga la de
+Nexus al precargar la ruta cuando el puntero entra en un enlace hacia ella, y a
+partir de ahí sus clases afectan a la landing. Ya provocó un bloque blanco al
+hacer hover sobre «Explorar Nexus»: sus `.nx-proof` y `.nx-panel` pisaban los de
+la landing, que se renombraron a `.nx-evidence` y `.nx-slide`.
+
+El scope de Svelte impide que los estilos de un componente se escapen, **no que
+los globales entren**. Antes de crear una clase `nx-*` nueva en la landing,
+comprobar que no exista ya en `nexus.css`.
 
 ---
 

@@ -14,6 +14,7 @@ This documentation supports C4 container and component diagrams.
 | ----------------------- | ------------------- | --------------------------------------------------------- |
 | Backend API (admin-api) | REST API            | auth, dashboard, profile, accept-invitation, verify-email |
 | Google reCAPTCHA v3     | Third-party Service | home (contact form)                                       |
+| Google Fonts            | Third-party Service | home, servicios, products-nexus-partners (Audiowide)      |
 
 ### Endpoints Backend API
 
@@ -44,6 +45,8 @@ This documentation supports C4 container and component diagrams.
 - [verify-email.md](./verify-email.md) - Verificación de correo electrónico
 - [accept-invitation.md](./accept-invitation.md) - Aceptación de invitaciones
 - [products-nexus.md](./products-nexus.md) - Página de producto Nexus
+- [products-nexus-partners.md](./products-nexus-partners.md) - Nexus para partners (SaaS y white-label)
+- [servicios.md](./servicios.md) - Ingeniería y consultoría
 
 ---
 
@@ -59,6 +62,8 @@ graph TB
         VER[Verify Email Module]
         ACC[Accept Invitation Module]
         NEX[Nexus Product Module]
+        PART[Nexus Partners Module]
+        SERV[Services Module]
     end
 
     subgraph "Backend Services"
@@ -67,6 +72,7 @@ graph TB
 
     subgraph "External Services"
         RECAP[Google reCAPTCHA v3]
+        FONTS[Google Fonts]
     end
 
     HOME -->|Contact Form| API
@@ -76,6 +82,11 @@ graph TB
     PROF -->|User Management| API
     VER -->|Email Verification| API
     ACC -->|Accept Invitation| API
+    SERV -->|CTA al formulario| HOME
+    PART -->|CTA al formulario| HOME
+    NEX -->|Detalles técnicos| PART
+    SERV -->|Audiowide| FONTS
+    PART -->|Audiowide| FONTS
 
     style HOME fill:#1e3a8a
     style AUTH fill:#1e3a8a
@@ -84,8 +95,11 @@ graph TB
     style VER fill:#1e3a8a
     style ACC fill:#1e3a8a
     style NEX fill:#1e3a8a
+    style PART fill:#1e3a8a
+    style SERV fill:#1e3a8a
     style API fill:#059669
     style RECAP fill:#dc2626
+    style FONTS fill:#dc2626
 ```
 
 ---

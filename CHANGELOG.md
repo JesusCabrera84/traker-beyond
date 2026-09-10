@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Module docs for the new routes (`docs/architecture/modules/servicios.md`, `products-nexus-partners.md`), plus the index diagram and `home.md` brought up to date with the new section order, the shared data sources, and the two unscoped global stylesheets a future author needs to know about before adding an `nx-*` class
 - `/servicios/[slug]`: one template serving all six capability pages, with the full detail the grouping hides — the source document's thirteen areas survive here, 100+ services across the six. An unknown slug is a real 404, not an empty shell that Google would index. Each page links to its neighbours with wraparound, so the six can be toured without returning to the hub
 - `/servicios`: the consulting hub. The thirteen areas of the source document grouped into six capabilities, presented as full-bleed rows that expand rather than a third grid — the landing already has the 2×2 technology layers and the five area badges, and one more grid would read as more of the same. The ENTENDEMOS → OPERAMOS flow is a 1px process rail, not five more cards
 - `/servicios/diagnostico`: the commercial entry point. What gets reviewed, who it is for, and the deliverable the source document specifies — state, risks, opportunities, recommended architecture, roadmap, investment estimate
