@@ -1,7 +1,7 @@
 <script>
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
-	import { services, processSteps } from '$lib/data/services.js';
+	import { services, processSteps, arbolNodos, arbolRamas } from '$lib/data/services.js';
 
 	// Abierta la primera: la página nunca se ve vacía y el visitante entiende de
 	// inmediato que las filas se abren. El resto colapsadas para que las seis
@@ -28,20 +28,76 @@
 
 <main class="sv-page">
 	<!-- ── HERO ──────────────────────────────────────────── -->
+	<!--
+		La fotografía va como <img> y no como background-image: es el elemento más
+		grande de la primera pantalla, así que conviene que el navegador la
+		descubra en el HTML y pueda priorizarla.
+
+		El texto se apoya sobre el hombro y la manga, que es la zona más oscura de
+		la imagen —luminancia media 14.5 sobre 255, medida sobre el archivo—, y la
+		mitad derecha queda libre a propósito: ahí crece el árbol.
+	-->
 	<section class="sv-hero">
-		<div class="sv-container">
-			<p class="sv-overline">Ingeniería y consultoría</p>
-			<h1 class="sv-hero-title">De la idea a una solución que funciona.</h1>
-			<p class="sv-hero-sub">
-				Tomamos un problema de negocio desde que todavía es una idea y lo llevamos hasta una
-				solución operando. Diseñamos la estrategia, la arquitectura, el software, el hardware y la
-				infraestructura que hagan falta. <strong
-					>Un solo equipo, de la estrategia a producción.</strong
-				>
-			</p>
-			<div class="sv-hero-actions">
-				<a href="/servicios/diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a>
-				<a href="/#productos" class="sv-btn sv-btn--ghost">Ver lo que hemos construido</a>
+		<div class="sv-hero-foto">
+			<img
+				src="/img/servicios-hero.webp"
+				alt=""
+				width="1672"
+				height="941"
+				fetchpriority="high"
+				decoding="async"
+			/>
+			<div class="sv-hero-velo" aria-hidden="true"></div>
+		</div>
+
+		<div class="sv-hero-inner">
+			<div class="sv-hero-copy">
+				<p class="sv-overline">Ingeniería y consultoría</p>
+				<h1 class="sv-hero-title">De la idea a una solución que funciona.</h1>
+				<p class="sv-hero-sub">
+					Tomamos un problema de negocio desde que todavía es una idea y lo llevamos hasta una
+					solución operando.
+					<strong>Un solo equipo, de la estrategia a producción.</strong>
+				</p>
+				<div class="sv-hero-actions">
+					<a href="/servicios/diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a>
+					<a href="/#productos" class="sv-btn sv-btn--ghost">Ver nuestros productos</a>
+				</div>
+			</div>
+
+			<!--
+				El árbol tecnológico. Nace de la mano del hombre y crece hacia arriba y
+				a la derecha. Es decorativo: lo que cuenta ya está en el texto y en las
+				seis capacidades, así que queda fuera del árbol de accesibilidad.
+			-->
+			<div class="sv-hero-arbol" aria-hidden="true">
+				<div class="sv-arbol">
+					<!-- Los trazos van detrás de los nodos, en el mismo sistema de 0–100
+					     que sus coordenadas, para que todo escale junto. -->
+					<svg class="sv-arbol-trazos" viewBox="0 0 100 100" preserveAspectRatio="none">
+						{#each arbolRamas as rama (rama.id)}
+							<path class="sv-arbol-linea" class:sv-arbol-linea--tronco={rama.tronco} d={rama.d} />
+							<path
+								class="sv-arbol-pulso"
+								class:sv-arbol-pulso--tronco={rama.tronco}
+								d={rama.d}
+								style="--d: {rama.retardo}s"
+							/>
+						{/each}
+					</svg>
+
+					{#each arbolNodos as nodo (nodo.id)}
+						<img
+							class="sv-arbol-nodo"
+							src="/img/arbol/{nodo.img}.webp"
+							alt=""
+							decoding="async"
+							data-capa={nodo.capa}
+							class:sv-arbol-nodo--volteado={nodo.voltear}
+							style="--x: {nodo.x}%; --y: {nodo.y}%; --t: {nodo.tamano}%;"
+						/>
+					{/each}
+				</div>
 			</div>
 		</div>
 	</section>
@@ -159,6 +215,58 @@
 						<li>Supervisión técnica de quien ya te desarrolla</li>
 						<li>Acompañamiento en la contratación de tu equipo</li>
 					</ul>
+					<!-- El diagrama va como SVG y no como imagen: escala sin pixelarse,
+					     hereda la paleta de la sección y puede animarse con el mismo pulso
+					     que el resto. Es decorativo —lo que dice ya está en la lista de
+					     arriba— así que queda fuera del árbol de accesibilidad. -->
+					<figure class="sv-cto" aria-hidden="true">
+						<svg viewBox="0 0 260 122" role="presentation" focusable="false">
+							<defs>
+								<!-- En coordenadas de usuario, no de caja delimitadora: una línea
+								     recta tiene caja de área cero y ahí un degradado en
+								     objectBoundingBox queda indefinido y no llega a pintarse. -->
+								<linearGradient
+									id="svCtoLinea"
+									gradientUnits="userSpaceOnUse"
+									x1="0"
+									y1="0"
+									x2="0"
+									y2="122"
+								>
+									<stop offset="0%" stop-color="var(--gl-teal-400)" />
+									<stop offset="100%" stop-color="var(--sv-accent)" />
+								</linearGradient>
+							</defs>
+
+							<text class="sv-cto-origen" x="130" y="10" text-anchor="middle">TU EMPRESA</text>
+							<path class="sv-cto-guia" d="M130 18 V34" />
+
+							<rect class="sv-cto-caja" x="88" y="34" width="84" height="30" rx="8" />
+							<text class="sv-cto-nodo" x="130" y="54" text-anchor="middle">CTOaaS</text>
+
+							<!-- Tronco y tres ramas hacia los frentes que se supervisan -->
+							<path class="sv-cto-guia" d="M130 64 V76" />
+							<path class="sv-cto-guia" d="M40 76 H220" />
+							<path class="sv-cto-guia" d="M40 76 V90" />
+							<path class="sv-cto-guia" d="M130 76 V90" />
+							<path class="sv-cto-guia" d="M220 76 V90" />
+							<path class="sv-cto-pulso" d="M40 76 V90" style="--d: 0s" />
+							<path class="sv-cto-pulso" d="M130 76 V90" style="--d: 0.32s" />
+							<path class="sv-cto-pulso" d="M220 76 V90" style="--d: 0.64s" />
+
+							<circle class="sv-cto-punto" cx="40" cy="90" r="2.6" />
+							<circle class="sv-cto-punto" cx="130" cy="90" r="2.6" />
+							<circle class="sv-cto-punto" cx="220" cy="90" r="2.6" />
+
+							<text class="sv-cto-hoja" x="40" y="110" text-anchor="middle">Equipo</text>
+							<text class="sv-cto-hoja" x="130" y="110" text-anchor="middle">Vendors</text>
+							<text class="sv-cto-hoja" x="220" y="110" text-anchor="middle">Tecnología</text>
+						</svg>
+						<figcaption class="sv-cto-pie">
+							Una sola cabeza técnica sobre los tres frentes donde se pierde el dinero.
+						</figcaption>
+					</figure>
+
 					<a href="/#contacto" class="sv-btn sv-btn--ghost">Hablar de acompañamiento</a>
 				</article>
 			</div>
@@ -219,7 +327,7 @@
 	/* `login-page.css` declara un `section { min-height: 100vh; display: flex }`
 	   sin scope que se filtra a todo el sitio. Se neutraliza aquí, igual que hace
 	   nexus.css para los suyos. */
-	.sv-page section {
+	.sv-page section:not(.sv-hero) {
 		min-height: 0;
 		display: block;
 	}
@@ -274,30 +382,181 @@
 	/* ── Hero ──────────────────────────────────────────── */
 
 	.sv-hero {
-		padding: clamp(6.5rem, 13vw, 9.5rem) 0 clamp(3rem, 6vw, 4.5rem);
+		position: relative;
+		isolation: isolate;
+		min-height: clamp(38rem, 84vh, 60rem);
+		display: flex;
+		align-items: stretch;
+		overflow: hidden;
+		background: var(--sv-bg);
+	}
+	.sv-hero-foto {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+	}
+	.sv-hero-foto img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		/* El hombre vive en el borde izquierdo de la foto: anclando ahí, es lo
+		   último que se recorta cuando la ventana se estrecha. */
+		object-position: left center;
+		/* La fotografía es de noche y ya venía oscura de origen; un poco de brillo
+		   y saturación devuelven la mesa, las tarjetas y la cara, que se perdían. */
+		filter: brightness(1.24) saturate(1.06);
+	}
+	/*
+	 * Dos velos, no uno. El vertical asienta la parte baja para el texto y los
+	 * botones; el horizontal apaga la ventana de la ciudad, que es la zona más
+	 * clara de la imagen (34.5 de luminancia frente a 14.5 del hombro) y la
+	 * única que podría comerse un titular blanco.
+	 */
+	/*
+	 * El velo se concentra DEBAJO DEL TEXTO, no sobre toda la imagen. Antes eran
+	 * dos degradados a lo ancho que se multiplicaban entre sí y apagaban la
+	 * escena entera para proteger un bloque de texto que ocupa un tercio.
+	 *
+	 * El radial hace ese trabajo donde hace falta —abajo a la izquierda, sobre el
+	 * hombro— y el lineal solo asienta los bordes superior e inferior lo justo
+	 * para que la barra de navegación y el corte con la sección siguiente no
+	 * queden duros.
+	 */
+	.sv-hero-velo {
+		position: absolute;
+		inset: 0;
 		background:
-			radial-gradient(ellipse at 15% 0%, rgba(8, 131, 160, 0.28), transparent 58%), var(--sv-bg);
+			radial-gradient(
+				115% 95% at 10% 76%,
+				rgba(0, 12, 21, 0.88) 0%,
+				rgba(0, 12, 21, 0.5) 34%,
+				transparent 64%
+			),
+			linear-gradient(180deg, rgba(0, 12, 21, 0.4) 0%, transparent 22%, rgba(0, 12, 21, 0.45) 100%);
+	}
+	.sv-hero-inner {
+		position: relative;
+		width: 100%;
+		display: grid;
+		grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
+		align-items: end;
+		gap: clamp(1.5rem, 3vw, 3rem);
+		padding: clamp(7rem, 14vw, 10rem) 0 clamp(2.5rem, 5vw, 4rem);
+		padding-left: max(2rem, calc((100% - 1180px) / 2));
+		padding-right: clamp(1rem, 2vw, 2rem);
+	}
+	.sv-hero-copy {
+		max-width: 30rem;
+	}
+	.sv-hero-arbol {
+		align-self: stretch;
+		min-height: clamp(12rem, 30vw, 24rem);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	/* Caja de referencia del árbol: todo dentro se posiciona en porcentajes
+	   sobre ella, así la composición aguanta cualquier ancho sin recalcular. */
+	.sv-arbol {
+		position: relative;
+		width: 100%;
+		max-width: 42rem;
+		max-height: 100%;
+		aspect-ratio: 1 / 1.02;
+	}
+	.sv-arbol-trazos {
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		overflow: visible;
+	}
+	.sv-arbol-linea {
+		fill: none;
+		stroke: var(--sv-accent);
+		stroke-width: 1.6;
+		stroke-linejoin: round;
+		stroke-linecap: round;
+		opacity: 0.62;
+		vector-effect: non-scaling-stroke;
+		filter: drop-shadow(0 0 4px rgba(127, 227, 245, 0.75));
+	}
+	.sv-arbol-linea--tronco {
+		stroke-width: 8;
+		opacity: 0.72;
+		filter: drop-shadow(0 0 12px rgba(127, 227, 245, 0.85));
+	}
+	/* El mismo pulso de señal del resto de la página: la decisión entra por el
+	   tronco y recorre las ramas. */
+	.sv-arbol-pulso {
+		fill: none;
+		stroke: #ddfaff;
+		stroke-width: 2.2;
+		stroke-linecap: round;
+		stroke-linejoin: round;
+		vector-effect: non-scaling-stroke;
+		stroke-dasharray: 4 46;
+		filter: drop-shadow(0 0 4px rgba(127, 227, 245, 0.9));
+		animation: svArbolFluir 4.2s linear infinite;
+		animation-delay: var(--d);
+	}
+	.sv-arbol-pulso--tronco {
+		stroke-width: 5;
+		stroke-dasharray: 6 44;
+		filter: drop-shadow(0 0 10px rgba(127, 227, 245, 0.95));
 	}
 
+	@keyframes svArbolFluir {
+		from {
+			stroke-dashoffset: 50;
+		}
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+	/* Los nodos se centran en su coordenada, no se anclan por la esquina: así
+	   `--x`/`--y` señalan el punto del trazo con el que deben coincidir. */
+	.sv-arbol-nodo {
+		position: absolute;
+		left: var(--x);
+		top: var(--y);
+		width: var(--t);
+		height: auto;
+		transform: translate(-50%, -50%);
+		transition: filter 0.4s var(--gl-ease);
+	}
+	.sv-arbol-nodo--volteado {
+		transform: translate(-50%, -50%) scaleX(-1);
+	}
+
+	.sv-arbol-nodo[data-capa='3'] {
+		filter: drop-shadow(0 0 14px rgba(127, 227, 245, 0.35));
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.sv-arbol-pulso {
+			display: none;
+		}
+	}
 	.sv-hero-title {
 		font-family: var(--gl-font-body);
 		font-weight: 700;
-		font-size: clamp(2.1rem, 5.4vw, 3.7rem);
+		font-size: clamp(2rem, 4.4vw, 3.4rem);
 		line-height: 1.08;
 		letter-spacing: -0.02em;
 		text-wrap: balance;
-		margin: 0 0 1.25rem;
-		max-width: 18ch;
+		margin: 0 0 1.1rem;
+		max-width: 15ch;
+		text-shadow: 0 2px 18px rgba(0, 12, 21, 0.6);
 	}
-
 	.sv-hero-sub {
-		font-size: clamp(1rem, 1.3vw, 1.18rem);
-		line-height: 1.65;
+		font-size: clamp(0.98rem, 1.2vw, 1.12rem);
+		line-height: 1.6;
 		color: var(--sv-text-muted);
-		max-width: 60ch;
-		margin: 0 0 2rem;
+		max-width: 44ch;
+		margin: 0 0 1.75rem;
+		text-shadow: 0 1px 12px rgba(0, 12, 21, 0.6);
 	}
-
 	.sv-hero-sub strong {
 		color: var(--sv-text);
 		font-weight: 600;
@@ -620,6 +879,7 @@
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(24rem, 100%), 1fr));
 		gap: 1.25rem;
+		align-items: start;
 	}
 
 	.sv-door {
@@ -678,6 +938,79 @@
 		height: 5px;
 		border-radius: 50%;
 		background: var(--sv-accent);
+	}
+
+	/* ── Diagrama del CTO as a Service ─────────────────── */
+	.sv-cto {
+		margin: 0.5rem 0 0;
+		padding: 1.1rem 0.75rem 0.75rem;
+		border: 1px solid var(--sv-rule);
+		border-radius: var(--gl-r-md);
+		background:
+			radial-gradient(70% 90% at 50% 38%, rgba(127, 227, 245, 0.07), transparent 70%),
+			rgba(127, 227, 245, 0.02);
+		width: 100%;
+	}
+	.sv-cto svg {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	/* El origen y las hojas son de la caja; el nodo es de quien la atiende, así
+	   que se lleva el acento. */
+	.sv-cto-origen,
+	.sv-cto-hoja {
+		font-family: var(--gl-font-label);
+		font-size: 9px;
+		letter-spacing: 0.12em;
+		text-transform: uppercase;
+		fill: var(--sv-text-muted);
+	}
+	.sv-cto-nodo {
+		font-family: var(--gl-font-label);
+		font-size: 12px;
+		letter-spacing: 0.08em;
+		fill: var(--sv-accent);
+	}
+	.sv-cto-caja {
+		fill: rgba(127, 227, 245, 0.06);
+		stroke: var(--sv-accent);
+		stroke-width: 1;
+	}
+	.sv-cto-guia {
+		fill: none;
+		stroke: url(#svCtoLinea);
+		stroke-width: 1.1;
+		opacity: 0.55;
+	}
+	.sv-cto-punto {
+		fill: var(--sv-accent);
+	}
+	/* Un pulso baja por cada rama, escalonado: la decisión entra por arriba y
+	   sale hacia los tres frentes. Es el mismo gesto que el de la landing. */
+	.sv-cto-pulso {
+		fill: none;
+		stroke: var(--sv-accent);
+		stroke-width: 1.6;
+		stroke-linecap: round;
+		stroke-dasharray: 5 23;
+		animation: svCtoBajar 2.8s linear infinite;
+		animation-delay: var(--d);
+	}
+	@keyframes svCtoBajar {
+		from {
+			stroke-dashoffset: 28;
+		}
+		to {
+			stroke-dashoffset: 0;
+		}
+	}
+	.sv-cto-pie {
+		margin: 0.75rem 0 0;
+		font-size: 0.78rem;
+		line-height: 1.5;
+		color: var(--sv-text-faint);
+		text-align: center;
 	}
 
 	.sv-door .sv-btn {
@@ -745,6 +1078,24 @@
 	/* ── Responsive ────────────────────────────────────── */
 
 	@media (max-width: 900px) {
+		/* A una columna: el árbol no cabe al costado y el texto necesita el ancho.
+		   La foto sigue detrás, con el velo más cerrado para que el titular aguante
+		   sobre la ventana de la ciudad. */
+		.sv-hero-inner {
+			grid-template-columns: 1fr;
+			padding-right: max(2rem, calc((100% - 1180px) / 2));
+		}
+		.sv-hero-arbol {
+			display: none;
+		}
+		.sv-hero-velo {
+			background: linear-gradient(
+				180deg,
+				rgba(0, 12, 21, 0.62) 0%,
+				rgba(0, 12, 21, 0.45) 30%,
+				rgba(0, 12, 21, 0.88) 100%
+			);
+		}
 		.sv-process {
 			grid-template-columns: 1fr;
 			gap: 1rem;
@@ -776,6 +1127,9 @@
 		.sv-row::before,
 		.sv-row-title,
 		.sv-row-chevron,
+		.sv-cto-pulso {
+			display: none;
+		}
 		.sv-row-detail,
 		.sv-row-link,
 		.sv-row-link-arrow,
