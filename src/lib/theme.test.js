@@ -6,7 +6,8 @@ import {
 	getThemeConfig,
 	initializeTheme,
 	nextTheme,
-	previousTheme
+	previousTheme,
+	getAllThemes
 } from './theme.js';
 
 describe('Theme System', () => {
@@ -157,5 +158,14 @@ describe('Theme System', () => {
 			previousTheme();
 			expect(getCurrentTheme()).toBe(start);
 		});
+	});
+
+	it('getAllThemes expone el catálogo completo', () => {
+		const temas = getAllThemes();
+
+		expect(Object.keys(temas).length).toBeGreaterThan(0);
+		for (const [clave, tema] of Object.entries(temas)) {
+			expect(tema, `${clave} sin definición`).toBeTruthy();
+		}
 	});
 });

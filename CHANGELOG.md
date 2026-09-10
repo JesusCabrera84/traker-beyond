@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- `maplibre-gl` eliminada. Resolvía [GHSA-jrc7-96c5-q579](https://osv.dev/GHSA-jrc7-96c5-q579) (CVSS 10.0, bypass del sanitizador XSS) sin subir a la major 6.x: la dependencia no se importaba en ningún archivo del repositorio, los mapas usan `@googlemaps/js-api-loader`
+- `vitest` y `@vitest/coverage-v8` a 4.x, que resuelve [GHSA-82fw-gwwq-j7x9](https://osv.dev/GHSA-82fw-gwwq-j7x9) (path traversal, solo desarrollo). `npm audit` y OSV quedan ambos limpios
+
+### Removed
+
+- `@vitest/browser`, `vitest-browser-svelte`, `vitest-setup-client.js` y `src/routes/page.svelte.spec.js`. Fijaban los peers de vitest en la 3.x e impedían la actualización, y eran andamiaje: browser mode nunca estuvo configurado (`vite.config.js` usa `happy-dom`) y ese spec —el demo que trae SvelteKit— estaba excluido por config, así que nunca llegó a ejecutarse
+
+### Added
+
+- 48 tests nuevos sobre las rutas de error de `billingService`, `authStore` y `userStore`: qué ocurre cuando el backend responde mal, cuando el servicio lanza y cuando el cuerpo no es JSON. En un módulo de pagos ese es el comportamiento que no puede romperse en silencio. También quedan cubiertos los stores derivados, que son los que consumen los componentes
+
+### Changed
+
+- Vitest 4 mide la cobertura con remapeo AST y no admite volver al método anterior, así que las métricas bajaron con el mismo código. En vez de recalibrar los umbrales de [GOVERNANCE.md](docs/GOVERNANCE.md) se escribieron los tests que faltaban: statements 83.6% → 91.03%, funciones 83.92% → 92.94%, líneas 88.8% → 94.64%
+- El `include` de cobertura pasa de `src/lib/**` a `src/lib/**/*.{js,ts}`: vitest 4 intentaba parsear los `.css` y `.md` de `src/lib/styles` y emitía un `PARSE_ERROR` por cada uno
+
 ### Fixed
 
 - Deploy no longer runs `docker container prune` and `docker volume prune` on the EC2 host. Both sweep the entire machine, which is shared with `siscom-api`, `siscom-admin-api` and a Valkey container holding data-token scope state, and neither reclaimed anything belonging to this project: the web container is already removed by name a few lines above, and the image is static and creates no volumes. `docker image prune` stays, since dangling images are where the disk actually goes

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { get } from 'svelte/store';
-import { authStore } from './authStore.js';
+import { authStore, isAuthenticated, currentUser, authLoading, authError } from './authStore.js';
 
 // Mock de los servicios
 vi.mock('../services/authService.js', () => ({
@@ -292,5 +292,116 @@ describe('AuthStore', () => {
 			expect(result.success).toBe(false);
 			expect(get(authStore).error).toBe('Error al solicitar recuperación de contraseña');
 		});
+	});
+
+	// Cada método del store tiene tres salidas: éxito, el servicio responde
+	// `success: false`, y el servicio lanza. Las dos últimas dejan un mensaje en
+	// el estado que la UI enseña, así que se comprueban una por una.
+	describe('rama de fallo del servicio', () => {
+		it.each([
+			['register', (a) => a.register({ email: 'a@test.com' }), 'register'],
+			['confirmEmail', (a) => a.confirmEmail('tok'), 'confirmEmail'],
+			['acceptInvitation', (a) => a.acceptInvitation('tok', 'pw'), 'acceptInvitation'],
+			['getClientInfo', (a) => a.getClientInfo(), 'getCurrentClient'],
+			['resendVerification', (a) => a.resendVerification('a@test.com'), 'resendVerification'],
+			['resetPassword', (a) => a.resetPassword('a@test.com', '123', 'pw'), 'resetPassword']
+		])('%s guarda el mensaje que devuelve el servicio', async (_n, llamada, metodo) => {
+			const { authService } = await import('../services/authService.js');
+			authService[metodo].mockResolvedValueOnce({ success: false, message: 'Credencial inválida' });
+
+			const result = await llamada(authStore);
+
+			expect(result.success).toBe(false);
+			expect(get(authStore).error).toBe('Credencial inválida');
+			expect(get(authStore).loading).toBe(false);
+		});
+	});
+
+	describe('el servicio lanza', () => {
+		it.each([
+			[
+				'register',
+				(a) => a.register({ email: 'a@test.com' }),
+				'register',
+				'Error al registrar usuario'
+			],
+			['confirmEmail', (a) => a.confirmEmail('tok'), 'confirmEmail', 'Error al verificar email'],
+			[
+				'acceptInvitation',
+				(a) => a.acceptInvitation('tok', 'pw'),
+				'acceptInvitation',
+				'Error al aceptar la invitación'
+			],
+			[
+				'getClientInfo',
+				(a) => a.getClientInfo(),
+				'getCurrentClient',
+				'Error al obtener información del cliente'
+			],
+			[
+				'resendVerification',
+				(a) => a.resendVerification('a@test.com'),
+				'resendVerification',
+				'Error al reenviar verificación'
+			],
+			[
+				'resetPassword',
+				(a) => a.resetPassword('a@test.com', '123', 'pw'),
+				'resetPassword',
+				'Error al restablecer la contraseña'
+			]
+		])('%s cae a su mensaje por defecto', async (_n, llamada, metodo, esperado) => {
+			const { authService } = await import('../services/authService.js');
+			authService[metodo].mockRejectedValueOnce(new Error('red caída'));
+
+			const result = await llamada(authStore);
+
+			expect(result.success).toBe(false);
+			expect(result.message).toBe(esperado);
+			expect(get(authStore).error).toBe(esperado);
+			expect(get(authStore).loading).toBe(false);
+		});
+
+		// El logout es la excepción a propósito: si el backend falla, la sesión
+		// local se limpia igual. Dejar al usuario "dentro" sería peor.
+		it('logout limpia la sesión local aunque el backend falle', async () => {
+			const { authService } = await import('../services/authService.js');
+			authService.logout.mockRejectedValueOnce(new Error('502'));
+			authStore.updateUser({ id: 1, email: 'a@test.com' });
+
+			const result = await authStore.logout();
+
+			expect(result).toEqual({ success: true });
+			expect(get(authStore)).toEqual({
+				isAuthenticated: false,
+				user: null,
+				loading: false,
+				error: null
+			});
+		});
+	});
+
+	it('init deja un error legible si la comprobación de sesión falla', async () => {
+		const { authService } = await import('../services/authService.js');
+		authService.isAuthenticated.mockImplementationOnce(() => {
+			throw new Error('sessionStorage no disponible');
+		});
+
+		authStore.init();
+
+		expect(get(authStore).error).toBe('Error al verificar la sesión');
+		expect(get(authStore).isAuthenticated).toBe(false);
+	});
+
+	// Los stores derivados son lo que consumen los componentes; si alguno deja
+	// de reflejar el estado, la UI se queda desincronizada en silencio.
+	it('los stores derivados reflejan el estado', () => {
+		authStore.clearError();
+		authStore.updateUser({ id: 7, email: 'a@test.com' });
+
+		expect(get(currentUser)).toEqual({ id: 7, email: 'a@test.com' });
+		expect(get(isAuthenticated)).toBe(get(authStore).isAuthenticated);
+		expect(get(authLoading)).toBe(false);
+		expect(get(authError)).toBeNull();
 	});
 });
