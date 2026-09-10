@@ -44,13 +44,19 @@
 			icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6'
 		},
 		{
-			href: '#servicios',
+			href: '/servicios',
+			label: 'Servicios',
+			external: true,
+			icon: 'M11.049 2.927c-.3-.921-1.603-.921-1.902 0l-1.07 3.292a1 1 0 01-.95.69H3.61c-.969 0-1.371 1.24-.588 1.81l2.8 2.034a1 1 0 01.364 1.118l-1.07 3.292c-.3.921.755 1.688 1.54 1.118l2.8-2.034a1 1 0 011.175 0l2.8 2.034c.784.57 1.838-.197 1.539-1.118l-1.07-3.292a1 1 0 01.363-1.118l2.8-2.034c.784-.57.38-1.81-.588-1.81h-3.461a1 1 0 01-.951-.69l-1.07-3.292z'
+		},
+		{
+			href: '#nosotros',
 			label: 'Nosotros',
 			icon: 'M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z'
 		},
 		{
 			href: '#tecnologias',
-			label: 'Ecosistema',
+			label: 'Tecnología',
 			icon: 'M13 10V3L4 14h7v7l9-11h-7z'
 		},
 		{
@@ -98,7 +104,9 @@
 		<ul class="nav-menu desktop-menu">
 			{#each navLinks as link (link.href)}
 				<li>
-					<a href={getLinkHref(link.href)} on:click={closeMobileMenu}>{link.label}</a>
+					<a href={link.external ? link.href : getLinkHref(link.href)} on:click={closeMobileMenu}
+						>{link.label}</a
+					>
 				</li>
 			{/each}
 		</ul>
@@ -151,7 +159,7 @@
 	<nav class="drawer-nav">
 		{#each navLinks as link, i (link.href)}
 			<a
-				href={getLinkHref(link.href)}
+				href={link.external ? link.href : getLinkHref(link.href)}
 				class="drawer-link"
 				style="--delay: {i * 55}ms"
 				on:click={closeMobileMenu}

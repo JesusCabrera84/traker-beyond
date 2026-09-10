@@ -16,7 +16,19 @@
 			<!-- Brand -->
 			<div class="footer-brand">
 				<span class="footer-logo">Geminis Labs</span>
-				<p class="footer-tagline">Tecnología avanzada de monitoreo GPS para un mundo conectado.</p>
+				<p class="footer-tagline">
+					Ingeniería e innovación tecnológica. Conectamos humanidad y tecnología.
+				</p>
+			</div>
+
+			<!-- Servicios -->
+			<div class="footer-col">
+				<h4 class="footer-col-title">Servicios</h4>
+				<ul class="footer-links">
+					<li><a href="/servicios">Capacidades</a></li>
+					<li><a href="/servicios/diagnostico">Diagnóstico tecnológico</a></li>
+					<li><a href="/servicios#doors">CTO as a Service</a></li>
+				</ul>
 			</div>
 
 			<!-- Productos -->
@@ -51,7 +63,7 @@
 				<h4 class="footer-col-title">Recursos</h4>
 				<ul class="footer-links">
 					<li><a href="/faq">FAQ</a></li>
-					<li><a href="/docs">Documentación</a></li>
+					<li><a href="/products/nexus/partners">Nexus para partners</a></li>
 				</ul>
 			</div>
 
@@ -93,7 +105,8 @@
 	/* ── Top grid ───────────────────────────────────────────── */
 	.footer-top {
 		display: grid;
-		grid-template-columns: 1.6fr 1fr 1fr 1fr 1fr;
+		/* marca + cinco columnas: Servicios entró junto a Productos. */
+		grid-template-columns: 1.5fr repeat(5, 1fr);
 		gap: 2.5rem;
 		padding-bottom: 3rem;
 	}
