@@ -567,4 +567,108 @@ describe('billingService', () => {
 			code: 'PAYMENT_ALREADY_PROCESSED'
 		});
 	});
+
+	// ── Ramas de error ──────────────────────────────────────────────
+	// El camino feliz de cada función ya estaba cubierto; lo que faltaba era
+	// qué pasa cuando el backend responde mal. En un módulo de pagos ese es
+	// justo el comportamiento que no se puede permitir romper en silencio.
+
+	const err = (status, body) => ({ ok: false, status, json: async () => body });
+
+	it.each([
+		['getSummary', () => billingService.getSummary(), 500],
+		['getPayments', () => billingService.getPayments(), 500],
+		['getInvoices', () => billingService.getInvoices(), 500],
+		['getPaymentMethods', () => billingService.getPaymentMethods(), 500],
+		['getQuote', () => billingService.getQuote('p1', 'MONTHLY'), 400],
+		['getTaxProfile', () => billingService.getTaxProfile(), 500],
+		['setAutoRenew', () => billingService.setAutoRenew(true), 500],
+		['saveTaxProfile', () => billingService.saveTaxProfile({ rfc: 'XAXX010101000' }), 422],
+		['stampInvoiceCfdi', () => billingService.stampInvoiceCfdi('inv-1', 'G03'), 502],
+		['deletePaymentMethod', () => billingService.deletePaymentMethod('pm_1'), 404],
+		['setDefaultPaymentMethod', () => billingService.setDefaultPaymentMethod('pm_1'), 404],
+		['confirmSetupIntent', () => billingService.confirmSetupIntent('si_1'), 400],
+		['initAddPaymentMethodFlow', () => billingService.initAddPaymentMethodFlow('mount'), 500]
+	])('%s propaga el detalle del backend', async (_nombre, llamada, status) => {
+		fetch.mockResolvedValueOnce(err(status, { detail: 'El banco rechazó la operación' }));
+		await expect(llamada()).rejects.toThrow('El banco rechazó la operación');
+	});
+
+	// FastAPI manda `detail` en tres formas distintas y la UI enseña ese texto
+	// tal cual, así que las tres tienen que llegar legibles.
+	it.each([
+		['string', { detail: 'RFC inválido' }, 'RFC inválido'],
+		['lista de strings', { detail: ['Falta el código postal'] }, 'Falta el código postal'],
+		['lista de objetos 422', { detail: [{ msg: 'field required' }] }, 'field required'],
+		[
+			'objeto con prefijo de pydantic',
+			{ detail: [{ msg: 'Value error, RFC con formato inválido' }] },
+			'RFC con formato inválido'
+		]
+	])('interpreta el detalle en formato %s', async (_forma, body, esperado) => {
+		fetch.mockResolvedValueOnce(err(422, body));
+		await expect(billingService.saveTaxProfile({ rfc: 'X' })).rejects.toThrow(esperado);
+	});
+
+	it('cae al mensaje por defecto si el cuerpo no trae detalle usable', async () => {
+		fetch.mockResolvedValueOnce(err(500, { detail: [] }));
+		await expect(billingService.getQuote('p1', 'MONTHLY')).rejects.toThrow(
+			'No se pudo obtener el precio'
+		);
+	});
+
+	it('cae al mensaje por defecto si el cuerpo no es JSON', async () => {
+		fetch.mockResolvedValueOnce({
+			ok: false,
+			status: 503,
+			json: async () => {
+				throw new Error('no es JSON');
+			}
+		});
+		await expect(billingService.getSummary()).rejects.toThrow('Error 503');
+	});
+
+	// Un 409 con código propio del backend debe conservarlo: la UI distingue
+	// "ya pagado" de otros conflictos por ese código.
+	it('conserva el código que manda el backend en un 409', async () => {
+		fetch.mockResolvedValueOnce(
+			err(409, { detail: { code: 'SUBSCRIPTION_ALREADY_ACTIVE', msg: 'Ya tienes ese plan' } })
+		);
+		await expect(
+			billingService.createPaymentIntent({ planId: 'p1', billingCycle: 'MONTHLY' })
+		).rejects.toMatchObject({ code: 'SUBSCRIPTION_ALREADY_ACTIVE' });
+	});
+
+	it('setAutoRenew envía el valor y devuelve el cuerpo', async () => {
+		fetch.mockResolvedValueOnce({
+			ok: true,
+			status: 200,
+			json: async () => ({ auto_renew: false })
+		});
+		await expect(billingService.setAutoRenew(false)).resolves.toEqual({ auto_renew: false });
+		const [, opciones] = fetch.mock.calls.at(-1);
+		expect(opciones.method).toBe('PATCH');
+		expect(JSON.parse(opciones.body)).toEqual({ auto_renew: false });
+	});
+
+	it('retrievePaymentIntent consulta el intent en Stripe', async () => {
+		await expect(billingService.retrievePaymentIntent('cs_1')).resolves.toMatchObject({
+			paymentIntent: { status: 'succeeded' }
+		});
+		expect(mockStripe.retrievePaymentIntent).toHaveBeenCalledWith('cs_1');
+	});
+
+	it('rechaza pasarelas que no están implementadas', async () => {
+		await expect(billingService.retrievePaymentIntent('cs_1', 'paypal')).rejects.toThrow(
+			"Gateway 'paypal' no soportado"
+		);
+		await expect(billingService.getPaymentMethods('paypal')).resolves.toEqual([]);
+	});
+
+	it('descargar un recibo sin factura falla antes de llamar al backend', async () => {
+		await expect(billingService.downloadInvoiceReceipt(null)).rejects.toThrow(
+			'Factura no encontrada'
+		);
+		expect(fetch).not.toHaveBeenCalled();
+	});
 });

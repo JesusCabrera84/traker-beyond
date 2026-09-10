@@ -52,4 +52,3 @@ CHANGELOG.md
 .prettierrc*
 vitest.config.js
 playwright.config.js
-vitest-setup-client.js
