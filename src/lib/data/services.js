@@ -606,3 +606,15 @@ export const arbolRamas = [
 	{ id: 'rama-4i', d: 'M48 73 L36 75 L24 81 H14', retardo: 0.6 },
 	{ id: 'rama-4d', d: 'M48 73 L62 75 L74 81 H84', retardo: 0.9 }
 ];
+
+/**
+ * La rama que alimenta a un nodo, para poder encenderla cuando el puntero se
+ * acerca. Se deduce del identificador en vez de guardarse como campo: `hoja-3i`
+ * y `paso-3i` cuelgan de `rama-3i`, y todo lo que está sobre el eje —copa,
+ * uniones y raíz— cuelga del tronco. Un campo aparte sería una segunda copia de
+ * la misma relación, y las dos podrían acabar contradiciéndose.
+ */
+export function ramaDeNodo(id) {
+	const m = /^(?:hoja|paso)-(\d[id])$/.exec(id);
+	return m ? `rama-${m[1]}` : 'tronco';
+}

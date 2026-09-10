@@ -1,7 +1,13 @@
 <script>
 	import Navbar from '$lib/components/Navbar.svelte';
 	import Footer from '$lib/components/Footer.svelte';
-	import { services, processSteps, arbolNodos, arbolRamas } from '$lib/data/services.js';
+	import {
+		services,
+		processSteps,
+		arbolNodos,
+		arbolRamas,
+		ramaDeNodo
+	} from '$lib/data/services.js';
 
 	// Abierta la primera: la página nunca se ve vacía y el visitante entiende de
 	// inmediato que las filas se abren. El resto colapsadas para que las seis
@@ -10,6 +16,99 @@
 
 	function alternar(slug) {
 		abierta = abierta === slug ? null : slug;
+	}
+
+	// ── Árbol: parallax y foco ────────────────────────────────────────────
+	//
+	// El nodo bajo el puntero se ilumina junto con la rama que lo alimenta, y el
+	// resto del árbol se apaga un poco. No hay `:hover` de por medio a propósito:
+	// los nodos son PNG con mucho resplandor transparente alrededor, así que sus
+	// cajas se solapan y el puntero picaría el rectángulo de un vecino invisible
+	// mucho antes que el dibujo que se ve. Se ilumina el nodo cuyo CENTRO está
+	// más cerca del puntero, que es lo que la vista entiende como «ese».
+	let nodoActivo = null;
+	$: ramaActiva = nodoActivo ? ramaDeNodo(nodoActivo) : null;
+
+	// En unidades del sistema 0–100 del árbol. Más ancho y el foco salta entre
+	// nodos lejanos; más estrecho y hay que apuntar.
+	const RADIO_FOCO = 11;
+
+	const acotar = (v) => Math.max(-1, Math.min(1, v));
+
+	/**
+	 * Escucha el puntero sobre el hero. Las dos coordenadas se escriben como
+	 * custom properties sobre el contenedor del árbol, no como estado de Svelte:
+	 * cambian en cada fotograma, y pasarlas por el ciclo de render reevaluaría
+	 * los quince nodos sesenta veces por segundo para moverlos unos píxeles. Lo
+	 * que sí es estado es el nodo enfocado, que cambia unas pocas veces por
+	 * recorrido.
+	 */
+	function arbolVivo(hero) {
+		const caja = hero.querySelector('.sv-arbol');
+		if (!caja) return;
+
+		const quieto = window.matchMedia('(prefers-reduced-motion: reduce)');
+		let cuadro = 0;
+		let puntero = null;
+
+		function pintar() {
+			cuadro = 0;
+			if (!puntero) return;
+			const r = caja.getBoundingClientRect();
+			if (!r.width || !r.height) return;
+
+			// El puntero, en el mismo sistema 0–100 en el que viven los nodos.
+			const x = ((puntero.x - r.left) / r.width) * 100;
+			const y = ((puntero.y - r.top) / r.height) * 100;
+
+			// Acotado porque el hero es más ancho que el árbol: sin esto, el puntero
+			// sobre el texto empujaría las hojas muy lejos de su rama.
+			if (!quieto.matches) {
+				caja.style.setProperty('--px', acotar((x - 50) / 50).toFixed(3));
+				caja.style.setProperty('--py', acotar((y - 50) / 50).toFixed(3));
+			}
+
+			let cerca = null;
+			let minima = RADIO_FOCO;
+			for (const n of arbolNodos) {
+				const d = Math.hypot(n.x - x, n.y - y);
+				if (d < minima) {
+					minima = d;
+					cerca = n.id;
+				}
+			}
+			nodoActivo = cerca;
+		}
+
+		function mover(e) {
+			// El dedo no tiene hover: en táctil el árbol se quedaría encendido bajo
+			// la yema y se apagaría al levantarla, que no es lo que el gesto pide.
+			if (e.pointerType === 'touch') return;
+			puntero = { x: e.clientX, y: e.clientY };
+			if (!cuadro) cuadro = requestAnimationFrame(pintar);
+		}
+
+		function salir() {
+			puntero = null;
+			if (cuadro) {
+				cancelAnimationFrame(cuadro);
+				cuadro = 0;
+			}
+			caja.style.setProperty('--px', '0');
+			caja.style.setProperty('--py', '0');
+			nodoActivo = null;
+		}
+
+		hero.addEventListener('pointermove', mover);
+		hero.addEventListener('pointerleave', salir);
+
+		return {
+			destroy() {
+				hero.removeEventListener('pointermove', mover);
+				hero.removeEventListener('pointerleave', salir);
+				if (cuadro) cancelAnimationFrame(cuadro);
+			}
+		};
 	}
 </script>
 
@@ -37,7 +136,7 @@
 		la imagen —luminancia media 14.5 sobre 255, medida sobre el archivo—, y la
 		mitad derecha queda libre a propósito: ahí crece el árbol.
 	-->
-	<section class="sv-hero">
+	<section class="sv-hero" use:arbolVivo>
 		<div class="sv-hero-foto">
 			<img
 				src="/img/servicios-hero.webp"
@@ -71,12 +170,17 @@
 				seis capacidades, así que queda fuera del árbol de accesibilidad.
 			-->
 			<div class="sv-hero-arbol" aria-hidden="true">
-				<div class="sv-arbol">
+				<div class="sv-arbol" class:sv-arbol--enfocado={nodoActivo}>
 					<!-- Los trazos van detrás de los nodos, en el mismo sistema de 0–100
 					     que sus coordenadas, para que todo escale junto. -->
 					<svg class="sv-arbol-trazos" viewBox="0 0 100 100" preserveAspectRatio="none">
 						{#each arbolRamas as rama (rama.id)}
-							<path class="sv-arbol-linea" class:sv-arbol-linea--tronco={rama.tronco} d={rama.d} />
+							<path
+								class="sv-arbol-linea"
+								class:sv-arbol-linea--tronco={rama.tronco}
+								class:sv-arbol-linea--activa={rama.id === ramaActiva}
+								d={rama.d}
+							/>
 							<path
 								class="sv-arbol-pulso"
 								class:sv-arbol-pulso--tronco={rama.tronco}
@@ -94,6 +198,7 @@
 							decoding="async"
 							data-capa={nodo.capa}
 							class:sv-arbol-nodo--volteado={nodo.voltear}
+							class:sv-arbol-nodo--activo={nodo.id === nodoActivo}
 							style="--x: {nodo.x}%; --y: {nodo.y}%; --t: {nodo.tamano}%;"
 						/>
 					{/each}
@@ -458,6 +563,10 @@
 	/* Caja de referencia del árbol: todo dentro se posiciona en porcentajes
 	   sobre ella, así la composición aguanta cualquier ancho sin recalcular. */
 	.sv-arbol {
+		/* Puntero normalizado a −1..1, que escribe el JS. El valor de reposo va
+		   aquí para que el árbol se dibuje quieto antes de que nadie lo toque. */
+		--px: 0;
+		--py: 0;
 		position: relative;
 		width: 100%;
 		max-width: 42rem;
@@ -470,6 +579,10 @@
 		width: 100%;
 		height: 100%;
 		overflow: visible;
+		/* Los trazos se mueven a media distancia entre el tronco y las hojas: si
+		   se quedaran clavados, las hojas se despegarían de su propia rama. */
+		transform: translate(calc(var(--px) * 5px), calc(var(--py) * 5px));
+		transition: transform 0.45s var(--gl-ease);
 	}
 	.sv-arbol-linea {
 		fill: none;
@@ -485,6 +598,26 @@
 		stroke-width: 8;
 		opacity: 0.72;
 		filter: drop-shadow(0 0 12px rgba(127, 227, 245, 0.85));
+	}
+	/* La rama que alimenta al nodo enfocado. No toca `stroke-width` en el tronco:
+	   engordarlo de 8 a 2.8 lo adelgazaría, que es lo contrario de encenderlo. */
+	.sv-arbol--enfocado .sv-arbol-linea {
+		opacity: 0.28;
+	}
+	.sv-arbol--enfocado .sv-arbol-linea--activa {
+		opacity: 1;
+		filter: drop-shadow(0 0 11px rgba(127, 227, 245, 0.95));
+	}
+	.sv-arbol--enfocado .sv-arbol-linea--activa:not(.sv-arbol-linea--tronco) {
+		stroke-width: 2.8;
+	}
+	.sv-arbol-linea,
+	.sv-arbol-nodo {
+		transition:
+			transform 0.45s var(--gl-ease),
+			opacity 0.35s var(--gl-ease),
+			filter 0.35s var(--gl-ease),
+			stroke-width 0.35s var(--gl-ease);
 	}
 	/* El mismo pulso de señal del resto de la página: la decisión entra por el
 	   tronco y recorre las ramas. */
@@ -517,25 +650,64 @@
 	/* Los nodos se centran en su coordenada, no se anclan por la esquina: así
 	   `--x`/`--y` señalan el punto del trazo con el que deben coincidir. */
 	.sv-arbol-nodo {
+		--amp: 3px;
+		--giro: 1;
+		--acerca: 1;
 		position: absolute;
 		left: var(--x);
 		top: var(--y);
 		width: var(--t);
 		height: auto;
-		transform: translate(-50%, -50%);
-		transition: filter 0.4s var(--gl-ease);
+		/* El desplazamiento del puntero va DESPUÉS del volteo en la lista, así que
+		   el espejo no le cambia el signo: una hoja volteada se aparta hacia el
+		   mismo lado que sus vecinas. */
+		transform: translate(-50%, -50%)
+			translate(calc(var(--px) * var(--amp)), calc(var(--py) * var(--amp))) scaleX(var(--giro))
+			scale(var(--acerca));
+		will-change: transform;
+	}
+	/* La profundidad del parallax. El tronco ancla la escena y casi no se mueve;
+	   las hojas flotan por delante. La diferencia entre capas es lo que produce
+	   la sensación de fondo, no la cantidad de movimiento. */
+	.sv-arbol-nodo[data-capa='2'] {
+		--amp: 7px;
+	}
+	.sv-arbol-nodo[data-capa='3'] {
+		--amp: 13px;
+		filter: drop-shadow(0 0 14px rgba(127, 227, 245, 0.35));
 	}
 	.sv-arbol-nodo--volteado {
-		transform: translate(-50%, -50%) scaleX(-1);
+		--giro: -1;
 	}
 
-	.sv-arbol-nodo[data-capa='3'] {
-		filter: drop-shadow(0 0 14px rgba(127, 227, 245, 0.35));
+	.sv-arbol--enfocado .sv-arbol-nodo {
+		opacity: 0.62;
+	}
+	.sv-arbol-nodo.sv-arbol-nodo--activo {
+		--acerca: 1.07;
+		opacity: 1;
+		z-index: 2;
+		filter: drop-shadow(0 0 26px rgba(127, 227, 245, 0.8)) brightness(1.16);
 	}
 
 	@media (prefers-reduced-motion: reduce) {
 		.sv-arbol-pulso {
 			display: none;
+		}
+		/* El foco se queda: encender un nodo no es movimiento, y sin él el árbol
+		   dejaría de responder. Lo que se va es el desplazamiento, que además el
+		   JS ni siquiera llega a escribir. */
+		.sv-arbol-trazos {
+			transform: none;
+		}
+		.sv-arbol-nodo {
+			transform: translate(-50%, -50%) scaleX(var(--giro));
+		}
+		.sv-arbol-linea,
+		.sv-arbol-nodo {
+			transition:
+				opacity 0.2s linear,
+				filter 0.2s linear;
 		}
 	}
 	.sv-hero-title {
