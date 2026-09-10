@@ -37,11 +37,11 @@
 
 	/**
 	 * Escucha el puntero sobre el hero. Las dos coordenadas se escriben como
-	 * custom properties sobre el contenedor del árbol, no como estado de Svelte:
-	 * cambian en cada fotograma, y pasarlas por el ciclo de render reevaluaría
-	 * los quince nodos sesenta veces por segundo para moverlos unos píxeles. Lo
-	 * que sí es estado es el nodo enfocado, que cambia unas pocas veces por
-	 * recorrido.
+	 * custom properties sobre la sección —que es la caja que contiene tanto la
+	 * fotografía como el árbol— y no como estado de Svelte: cambian en cada
+	 * fotograma, y pasarlas por el ciclo de render reevaluaría los quince nodos
+	 * sesenta veces por segundo para moverlos unos píxeles. Lo que sí es estado
+	 * es el nodo enfocado, que cambia unas pocas veces por recorrido.
 	 */
 	function arbolVivo(hero) {
 		const caja = hero.querySelector('.sv-arbol');
@@ -64,8 +64,8 @@
 			// Acotado porque el hero es más ancho que el árbol: sin esto, el puntero
 			// sobre el texto empujaría las hojas muy lejos de su rama.
 			if (!quieto.matches) {
-				caja.style.setProperty('--px', acotar((x - 50) / 50).toFixed(3));
-				caja.style.setProperty('--py', acotar((y - 50) / 50).toFixed(3));
+				hero.style.setProperty('--px', acotar((x - 50) / 50).toFixed(3));
+				hero.style.setProperty('--py', acotar((y - 50) / 50).toFixed(3));
 			}
 
 			let cerca = null;
@@ -94,8 +94,8 @@
 				cancelAnimationFrame(cuadro);
 				cuadro = 0;
 			}
-			caja.style.setProperty('--px', '0');
-			caja.style.setProperty('--py', '0');
+			hero.style.setProperty('--px', '0');
+			hero.style.setProperty('--py', '0');
 			nodoActivo = null;
 		}
 
@@ -487,6 +487,12 @@
 	/* ── Hero ──────────────────────────────────────────── */
 
 	.sv-hero {
+		/* Puntero normalizado a −1..1, que escribe el JS. Vive aquí y no en el
+		   árbol porque la fotografía también lo lee, y son hermanos. El valor de
+		   reposo va declarado para que el hero se dibuje quieto antes de que
+		   nadie lo toque. */
+		--px: 0;
+		--py: 0;
 		position: relative;
 		isolation: isolate;
 		min-height: clamp(38rem, 84vh, 60rem);
@@ -510,6 +516,22 @@
 		/* La fotografía es de noche y ya venía oscura de origen; un poco de brillo
 		   y saturación devuelven la mesa, las tarjetas y la cara, que se perdían. */
 		filter: brightness(1.24) saturate(1.06);
+		/*
+		 * La foto se mueve CONTRA el puntero y el árbol a favor, que es lo que
+		 * separa un plano del otro: lo que la vista lee como profundidad es el
+		 * desplazamiento RELATIVO entre los dos, no el de cada uno.
+		 *
+		 * Poco y lento a propósito. Es el plano más lejano —la mesa, no lo que
+		 * flota sobre ella—, así que se mueve la mitad que la hoja más adelantada
+		 * y tarda casi el doble en llegar: esa pereza es la que le da peso.
+		 *
+		 * El 1.03 de escala es lo que paga el movimiento. Sin sobremedida, siete
+		 * píxeles de desplazamiento destaparían siete píxeles de fondo en el
+		 * borde contrario.
+		 */
+		transform: scale(1.03) translate(calc(var(--px) * -7px), calc(var(--py) * -4px));
+		transition: transform 0.8s var(--gl-ease);
+		will-change: transform;
 	}
 	/*
 	 * Dos velos, no uno. El vertical asienta la parte baja para el texto y los
@@ -563,10 +585,6 @@
 	/* Caja de referencia del árbol: todo dentro se posiciona en porcentajes
 	   sobre ella, así la composición aguanta cualquier ancho sin recalcular. */
 	.sv-arbol {
-		/* Puntero normalizado a −1..1, que escribe el JS. El valor de reposo va
-		   aquí para que el árbol se dibuje quieto antes de que nadie lo toque. */
-		--px: 0;
-		--py: 0;
 		position: relative;
 		width: 100%;
 		max-width: 42rem;
@@ -697,6 +715,9 @@
 		/* El foco se queda: encender un nodo no es movimiento, y sin él el árbol
 		   dejaría de responder. Lo que se va es el desplazamiento, que además el
 		   JS ni siquiera llega a escribir. */
+		.sv-hero-foto img {
+			transform: none;
+		}
 		.sv-arbol-trazos {
 			transform: none;
 		}
