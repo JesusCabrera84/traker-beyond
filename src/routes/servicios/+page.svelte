@@ -1492,12 +1492,16 @@
 		margin: 0 0 1rem;
 	}
 
+	/* `cursor: default` como en el resto de las etiquetas de la página: una
+	   píldora con borde se lee como control, y el cursor de texto encima la hace
+	   parecer a la vez seleccionable y pulsable, que no es ninguna de las dos. */
 	.sv-chip {
 		padding: 0.35rem 0.8rem;
 		border-radius: var(--gl-r-pill);
 		border: 1px solid rgba(127, 227, 245, 0.28);
 		font-size: 0.82rem;
 		color: var(--sv-text-muted);
+		cursor: default;
 	}
 
 	.sv-row-foot {
@@ -2102,6 +2106,7 @@
 		border-radius: var(--gl-r-pill);
 		font-size: 0.78rem;
 		color: var(--sv-text-muted);
+		cursor: default;
 	}
 
 	/* ── Formulario ────────────────────────────────────── */
