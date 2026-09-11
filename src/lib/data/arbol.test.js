@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { arbolNodos, arbolRamas, ramaDeNodo, amplitudNodo } from './services.js';
+import {
+	arbolNodos,
+	arbolRamas,
+	ramaDeNodo,
+	amplitudNodo,
+	services,
+	celdasPanal,
+	PANAL_ALTO
+} from './services.js';
 
 describe('árbol tecnológico', () => {
 	it('no repite identificadores', () => {
@@ -81,6 +89,59 @@ describe('amplitud del parallax', () => {
 	it('nunca inmoviliza del todo un nodo', () => {
 		for (const n of arbolNodos) {
 			expect(amplitudNodo(n), `${n.id} inmóvil`).toBeGreaterThan(0);
+		}
+	});
+});
+
+describe('panal de capacidades', () => {
+	const celdas = celdasPanal(services);
+
+	it('pone la última capacidad en el centro y las demás en el anillo', () => {
+		expect(celdas.at(-1).centro).toBe(true);
+		expect(celdas.slice(0, -1).every((c) => !c.centro)).toBe(true);
+	});
+
+	// La sexta no es una hermana de las otras: es las otras cinco juntas, y por
+	// eso va rodeada. Si alguien reordena los datos, esto debe fallar.
+	it('deja «Soluciones Integrales» en el centro', () => {
+		expect(celdas.find((c) => c.centro).slug).toBe('soluciones-integrales');
+	});
+
+	// Cada celda del anillo toca el centro: en un hexágono de vértice arriba los
+	// vecinos están a exactamente un lado de distancia. Si la geometría se
+	// desalinea, las celdas se separan o se encaballan y el panal deja de teselar.
+	it('deja las cinco del anillo adyacentes al centro', () => {
+		const centro = celdas.find((c) => c.centro);
+		const lado = Math.hypot(celdas[0].x - centro.x, celdas[0].y - centro.y);
+		for (const c of celdas.filter((x) => !x.centro)) {
+			const d = Math.hypot(c.x - centro.x, c.y - centro.y);
+			expect(d, `${c.num} no toca el centro`).toBeCloseTo(lado, 4);
+		}
+	});
+
+	it('no encima dos celdas en el mismo sitio', () => {
+		const puntos = celdas.map((c) => `${c.x.toFixed(3)},${c.y.toFixed(3)}`);
+		expect(new Set(puntos).size).toBe(celdas.length);
+	});
+
+	// El hueco que sobra —seis vecinos, cinco capacidades— se deja a la derecha
+	// para que el panal se abra hacia el panel de detalle en vez de cerrarse.
+	it('deja el hueco del anillo a la derecha', () => {
+		const centro = celdas.find((c) => c.centro);
+		const lado = Math.hypot(celdas[0].x - centro.x, celdas[0].y - centro.y);
+		const ocupado = celdas.some(
+			(c) =>
+				!c.centro && Math.abs(c.x - (centro.x + lado)) < 0.01 && Math.abs(c.y - centro.y) < 0.01
+		);
+		expect(ocupado, 'la posición derecha debería quedar libre').toBe(false);
+	});
+
+	it('mantiene todas las celdas dentro de la caja', () => {
+		for (const c of celdas) {
+			expect(c.x, `${c.num} se sale por los lados`).toBeGreaterThanOrEqual(20);
+			expect(c.x).toBeLessThanOrEqual(80);
+			expect(c.y, `${c.num} se sale por arriba o abajo`).toBeGreaterThan(0);
+			expect(c.y).toBeLessThan(PANAL_ALTO);
 		}
 	});
 });

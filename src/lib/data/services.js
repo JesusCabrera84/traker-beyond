@@ -9,6 +9,10 @@
  * visitante tiene que entender sin saber qué es Kafka. Las tecnologías concretas
  * van en `chips`, que es el nivel al que un comprador técnico baja después.
  *
+ * `corto` es la etiqueta del hexágono en el panal: el nombre completo no cabe
+ * —un hexágono desperdicia sus esquinas y deja ~65% de su caja utilizable— y el
+ * título entero vive en el panel de detalle, que sí tiene sitio.
+ *
  * `entrada` dice cómo ARRANCA el trabajo, no cuánto cuesta. El documento fuente
  * no fija precios ni modalidades de contratación, y publicar cifras inventadas
  * comprometería a la empresa. Cuando existan, el campo natural es `precio` y va
@@ -17,6 +21,7 @@
 export const services = [
 	{
 		slug: 'consultoria-estrategia',
+		corto: 'Consultoría',
 		num: '01',
 		title: 'Consultoría & Estrategia',
 		promise:
@@ -75,6 +80,7 @@ export const services = [
 	},
 	{
 		slug: 'software-cloud',
+		corto: 'Software',
 		num: '02',
 		title: 'Software & Cloud',
 		promise:
@@ -161,6 +167,7 @@ export const services = [
 	},
 	{
 		slug: 'ai-data',
+		corto: 'IA & Datos',
 		num: '03',
 		title: 'IA & Datos',
 		promise:
@@ -234,6 +241,7 @@ export const services = [
 	},
 	{
 		slug: 'iot-hardware',
+		corto: 'IoT',
 		num: '04',
 		title: 'IoT & Hardware',
 		promise:
@@ -316,6 +324,7 @@ export const services = [
 	},
 	{
 		slug: 'industria-automatizacion',
+		corto: 'Industria',
 		num: '05',
 		title: 'Industria & Automatización',
 		promise: 'Conectamos máquinas, personas, procesos y software para que la planta se mida sola.',
@@ -367,6 +376,7 @@ export const services = [
 	},
 	{
 		slug: 'soluciones-integrales',
+		corto: 'Integrales',
 		num: '06',
 		title: 'Soluciones Integrales',
 		promise: 'Un solo proveedor del sensor al dashboard: nadie se echa la culpa entre proveedores.',
@@ -536,6 +546,62 @@ export const scenePins = [
  * `capa` decide la profundidad del parallax: 1 se mueve poco (el tronco, que
  * ancla la escena) y 3 se mueve más (las hojas, que flotan por delante).
  */
+/**
+ * EL PANAL
+ *
+ * Las seis capacidades dejan de ser una lista y pasan a ser una sola figura con
+ * seis estados, que es lo que el titular afirma («una sola casa») y que una
+ * columna de filas idénticas no podía enseñar.
+ *
+ * La forma no es adorno: los hexágonos TESELAN, encajan sin dejar huecos entre
+ * ellos. Eso es exactamente lo que dice la sexta capacidad —«un solo proveedor
+ * del sensor al dashboard: nadie se echa la culpa entre proveedores»— y por eso
+ * va en el CENTRO, con las otras cinco alrededor. La sexta no es una hermana de
+ * las otras: es las otras cinco juntas, y la geometría lo dice sin escribirlo.
+ *
+ * Queda un hueco, porque un hexágono tiene seis vecinos y solo hay cinco que
+ * poner. Se deja a la DERECHA, mirando al panel de detalle: el panal se abre
+ * hacia donde aparece el texto en vez de cerrarse sobre sí mismo.
+ *
+ * Geometría de hexágono con vértice arriba: ancho `a = √3·s`, alto `2s`, y los
+ * vecinos caen en (±a, 0) y (±a/2, ±3s/2). Con `a = 40` el conjunto mide 100 de
+ * ancho por 115.47 de alto, que es la caja en la que se posiciona todo.
+ */
+const PANAL_A = 40;
+const PANAL_S = PANAL_A / Math.sqrt(3);
+export const PANAL_ALTO = 5 * PANAL_S;
+
+// Centro del panal dentro de esa caja, y desplazamientos de los cinco vecinos
+// en el orden en que se leen: horario desde arriba a la izquierda, saltando el
+// hueco de la derecha.
+const PANAL_CENTRO = { x: 1.5 * PANAL_A, y: PANAL_ALTO / 2 };
+const PANAL_ANILLO = [
+	{ dx: -PANAL_A / 2, dy: (-3 * PANAL_S) / 2 },
+	{ dx: PANAL_A / 2, dy: (-3 * PANAL_S) / 2 },
+	{ dx: PANAL_A / 2, dy: (3 * PANAL_S) / 2 },
+	{ dx: -PANAL_A / 2, dy: (3 * PANAL_S) / 2 },
+	{ dx: -PANAL_A, dy: 0 }
+];
+
+/**
+ * Coloca las seis capacidades en el panal. La última va al centro y las cinco
+ * primeras al anillo, en el orden del array: el orden de los datos es el orden
+ * de lectura, y así renumerarlas o reordenarlas no obliga a tocar geometría.
+ */
+export function celdasPanal(capacidades) {
+	const ultima = capacidades.length - 1;
+	return capacidades.map((c, i) => {
+		const centro = i === ultima;
+		const d = centro ? { dx: 0, dy: 0 } : PANAL_ANILLO[i];
+		return {
+			...c,
+			centro,
+			x: PANAL_CENTRO.x + d.dx,
+			y: PANAL_CENTRO.y + d.dy
+		};
+	});
+}
+
 /**
  * El diagnóstico tecnológico, que vivía en su propia página.
  *

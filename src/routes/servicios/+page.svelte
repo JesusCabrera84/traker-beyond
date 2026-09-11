@@ -9,15 +9,96 @@
 		ramaDeNodo,
 		amplitudNodo,
 		diagnosticoSituaciones,
-		diagnosticoFrentes
+		diagnosticoFrentes,
+		celdasPanal,
+		PANAL_ALTO
 	} from '$lib/data/services.js';
 	import { onMount } from 'svelte';
+	import Figura from '$lib/components/FiguraCapacidad.svelte';
 	import { cargarRecaptcha, enviarContacto, validarContacto } from '$lib/contacto.js';
 
-	// Abierta la primera: la página nunca se ve vacía y el visitante entiende de
-	// inmediato que las filas se abren. El resto colapsadas para que las seis
-	// capacidades quepan en pantalla y se puedan comparar.
-	let abierta = services[0].slug;
+	// ── Panal de capacidades ──────────────────────────────────────────────
+	const celdas = celdasPanal(services);
+
+	let activa = services[0].slug;
+	$: capacidadActiva = services.find((s) => s.slug === activa);
+
+	/*
+	 * La ronda en reposo: el panal se explica solo hasta que alguien lo toca, y
+	 * entonces PARA PARA SIEMPRE.
+	 *
+	 * No es un carrusel. Un carrusel sigue girando mientras lees y te mueve el
+	 * texto a media frase; además, cualquier cosa que se auto-actualiza durante
+	 * más de cinco segundos necesita poder pausarse (WCAG 2.2.2). Aquí el gesto
+	 * del visitante ES la pausa, es permanente, y basta con acercar el puntero al
+	 * panal: no hay que acertarle a un control.
+	 */
+	const RONDA_MS = 3400;
+	let ronda = 0;
+
+	function detenerRonda() {
+		if (ronda) {
+			clearInterval(ronda);
+			ronda = 0;
+		}
+	}
+
+	function arrancarRonda() {
+		// Con movimiento reducido no hay ronda: el panal se queda en la primera y se
+		// recorre a mano, que es lo que esa preferencia pide.
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		ronda = setInterval(() => {
+			const i = services.findIndex((s) => s.slug === activa);
+			activa = services[(i + 1) % services.length].slug;
+		}, RONDA_MS);
+	}
+
+	function elegir(slug) {
+		detenerRonda();
+		activa = slug;
+	}
+
+	/**
+	 * Detiene la ronda cuando el puntero o el foco entran en el módulo.
+	 *
+	 * Va como acción y no como `on:` porque el contenedor NO es interactivo: no
+	 * responde a nada, solo escucha para apagar una animación. Declararlo con
+	 * manejadores en la plantilla obliga a darle un rol ARIA que sería mentira, y
+	 * el rol de verdad —`tablist`— está donde tiene que estar, en las celdas.
+	 */
+	function alEngancharse(nodo) {
+		nodo.addEventListener('pointerenter', detenerRonda);
+		nodo.addEventListener('focusin', detenerRonda);
+		return {
+			destroy() {
+				nodo.removeEventListener('pointerenter', detenerRonda);
+				nodo.removeEventListener('focusin', detenerRonda);
+			}
+		};
+	}
+
+	/*
+	 * Flechas para moverse entre celdas, Inicio y Fin para los extremos: es lo que
+	 * un grupo de pestañas debe hacer, y sin esto el teclado tendría que tabular
+	 * seis veces para llegar a la última.
+	 */
+	function mover(evento) {
+		const saltos = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+		const i = services.findIndex((s) => s.slug === activa);
+		let destino = null;
+
+		if (evento.key in saltos)
+			destino = (i + saltos[evento.key] + services.length) % services.length;
+		else if (evento.key === 'Home') destino = 0;
+		else if (evento.key === 'End') destino = services.length - 1;
+		if (destino === null) return;
+
+		evento.preventDefault();
+		elegir(services[destino].slug);
+		// El foco sigue a la selección: si se queda atrás, la siguiente flecha
+		// partiría desde donde el visitante ya no está.
+		document.getElementById(`hex-${services[destino].slug}`)?.focus();
+	}
 
 	// ── El suelo de las puertas ───────────────────────────────────────────
 	//
@@ -57,7 +138,11 @@
 	let acuse = '';
 	let acuseOk = false;
 
-	onMount(cargarRecaptcha);
+	onMount(() => {
+		cargarRecaptcha();
+		arrancarRonda();
+		return detenerRonda;
+	});
 
 	async function enviar(evento) {
 		evento.preventDefault();
@@ -92,10 +177,6 @@
 		'Roadmap',
 		'Estimación de inversión'
 	];
-
-	function alternar(slug) {
-		abierta = abierta === slug ? null : slug;
-	}
 
 	// ── Árbol: parallax y foco ────────────────────────────────────────────
 	//
@@ -340,6 +421,16 @@
 	</section>
 
 	<!-- ── LAS SEIS CAPACIDADES ──────────────────────────── -->
+	<!-- ── PANAL DE CAPACIDADES ──────────────────────────── -->
+	<!--
+		Era una lista de seis filas idénticas: misma altura hasta el decimal, mismo
+		eje, mismo acento. Para distinguir una de otra había que LEERLA, así que el
+		ojo no podía muestrear y el bloque se leía como un solo ladrillo gris.
+
+		Ahora es una sola figura con seis estados, que es lo que el titular afirma.
+		La forma no es adorno: los hexágonos tesela­n, encajan sin dejar huecos, y
+		eso es literalmente lo que dice la capacidad del centro.
+	-->
 	<section class="sv-index" aria-labelledby="sv-index-title">
 		<div class="sv-container">
 			<header class="sv-head">
@@ -350,53 +441,72 @@
 					diseñar la tecnología y construir la solución.
 				</p>
 			</header>
-		</div>
 
-		<!-- Filas a sangre. Es un índice, no una cuadrícula: la landing ya tiene
-		     dos rejillas (capas tecnológicas y áreas) y una tercera se leería como
-		     más de lo mismo. -->
-		<ol class="sv-rows">
-			{#each services as s (s.slug)}
-				<li class="sv-row-item">
-					<button
-						type="button"
-						class="sv-row"
-						class:is-open={abierta === s.slug}
-						aria-expanded={abierta === s.slug}
-						aria-controls="cap-{s.slug}"
-						on:click={() => alternar(s.slug)}
-					>
-						<span class="sv-row-num" aria-hidden="true">{s.num}</span>
-						<span class="sv-row-main">
-							<span class="sv-row-title">{s.title}</span>
-							<span class="sv-row-promise">{s.promise}</span>
-						</span>
-						<span class="sv-row-chevron" aria-hidden="true"></span>
-					</button>
-					<div
-						class="sv-row-detail"
-						id="cap-{s.slug}"
-						class:is-open={abierta === s.slug}
-						inert={abierta !== s.slug}
-					>
-						<div class="sv-row-detail-inner">
+			<!-- La ronda se detiene al entrar el puntero O el foco en el módulo
+			     entero, panel incluido: si alguien está leyendo el detalle, ya está
+			     interactuando aunque no haya tocado una celda. Y con el teclado hace
+			     todavía más falta, porque tabular dentro y que el contenido cambie
+			     solo desorienta más que con el ratón. -->
+			<div class="sv-panal-layout" use:alEngancharse>
+				<!--
+					Pestañas y no botones sueltos: seis controles que gobiernan un mismo
+					panel son exactamente eso, y el patrón trae la navegación por flechas
+					y el `tabindex` móvil que un puñado de `<button>` no tiene.
+				-->
+				<div class="sv-panal" role="tablist" aria-label="Capacidades" style="--alto: {PANAL_ALTO}">
+					{#each celdas as c (c.slug)}
+						<button
+							type="button"
+							role="tab"
+							id="hex-{c.slug}"
+							class="sv-hex"
+							class:is-activa={activa === c.slug}
+							class:sv-hex--centro={c.centro}
+							style="--x: {c.x}; --y: {c.y}"
+							aria-selected={activa === c.slug}
+							aria-controls="panel-capacidad"
+							tabindex={activa === c.slug ? 0 : -1}
+							on:click={() => elegir(c.slug)}
+							on:keydown={mover}
+						>
+							<span class="sv-hex-figura" aria-hidden="true">
+								<Figura slug={c.slug} />
+							</span>
+							<span class="sv-hex-num" aria-hidden="true">{c.num}</span>
+							<span class="sv-hex-label">{c.corto}</span>
+						</button>
+					{/each}
+				</div>
+
+				<div
+					class="sv-panal-detalle"
+					id="panel-capacidad"
+					role="tabpanel"
+					aria-labelledby="hex-{activa}"
+					tabindex="0"
+				>
+					{#key activa}
+						<div class="sv-detalle-inner">
+							<p class="sv-detalle-num">{capacidadActiva.num}</p>
+							<h3 class="sv-detalle-title">{capacidadActiva.title}</h3>
+							<p class="sv-detalle-promise">{capacidadActiva.promise}</p>
 							<ul class="sv-chips">
-								{#each s.chips as chip (chip)}
+								{#each capacidadActiva.chips as chip (chip)}
 									<li class="sv-chip">{chip}</li>
 								{/each}
 							</ul>
-							<div class="sv-row-foot">
-								<a class="sv-row-link" href="/servicios/{s.slug}">
-									Ver {s.title}
+							<div class="sv-detalle-foot">
+								<a class="sv-row-link" href="/servicios/{capacidadActiva.slug}">
+									Ver {capacidadActiva.title}
 									<span class="sv-row-link-arrow" aria-hidden="true">→</span>
 								</a>
-								<p class="sv-row-entry">{s.entrada}</p>
+								<p class="sv-row-entry">{capacidadActiva.entrada}</p>
 							</div>
 						</div>
-					</div>
-				</li>
-			{/each}
-		</ol>
+					{/key}
+				</div>
+			</div>
+		</div>
 	</section>
 
 	<!-- ── DOS PUERTAS DE ENTRADA ────────────────────────── -->
@@ -1354,133 +1464,218 @@
 		animation-delay: calc(var(--i) * var(--sv-riel-franja));
 	}
 
-	/* ── Índice de capacidades ─────────────────────────── */
+	/* ── Panal de capacidades ──────────────────────────── */
 
-	.sv-index {
-		padding: clamp(3.5rem, 7vw, 5.5rem) 0 0;
+	/*
+	 * El panal a la izquierda y el detalle a la derecha. Antes el contenido moría
+	 * en la mitad del ancho y la otra mitad era fondo vacío con un chevron de
+	 * 12 px dentro: 52% de lienzo sin resolver y ningún hito con el que hacer
+	 * contrapeso. Ahora esa mitad es el panel.
+	 */
+	.sv-panal-layout {
+		display: grid;
+		grid-template-columns: minmax(0, 0.46fr) minmax(0, 0.54fr);
+		gap: clamp(1.5rem, 4vw, 3.5rem);
+		align-items: center;
+		margin-top: clamp(2rem, 4vw, 3rem);
 	}
 
-	.sv-rows {
-		list-style: none;
-		padding: 0;
-		margin: clamp(1.5rem, 3vw, 2.5rem) 0 0;
-		border-top: 1px solid var(--sv-rule);
-	}
-
-	.sv-row-item {
-		border-bottom: 1px solid var(--sv-rule);
-	}
-
-	/* Botón, no div: el contenido revelado solo por hover es inalcanzable con
-	   teclado y en táctil. */
-	/* A sangre de verdad: el botón ocupa todo el ancho y el padding lateral
-	   alinea su contenido con el contenedor. Con `width: min(1180px,92vw)` el
-	   fondo del hover y el riel de acento se quedaban dentro de la caja, que es
-	   justo lo que distingue este patrón de una cuadrícula más. */
-	.sv-row {
+	/* La caja del panal: 100 de ancho por `--alto` (115.47) de alto, que es lo que
+	   ocupan seis hexágonos de vértice arriba dispuestos cinco alrededor de uno. */
+	.sv-panal {
 		position: relative;
 		width: 100%;
-		padding-inline: max(4vw, calc((100% - 1180px) / 2));
+		max-width: 32rem;
+		aspect-ratio: 100 / var(--alto);
+		margin-inline: auto;
+	}
+
+	/*
+	 * Cada celda se centra en su coordenada. El ancho es el del hexágono (40 de
+	 * 100) y la proporción √3/2 es la de un hexágono regular con vértice arriba:
+	 * si se toca una sin la otra, el panal deja de teselar y aparecen holguras
+	 * entre celdas vecinas.
+	 */
+	.sv-hex {
+		position: absolute;
+		left: calc(var(--x) * 1%);
+		top: calc(var(--y) / var(--alto) * 100%);
+		width: 40%;
+		aspect-ratio: 0.86603;
+		transform: translate(-50%, -50%);
 		display: grid;
-		grid-template-columns: auto 1fr auto;
-		gap: 0 clamp(1rem, 2.5vw, 2.25rem);
-		align-items: start;
-		padding-block: clamp(1.5rem, 2.4vw, 2.1rem);
-		background: transparent;
+		place-items: center;
+		gap: 0;
+		padding: 0;
 		border: 0;
-		text-align: left;
+		background: none;
 		color: inherit;
 		font: inherit;
 		cursor: pointer;
-		transition: background var(--gl-dur) var(--gl-ease);
+		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+		transition:
+			background-color 0.4s var(--gl-ease),
+			opacity 0.4s var(--gl-ease);
 	}
 
-	.sv-row::before {
+	/*
+	 * El borde va en un pseudoelemento y no como `border`, porque `clip-path`
+	 * recorta el borde real y lo deja a medio grosor en las diagonales. Dibujado
+	 * dentro, el contorno se ve entero.
+	 */
+	.sv-hex::before {
 		content: '';
 		position: absolute;
-		inset: 0 auto 0 0;
-		width: 3px;
-		background: var(--sv-accent);
-		transform: scaleY(0);
-		transform-origin: 50% 0;
-		transition: transform var(--gl-dur) var(--gl-ease);
+		inset: 0;
+		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+		background: linear-gradient(160deg, rgba(127, 227, 245, 0.34), rgba(127, 227, 245, 0.12));
+		padding: 1px;
+		-webkit-mask:
+			linear-gradient(#000 0 0) content-box,
+			linear-gradient(#000 0 0);
+		-webkit-mask-composite: xor;
+		mask:
+			linear-gradient(#000 0 0) content-box,
+			linear-gradient(#000 0 0);
+		mask-composite: exclude;
+		transition: background 0.4s var(--gl-ease);
 	}
 
-	.sv-row:hover,
-	.sv-row.is-open {
-		background: var(--sv-row-hover);
+	.sv-hex {
+		background-color: rgba(127, 227, 245, 0.03);
 	}
 
-	.sv-row:hover::before,
-	.sv-row.is-open::before {
-		transform: scaleY(1);
+	.sv-hex-figura {
+		grid-area: 1 / 1;
+		width: 66%;
+		aspect-ratio: 1;
+		opacity: 0.66;
+		transform: translateY(-6%);
+		transition: opacity 0.4s var(--gl-ease);
 	}
 
-	.sv-row:focus-visible {
+	/* El ordinal vive en la punta de abajo, fuera del camino de la figura. Es el
+	   mismo motivo 01–06 que el índice del diagnóstico y con el mismo cian: en las
+	   filas viejas estaba al 44% y a 11 px, donde dejaba de ser número y era
+	   textura. */
+	.sv-hex-num {
+		grid-area: 1 / 1;
+		align-self: end;
+		font-family: var(--gl-font-label);
+		font-size: 0.58rem;
+		letter-spacing: 0.16em;
+		color: var(--sv-accent);
+		opacity: 0.6;
+		margin-bottom: 8%;
+		transition: opacity 0.4s var(--gl-ease);
+	}
+
+	.sv-hex-label {
+		grid-area: 1 / 1;
+		align-self: end;
+		margin-bottom: 20%;
+		font-size: 0.78rem;
+		font-weight: 600;
+		color: var(--sv-text-muted);
+		text-align: center;
+		padding-inline: 12%;
+		transition: color 0.4s var(--gl-ease);
+	}
+
+	.sv-hex:hover,
+	.sv-hex:focus-visible {
+		background-color: rgba(127, 227, 245, 0.07);
+	}
+	.sv-hex:focus-visible {
 		outline: 2px solid var(--sv-accent);
 		outline-offset: -2px;
 	}
 
-	.sv-row-num {
+	.sv-hex.is-activa {
+		background-color: rgba(127, 227, 245, 0.12);
+	}
+	.sv-hex.is-activa::before {
+		background: linear-gradient(160deg, var(--sv-accent), rgba(127, 227, 245, 0.35));
+	}
+	.sv-hex.is-activa .sv-hex-figura {
+		opacity: 1;
+	}
+	.sv-hex.is-activa .sv-hex-num {
+		opacity: 1;
+	}
+	.sv-hex.is-activa .sv-hex-label {
+		color: var(--sv-text);
+	}
+
+	/*
+	 * La del centro no es una hermana de las otras cinco: ES las otras cinco
+	 * juntas. Va más densa y con el contorno más marcado incluso apagada, porque
+	 * si las seis pesan igual el panal vuelve a contar la mentira que la lista
+	 * contaba — que «Soluciones Integrales» es una capacidad más.
+	 */
+	.sv-hex--centro {
+		background-color: rgba(127, 227, 245, 0.085);
+	}
+	.sv-hex--centro::before {
+		background: linear-gradient(160deg, rgba(127, 227, 245, 0.55), rgba(127, 227, 245, 0.2));
+	}
+	.sv-hex--centro .sv-hex-label {
+		color: var(--sv-text);
+	}
+
+	.sv-panal-detalle {
+		min-height: 19rem;
+	}
+	.sv-panal-detalle:focus-visible {
+		outline: 2px solid var(--sv-accent);
+		outline-offset: 8px;
+		border-radius: var(--gl-r-sm);
+	}
+
+	.sv-detalle-inner {
+		display: grid;
+		gap: 0.9rem;
+		justify-items: start;
+		animation: svDetalleEntra 0.4s var(--gl-ease) both;
+	}
+
+	/* Entra desplazándose desde el panal, no apareciendo de la nada: el texto
+	   viene de la celda que se acaba de encender. */
+	@keyframes svDetalleEntra {
+		from {
+			opacity: 0;
+			transform: translateX(-0.75rem);
+		}
+	}
+
+	.sv-detalle-num {
 		font-family: var(--gl-font-label);
-		font-size: 0.72rem;
-		letter-spacing: 0.28em;
-		color: var(--sv-text-faint);
-		padding-top: 0.5rem;
+		font-size: 0.64rem;
+		letter-spacing: 0.2em;
+		color: var(--sv-accent);
+		margin: 0;
 	}
 
-	.sv-row-main {
-		display: grid;
-		gap: 0.4rem;
-		min-width: 0;
-	}
-
-	.sv-row-title {
-		font-size: clamp(1.3rem, 2.2vw, 2rem);
+	.sv-detalle-title {
+		font-size: clamp(1.35rem, 2.4vw, 1.9rem);
 		font-weight: 600;
-		line-height: 1.2;
-		transition: transform var(--gl-dur) var(--gl-ease);
+		margin: 0;
+		text-wrap: balance;
 	}
 
-	.sv-row:hover .sv-row-title {
-		transform: translateX(6px);
-	}
-
-	.sv-row-promise {
-		font-size: clamp(0.95rem, 1.1vw, 1.1rem);
-		line-height: 1.55;
+	.sv-detalle-promise {
 		color: var(--sv-text-muted);
-		max-width: 52ch;
+		line-height: 1.6;
+		max-width: 46ch;
+		margin: 0;
 	}
 
-	.sv-row-chevron {
-		width: 12px;
-		height: 12px;
-		border-right: 2px solid var(--sv-text-faint);
-		border-bottom: 2px solid var(--sv-text-faint);
-		transform: rotate(45deg);
-		margin-top: 0.6rem;
-		transition: transform var(--gl-dur) var(--gl-ease);
-	}
-
-	.sv-row.is-open .sv-row-chevron {
-		transform: rotate(-135deg);
-	}
-
-	/* grid-template-rows 0fr → 1fr anima alto sin conocerlo de antemano. */
-	.sv-row-detail {
-		display: grid;
-		grid-template-rows: 0fr;
-		transition: grid-template-rows var(--gl-dur) var(--gl-ease);
-	}
-
-	.sv-row-detail.is-open {
-		grid-template-rows: 1fr;
-	}
-
-	.sv-row-detail-inner {
-		overflow: hidden;
-		padding-inline: max(4vw, calc((100% - 1180px) / 2));
+	.sv-detalle-foot {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.6rem 1.5rem;
+		margin-top: 0.4rem;
 	}
 
 	.sv-chips {
@@ -1491,10 +1686,6 @@
 		padding: 0;
 		margin: 0 0 1rem;
 	}
-
-	/* `cursor: default` como en el resto de las etiquetas de la página: una
-	   píldora con borde se lee como control, y el cursor de texto encima la hace
-	   parecer a la vez seleccionable y pulsable, que no es ninguna de las dos. */
 	.sv-chip {
 		padding: 0.35rem 0.8rem;
 		border-radius: var(--gl-r-pill);
@@ -1502,14 +1693,6 @@
 		font-size: 0.82rem;
 		color: var(--sv-text-muted);
 		cursor: default;
-	}
-
-	.sv-row-foot {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.6rem 1.5rem;
-		margin-bottom: clamp(1.25rem, 2.4vw, 1.75rem);
 	}
 	.sv-row-link {
 		display: inline-flex;
@@ -2331,6 +2514,36 @@
 			max-width: none;
 		}
 
+		/*
+		 * El panal se apila sobre su detalle en vez de caer a otra interfaz: a este
+		 * ancho un panal con panel al costado no existe, pero el panal mismo sí
+		 * cabe si se encoge. Degradar a una lista dejaría a la mitad del tráfico
+		 * sin el único cambio que arregla la sección.
+		 */
+		.sv-panal-layout {
+			grid-template-columns: 1fr;
+			gap: 2rem;
+		}
+		.sv-panal {
+			max-width: 22rem;
+		}
+		.sv-panal-detalle {
+			min-height: 0;
+		}
+		.sv-detalle-inner {
+			justify-items: center;
+			text-align: center;
+		}
+		.sv-detalle-promise {
+			margin-inline: auto;
+		}
+		.sv-detalle-foot {
+			justify-content: center;
+		}
+		.sv-chips {
+			justify-content: center;
+		}
+
 		.sv-close-inner,
 		.sv-diag-grid {
 			grid-template-columns: 1fr;
@@ -2358,35 +2571,29 @@
 		}
 	}
 
-	@media (max-width: 700px) {
-		.sv-row {
-			grid-template-columns: auto 1fr;
-		}
-
-		.sv-row-chevron {
-			grid-column: 2;
-			justify-self: end;
-			margin-top: 0.5rem;
-		}
-	}
-
 	@media (prefers-reduced-motion: reduce) {
-		.sv-row,
-		.sv-row::before,
-		.sv-row-title,
-		.sv-row-chevron,
+		/* Solo el pulso se oculta. La lista de antes metía aquí las propias filas
+		   junto al pulso, así que con la preferencia activada la sección
+		   desaparecía entera en vez de quedarse quieta. */
 		.sv-cto-pulso {
 			display: none;
 		}
-		.sv-row-detail,
+
 		.sv-row-link,
 		.sv-row-link-arrow,
-		.sv-btn {
+		.sv-btn,
+		.sv-hex,
+		.sv-hex::before,
+		.sv-hex-figura,
+		.sv-hex-num,
+		.sv-hex-label {
 			transition: none;
 		}
 
-		.sv-row:hover .sv-row-title {
-			transform: none;
+		/* El detalle aparece sin deslizarse. Sigue cambiando —es el contenido que
+		   se pidió— pero sin recorrido. */
+		.sv-detalle-inner {
+			animation: none;
 		}
 
 		.sv-btn--primary:hover {
