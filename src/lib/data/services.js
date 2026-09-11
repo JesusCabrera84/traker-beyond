@@ -536,6 +536,36 @@ export const scenePins = [
  * `capa` decide la profundidad del parallax: 1 se mueve poco (el tronco, que
  * ancla la escena) y 3 se mueve más (las hojas, que flotan por delante).
  */
+/**
+ * El diagnóstico tecnológico, que vivía en su propia página.
+ *
+ * Se trajo al hub porque el embudo eran tres navegaciones antes de que nadie
+ * pudiera escribir una letra: servicios → diagnóstico → contacto. De la página
+ * vieja se conserva lo que el hub no podía decir —quién se reconoce en la oferta
+ * y qué se revisa— y se descarta lo que ya repetía: los apartados del entregable
+ * están en la puerta y los ocho frentes se solapan con las seis capacidades.
+ */
+export const diagnosticoSituaciones = [
+	'Tu plataforma ya no aguanta y no sabes si es el código, la infraestructura o el diseño',
+	'Un proveedor te pasó una cotización y no tienes con qué contrastarla',
+	'Vas a invertir en IA pero sospechas que tus datos no están listos',
+	'Heredaste un sistema que nadie documentó',
+	'Tu factura de cloud sube y nadie sabe explicar por qué',
+	'Quieres conectar máquinas o dispositivos y no sabes por dónde se empieza'
+];
+
+/** Los ocho frentes de la auditoría. Van como etiquetas: son alcance, no oferta. */
+export const diagnosticoFrentes = [
+	'Arquitectura',
+	'Infraestructura y cloud',
+	'Escalabilidad',
+	'Código y deuda técnica',
+	'Seguridad',
+	'Datos e IA',
+	'IoT y dispositivos',
+	'Costos'
+];
+
 export const arbolNodos = [
 	// Copa: es la única excepción del árbol. De ella salen DOS ramas además del
 	// tronco; en el resto del árbol las ramas nacen de una unión intermedia.

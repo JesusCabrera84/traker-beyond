@@ -973,7 +973,7 @@
 					Ver las seis capacidades
 					<span class="sv-teaser-arrow" aria-hidden="true">→</span>
 				</a>
-				<a href="/servicios/diagnostico" class="sv-teaser-cta-secondary">
+				<a href="/servicios#diagnostico" class="sv-teaser-cta-secondary">
 					Empezar por un diagnóstico
 				</a>
 			</div>

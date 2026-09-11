@@ -7,13 +7,53 @@
 		arbolNodos,
 		arbolRamas,
 		ramaDeNodo,
-		amplitudNodo
+		amplitudNodo,
+		diagnosticoSituaciones,
+		diagnosticoFrentes
 	} from '$lib/data/services.js';
+	import { onMount } from 'svelte';
+	import { cargarRecaptcha, enviarContacto, validarContacto } from '$lib/contacto.js';
 
 	// Abierta la primera: la página nunca se ve vacía y el visitante entiende de
 	// inmediato que las filas se abren. El resto colapsadas para que las seis
 	// capacidades quepan en pantalla y se puedan comparar.
 	let abierta = services[0].slug;
+
+	// ── Formulario del diagnóstico ────────────────────────────────────────
+	//
+	// Vive aquí y no en una página aparte porque el embudo eran tres navegaciones
+	// antes de poder escribir una letra. La lógica —saneado, validación, reCAPTCHA
+	// y envío— es la misma que usa la landing, importada de `$lib/contacto.js`:
+	// solo el marcado es de esta página, porque el lenguaje visual es distinto.
+	let datos = { nombre: '', correo_electronico: '', telefono: '', mensaje: '' };
+	let errores = { nombre: '', correo_electronico: '', telefono: '', mensaje: '', general: '' };
+	let enviando = false;
+	let acuse = '';
+	let acuseOk = false;
+
+	onMount(cargarRecaptcha);
+
+	async function enviar(evento) {
+		evento.preventDefault();
+		acuse = '';
+
+		const revision = validarContacto(datos);
+		errores = revision.errores;
+		if (!revision.valido) return;
+
+		enviando = true;
+		// El contexto viaja dentro del mensaje para que quien conteste sepa que
+		// viene de aquí y no del formulario general de la landing.
+		const r = await enviarContacto(datos, {
+			accion: 'diagnostico',
+			contexto: 'Diagnóstico tecnológico'
+		});
+		enviando = false;
+
+		acuseOk = r.ok;
+		acuse = r.mensaje;
+		if (r.ok) datos = { nombre: '', correo_electronico: '', telefono: '', mensaje: '' };
+	}
 
 	// Los seis apartados del documento del diagnóstico. Van en un array y no
 	// sueltos en el marcado para poder escalonar el recorrido de la señal: cada
@@ -189,7 +229,7 @@
 					<strong>Un solo equipo, de la estrategia a producción.</strong>
 				</p>
 				<div class="sv-hero-actions">
-					<a href="/servicios/diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a>
+					<a href="#diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a>
 					<a href="/#productos" class="sv-btn sv-btn--ghost">Ver nuestros productos</a>
 				</div>
 			</div>
@@ -335,8 +375,7 @@
 							costos, escalabilidad y seguridad, y te entregamos un documento con el que puedes
 							decidir — contrates con nosotros o no.
 						</p>
-						<a href="/servicios/diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a
-						>
+						<a href="#diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a>
 					</div>
 
 					<!--
@@ -497,8 +536,125 @@
 				infraestructura, construidos e integrados por el mismo equipo.
 			</p>
 			<div class="sv-hero-actions sv-close-actions">
-				<a href="/servicios/diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a>
+				<a href="#diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a>
 				<a href="/products/nexus" class="sv-btn sv-btn--ghost">Ver Nexus</a>
+			</div>
+		</div>
+	</section>
+
+	<!-- ── DIAGNÓSTICO ───────────────────────────────────── -->
+	<!--
+		Era una página aparte. Se trajo aquí porque el embudo eran tres
+		navegaciones antes de que nadie pudiera escribir una letra, y la URL vieja
+		redirige a este ancla.
+	-->
+	<section class="sv-diag" id="diagnostico" aria-labelledby="sv-diag-title">
+		<div class="sv-container">
+			<header class="sv-head">
+				<p class="sv-overline">Diagnóstico tecnológico</p>
+				<h2 id="sv-diag-title" class="sv-title">Empieza por saber en qué estás parado</h2>
+				<p class="sv-sub">
+					Cuéntanos qué te está pasando. La primera llamada es para acotar el alcance y decirte si
+					podemos ayudarte — <strong>si no podemos, también te lo decimos.</strong>
+				</p>
+			</header>
+
+			<div class="sv-diag-grid">
+				<div class="sv-diag-contexto">
+					<h3 class="sv-diag-sub">Si alguna de estas te suena, es para ti</h3>
+					<ul class="sv-diag-casos">
+						{#each diagnosticoSituaciones as caso (caso)}
+							<li>{caso}</li>
+						{/each}
+					</ul>
+
+					<h3 class="sv-diag-sub">Y esto es lo que revisamos</h3>
+					<ul class="sv-diag-frentes">
+						{#each diagnosticoFrentes as frente (frente)}
+							<li>{frente}</li>
+						{/each}
+					</ul>
+				</div>
+
+				<form class="sv-form" on:submit={enviar} novalidate>
+					{#if acuse}
+						<p class="sv-form-acuse" class:sv-form-acuse--ok={acuseOk} role="status">{acuse}</p>
+					{/if}
+					{#if errores.general}
+						<p class="sv-form-error sv-form-error--general" role="alert">{errores.general}</p>
+					{/if}
+
+					<div class="sv-form-campo">
+						<label for="dg-nombre">Nombre <span aria-hidden="true">*</span></label>
+						<input
+							id="dg-nombre"
+							type="text"
+							maxlength="200"
+							bind:value={datos.nombre}
+							disabled={enviando}
+							aria-invalid={!!errores.nombre}
+							aria-describedby={errores.nombre ? 'dg-nombre-error' : undefined}
+						/>
+						{#if errores.nombre}
+							<p class="sv-form-error" id="dg-nombre-error">{errores.nombre}</p>
+						{/if}
+					</div>
+
+					<div class="sv-form-fila">
+						<div class="sv-form-campo">
+							<label for="dg-correo">Correo</label>
+							<input
+								id="dg-correo"
+								type="email"
+								bind:value={datos.correo_electronico}
+								disabled={enviando}
+								aria-invalid={!!errores.correo_electronico}
+								aria-describedby={errores.correo_electronico ? 'dg-correo-error' : undefined}
+							/>
+							{#if errores.correo_electronico}
+								<p class="sv-form-error" id="dg-correo-error">{errores.correo_electronico}</p>
+							{/if}
+						</div>
+
+						<div class="sv-form-campo">
+							<label for="dg-tel">Teléfono</label>
+							<input
+								id="dg-tel"
+								type="tel"
+								bind:value={datos.telefono}
+								disabled={enviando}
+								aria-invalid={!!errores.telefono}
+								aria-describedby={errores.telefono ? 'dg-tel-error' : undefined}
+							/>
+							{#if errores.telefono}
+								<p class="sv-form-error" id="dg-tel-error">{errores.telefono}</p>
+							{/if}
+						</div>
+					</div>
+					<!-- Uno de los dos basta, pero alguno hace falta: sin correo ni teléfono
+					     no hay forma de responder. Se dice antes de enviar, no después. -->
+					<p class="sv-form-nota">Con uno de los dos basta para poder responderte.</p>
+
+					<div class="sv-form-campo">
+						<label for="dg-mensaje">Qué te está pasando <span aria-hidden="true">*</span></label>
+						<textarea
+							id="dg-mensaje"
+							rows="5"
+							maxlength="5000"
+							bind:value={datos.mensaje}
+							disabled={enviando}
+							aria-invalid={!!errores.mensaje}
+							aria-describedby={errores.mensaje ? 'dg-mensaje-error' : undefined}
+						></textarea>
+						{#if errores.mensaje}
+							<p class="sv-form-error" id="dg-mensaje-error">{errores.mensaje}</p>
+						{/if}
+					</div>
+
+					<button type="submit" class="sv-btn sv-btn--primary" disabled={enviando}>
+						{enviando ? 'Enviando…' : 'Solicitar un diagnóstico'}
+					</button>
+				</form>
 			</div>
 		</div>
 	</section>
@@ -1743,6 +1899,180 @@
 		color: var(--sv-accent);
 	}
 
+	/* ── Diagnóstico ───────────────────────────────────── */
+
+	.sv-diag {
+		padding: clamp(3.5rem, 7vw, 5.5rem) 0;
+		border-top: 1px solid var(--sv-rule);
+		background: var(--sv-bg-2);
+	}
+
+	/* La calificación y el formulario van EN PARALELO, no uno tras otro: quien ya
+	   se reconoció en la primera lista no debería tener que pasar por encima de
+	   ella otra vez para llegar a escribir. */
+	.sv-diag-grid {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+		gap: clamp(2rem, 5vw, 4rem);
+		align-items: start;
+	}
+
+	.sv-diag-sub {
+		font-size: 1rem;
+		font-weight: 600;
+		margin: 0 0 0.9rem;
+	}
+	.sv-diag-sub + * + .sv-diag-sub,
+	.sv-diag-sub:not(:first-child) {
+		margin-top: 2rem;
+	}
+
+	.sv-diag-casos {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		gap: 0.65rem;
+	}
+	.sv-diag-casos li {
+		position: relative;
+		padding-left: 1.5rem;
+		color: var(--sv-text-muted);
+		line-height: 1.55;
+	}
+	/* Una marca de verificación dibujada con dos bordes: es la lista del «esto me
+	   pasa a mí», y un punto neutro no dice lo mismo que una palomita. */
+	.sv-diag-casos li::before {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0.42em;
+		width: 0.42rem;
+		height: 0.7rem;
+		border: solid var(--sv-accent);
+		border-width: 0 2px 2px 0;
+		transform: rotate(45deg);
+	}
+
+	.sv-diag-frentes {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.45rem;
+	}
+	.sv-diag-frentes li {
+		padding: 0.38rem 0.7rem;
+		border: 1px solid var(--sv-rule);
+		border-radius: var(--gl-r-pill);
+		font-size: 0.78rem;
+		color: var(--sv-text-muted);
+	}
+
+	/* ── Formulario ────────────────────────────────────── */
+
+	.sv-form {
+		display: grid;
+		gap: 1rem;
+		padding: clamp(1.5rem, 3vw, 2.25rem);
+		border: 1px solid var(--sv-rule);
+		border-radius: var(--gl-r-md);
+		background: rgba(127, 227, 245, 0.035);
+	}
+
+	.sv-form-fila {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
+		gap: 1rem;
+	}
+
+	.sv-form-campo {
+		display: grid;
+		gap: 0.4rem;
+	}
+	.sv-form-campo label {
+		font-family: var(--gl-font-label);
+		font-size: 0.62rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--sv-text-faint);
+	}
+	.sv-form-campo label span {
+		color: var(--sv-accent);
+	}
+
+	.sv-form input,
+	.sv-form textarea {
+		width: 100%;
+		padding: 0.7rem 0.85rem;
+		border: 1px solid var(--sv-rule);
+		border-radius: var(--gl-r-sm);
+		background: rgba(4, 14, 19, 0.55);
+		color: var(--sv-text);
+		font: inherit;
+		transition:
+			border-color 0.25s var(--gl-ease),
+			box-shadow 0.25s var(--gl-ease);
+	}
+	.sv-form textarea {
+		resize: vertical;
+		min-height: 7rem;
+	}
+	/* El foco se marca con anillo y no solo con color: quien navega con teclado
+	   tiene que ver dónde está sin depender de distinguir dos azules. */
+	.sv-form input:focus-visible,
+	.sv-form textarea:focus-visible {
+		outline: none;
+		border-color: var(--sv-accent);
+		box-shadow: 0 0 0 3px rgba(127, 227, 245, 0.22);
+	}
+	.sv-form input[aria-invalid='true'],
+	.sv-form textarea[aria-invalid='true'] {
+		border-color: #f0a4a4;
+	}
+	.sv-form input:disabled,
+	.sv-form textarea:disabled {
+		opacity: 0.6;
+	}
+
+	.sv-form-nota {
+		margin: -0.4rem 0 0;
+		font-size: 0.78rem;
+		color: var(--sv-text-faint);
+	}
+
+	.sv-form-error {
+		margin: 0;
+		font-size: 0.8rem;
+		color: #f0a4a4;
+	}
+	.sv-form-error--general {
+		padding: 0.6rem 0.8rem;
+		border: 1px solid rgba(240, 164, 164, 0.35);
+		border-radius: var(--gl-r-sm);
+		background: rgba(240, 164, 164, 0.08);
+	}
+
+	.sv-form-acuse {
+		margin: 0;
+		padding: 0.7rem 0.9rem;
+		border-radius: var(--gl-r-sm);
+		font-size: 0.88rem;
+		border: 1px solid rgba(240, 164, 164, 0.35);
+		background: rgba(240, 164, 164, 0.08);
+		color: #f0a4a4;
+	}
+	.sv-form-acuse--ok {
+		border-color: rgba(127, 227, 245, 0.35);
+		background: rgba(127, 227, 245, 0.08);
+		color: var(--sv-accent);
+	}
+
+	.sv-form .sv-btn {
+		justify-self: start;
+	}
+
 	/* ── Cierre ────────────────────────────────────────── */
 
 	.sv-close {
@@ -1796,6 +2126,10 @@
 
 		.sv-process-desc {
 			max-width: none;
+		}
+
+		.sv-diag-grid {
+			grid-template-columns: 1fr;
 		}
 
 		/* Las puertas se apilan: a este ancho el texto y su prueba no caben uno al
