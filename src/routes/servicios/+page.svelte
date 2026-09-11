@@ -15,6 +15,18 @@
 	// capacidades quepan en pantalla y se puedan comparar.
 	let abierta = services[0].slug;
 
+	// Los seis apartados del documento del diagnóstico. Van en un array y no
+	// sueltos en el marcado para poder escalonar el recorrido de la señal: cada
+	// fila necesita saber su posición.
+	const apartados = [
+		'Estado actual',
+		'Riesgos',
+		'Oportunidades',
+		'Arquitectura recomendada',
+		'Roadmap',
+		'Estimación de inversión'
+	];
+
 	function alternar(slug) {
 		abierta = abierta === slug ? null : slug;
 	}
@@ -341,12 +353,9 @@
 						<div class="sv-entrega-hoja">
 							<p class="sv-entrega-titulo">Lo que recibes</p>
 							<ol class="sv-entrega-indice">
-								<li>Estado actual</li>
-								<li>Riesgos</li>
-								<li>Oportunidades</li>
-								<li>Arquitectura recomendada</li>
-								<li>Roadmap</li>
-								<li>Estimación de inversión</li>
+								{#each apartados as apartado, i (apartado)}
+									<li style="--i: {i}">{apartado}</li>
+								{/each}
 							</ol>
 						</div>
 						<figcaption class="sv-entrega-pie">
@@ -790,7 +799,9 @@
 		/* Los textos se quedan en su color de reposo, que es el que declara la
 		   regla: aquí basta con quitarles la animación. */
 		.sv-process-label,
-		.sv-process-desc {
+		.sv-process-desc,
+		.sv-entrega-indice li,
+		.sv-entrega-indice li::before {
 			animation: none;
 		}
 		/* El foco se queda: encender un nodo no es movimiento, y sin él el árbol
@@ -1307,7 +1318,24 @@
 		gap: 1.25rem;
 	}
 
+	/*
+	 * Cada puerta lleva su propia atmósfera. Era la sección más plana de la
+	 * página —dos rectángulos de color casi uniforme, entre un hero con fotografía
+	 * y un Lab con resplandor— y de ahí venía la sensación de que le faltaba algo.
+	 *
+	 * El color no puede venir de otro tono: el verde es de Nexus, la plata de
+	 * Orion y el rojo de Signum, y meter cualquiera aquí haría que el sitio se
+	 * leyera como tres empresas. Sale de RANGO dentro del cian: un teal profundo
+	 * detrás de la prueba de cada puerta, que además la hace parecer iluminada en
+	 * vez de pegada.
+	 *
+	 * El resplandor se coloca en un punto distinto en cada una para que las dos
+	 * filas no se lean como la misma tarjeta repetida.
+	 */
 	.sv-door {
+		position: relative;
+		isolation: isolate;
+		overflow: hidden;
 		display: grid;
 		grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
 		gap: clamp(1.5rem, 4vw, 3.5rem);
@@ -1316,6 +1344,33 @@
 		border: 1px solid var(--sv-rule);
 		border-radius: var(--gl-r-md);
 		background: rgba(127, 227, 245, 0.03);
+		transition:
+			border-color 0.45s var(--gl-ease),
+			background-color 0.45s var(--gl-ease);
+	}
+
+	.sv-door::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		background: radial-gradient(68% 120% at 76% 26%, rgba(8, 131, 160, 0.34), transparent 62%);
+		opacity: 0.85;
+		transition: opacity 0.45s var(--gl-ease);
+	}
+	.sv-door:nth-child(2)::before {
+		background: radial-gradient(64% 118% at 80% 74%, rgba(8, 131, 160, 0.34), transparent 62%);
+	}
+
+	/* La tarjeta no es pulsable —lo es el botón de dentro—, así que la respuesta
+	   al puntero es ambiental y no una invitación a hacer clic: sube la luz, no
+	   aparece un cursor de mano ni se levanta la caja. */
+	.sv-door:hover {
+		border-color: rgba(127, 227, 245, 0.22);
+		background-color: rgba(127, 227, 245, 0.05);
+	}
+	.sv-door:hover::before {
+		opacity: 1;
 	}
 
 	.sv-door-copy {
@@ -1374,7 +1429,18 @@
 		margin: 0 0 0.9rem;
 	}
 
+	/*
+	 * La misma señal que recorre el riel de proceso, aquí en vertical: se enciende
+	 * un apartado tras otro, como se escribe el documento. Siete franjas para seis
+	 * filas; la séptima es la pausa, sin la cual el recorrido se leería como un
+	 * bucle sin principio.
+	 *
+	 * Es el motivo de toda la página —la señal que atraviesa el árbol, el riel y
+	 * el diagrama del CTOaaS—, así que esta sección deja de ser la única quieta.
+	 */
 	.sv-entrega-indice {
+		--ciclo: 6.6s;
+		--franja: calc(var(--ciclo) / 7);
 		list-style: none;
 		margin: 0;
 		padding: 0;
@@ -1390,6 +1456,8 @@
 		border-top: 1px solid var(--sv-rule);
 		font-size: 0.92rem;
 		color: var(--sv-text-muted);
+		animation: svDocFila var(--ciclo) linear infinite;
+		animation-delay: calc(var(--i) * var(--franja));
 	}
 	.sv-entrega-indice li:first-child {
 		border-top: 0;
@@ -1403,6 +1471,38 @@
 		font-family: var(--gl-font-label);
 		font-size: 0.6rem;
 		color: var(--sv-accent);
+		animation: svDocOrdinal var(--ciclo) linear infinite;
+		animation-delay: calc(var(--i) * var(--franja));
+	}
+
+	/* Vuelven al reposo más tarde de lo que tarda la siguiente en encenderse, para
+	   que haya un instante con dos vivas: sin ese solape el índice parpadea. */
+	@keyframes svDocFila {
+		0%,
+		26%,
+		100% {
+			color: var(--sv-text-muted);
+		}
+		4%,
+		15% {
+			color: var(--sv-text);
+		}
+	}
+
+	/* La sombra de reposo va transparente y no `none`: entre `none` y una sombra
+	   con color no hay interpolación, y el número se encendería de golpe. */
+	@keyframes svDocOrdinal {
+		0%,
+		26%,
+		100% {
+			color: var(--sv-accent);
+			text-shadow: 0 0 0 rgba(127, 227, 245, 0);
+		}
+		4%,
+		15% {
+			color: #ddfaff;
+			text-shadow: 0 0 11px rgba(127, 227, 245, 0.85);
+		}
 	}
 
 	.sv-entrega-pie {
