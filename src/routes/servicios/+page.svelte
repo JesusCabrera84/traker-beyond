@@ -1552,12 +1552,12 @@
 		 * invierte. Ese par de estados es lo que hace legible el panal: antes el
 		 * texto peleaba contra la imagen en los dos, y perdía en los dos.
 		 */
-		opacity: 0.42;
+		opacity: 0.68;
 		transition: opacity 0.45s var(--gl-ease);
 	}
 	.sv-hex:hover .sv-hex-img,
 	.sv-hex:focus-visible .sv-hex-img {
-		opacity: 0.68;
+		opacity: 0.86;
 	}
 	.sv-hex.is-activa .sv-hex-img {
 		opacity: 1;
@@ -1582,7 +1582,7 @@
 			rgba(4, 16, 22, 0.45) 58%,
 			transparent 78%
 		);
-		opacity: 0;
+		opacity: 0.5;
 		pointer-events: none;
 		transition: opacity 0.45s var(--gl-ease);
 	}
@@ -1599,6 +1599,11 @@
 		transition: opacity 0.4s var(--gl-ease);
 	}
 
+	/*
+	 * El rótulo se retira en reposo y solo llega a tinta plena en la celda
+	 * encendida. Es el reparto inverso al de la ilustración, así que en cada
+	 * estado hay un protagonista y no dos disputándose el mismo sitio.
+	 */
 	.sv-hex-rotulo {
 		grid-area: 1 / 1;
 		align-self: center;
@@ -1606,6 +1611,15 @@
 		justify-items: center;
 		gap: 0.35rem;
 		padding-inline: 14%;
+		opacity: 0.74;
+		transition: opacity 0.45s var(--gl-ease);
+	}
+	.sv-hex:hover .sv-hex-rotulo,
+	.sv-hex:focus-visible .sv-hex-rotulo {
+		opacity: 0.9;
+	}
+	.sv-hex.is-activa .sv-hex-rotulo {
+		opacity: 1;
 	}
 
 	/* El ordinal encabeza el rótulo. Es el mismo motivo 01–06 del índice del
@@ -1617,7 +1631,6 @@
 		letter-spacing: 0.18em;
 		color: var(--celda);
 		text-shadow: 0 1px 8px rgba(4, 16, 22, 0.95);
-		transition: opacity 0.4s var(--gl-ease);
 	}
 
 	.sv-hex-label {
