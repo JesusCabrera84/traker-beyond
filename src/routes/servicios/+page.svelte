@@ -584,18 +584,40 @@
 
 	<!-- ── CIERRE ────────────────────────────────────────── -->
 	<section class="sv-close">
-		<div class="sv-container">
-			<h2 class="sv-title sv-close-title">
-				Entendemos el problema, diseñamos la tecnología y construimos la solución.
-			</h2>
-			<p class="sv-sub sv-close-sub">
-				Nexus es la prueba: dispositivo, conectividad, streaming, geoproceso, alertas, panel, apps e
-				infraestructura, construidos e integrados por el mismo equipo.
-			</p>
-			<div class="sv-hero-actions sv-close-actions">
-				<a href="#diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a>
-				<a href="/products/nexus" class="sv-btn sv-btn--ghost">Ver Nexus</a>
+		<div class="sv-container sv-close-inner">
+			<div>
+				<h2 class="sv-title sv-close-title">
+					Entendemos el problema, diseñamos la tecnología y construimos la solución.
+				</h2>
+				<p class="sv-sub sv-close-sub">
+					Nexus es la prueba: dispositivo, conectividad, streaming, geoproceso, alertas, panel, apps
+					e infraestructura, construidos e integrados por el mismo equipo.
+				</p>
+				<div class="sv-hero-actions sv-close-actions">
+					<a href="#diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a>
+					<a href="/products/nexus" class="sv-btn sv-btn--ghost">Ver Nexus</a>
+				</div>
 			</div>
+
+			<!--
+				El despiece de Nexus es la prueba de lo que el párrafo afirma: la
+				carcasa, la electrónica, el equipo terminado y, colgando de él, la
+				conectividad, los mapas y los tableros. No es adorno, así que lleva
+				texto alternativo propio.
+
+				El archivo trae alfa de verdad —63.5% transparente— así que no
+				necesita ni máscara ni velo: se apoya directo sobre la sección.
+			-->
+			<figure class="sv-close-figura">
+				<img
+					src="/img/servicios-construimos.webp"
+					alt="Despiece de un equipo Nexus: la carcasa, su plano, la electrónica interna y el equipo terminado, con la conectividad, la señal, los mapas y los tableros saliendo de él."
+					width="1400"
+					height="700"
+					loading="lazy"
+					decoding="async"
+				/>
+			</figure>
 		</div>
 	</section>
 
@@ -2173,10 +2195,37 @@
 	/* ── Cierre ────────────────────────────────────────── */
 
 	.sv-close {
+		overflow: hidden;
 		padding: clamp(3.5rem, 7vw, 5.5rem) 0;
 		border-top: 1px solid var(--sv-rule);
 		background:
 			radial-gradient(ellipse at 50% 100%, rgba(8, 131, 160, 0.22), transparent 62%), var(--sv-bg);
+	}
+
+	/* Dos columnas: el texto ocupaba la mitad izquierda y la derecha quedaba
+	   vacía. El despiece no rellena el hueco, lo justifica: es lo que el párrafo
+	   afirma que construimos. */
+	.sv-close-inner {
+		display: grid;
+		grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr);
+		gap: clamp(1.5rem, 4vw, 3rem);
+		align-items: center;
+	}
+
+	.sv-close-figura {
+		margin: 0;
+		/* Se sale de su columna por los dos lados. A la derecha porque el despiece
+		   vuela hacia afuera y cortarlo contra un margen invisible lo detendría en
+		   seco; a la izquierda porque el tercio izquierdo del archivo es aire
+		   transparente, y respetarlo como si fuera dibujo deja la pieza pequeña.
+		   El recorte lo pone la sección, no el viewport. */
+		margin-left: clamp(-6rem, -5vw, 0rem);
+		margin-right: clamp(-5rem, -4vw, 0rem);
+	}
+	.sv-close-figura img {
+		display: block;
+		width: 100%;
+		height: auto;
 	}
 
 	.sv-close-title {
@@ -2225,8 +2274,13 @@
 			max-width: none;
 		}
 
+		.sv-close-inner,
 		.sv-diag-grid {
 			grid-template-columns: 1fr;
+		}
+		.sv-close-figura {
+			margin-left: 0;
+			margin-right: 0;
 		}
 
 		/* Las puertas se apilan: a este ancho el texto y su prueba no caben uno al
