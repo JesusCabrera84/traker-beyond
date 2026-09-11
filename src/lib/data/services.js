@@ -514,3 +514,163 @@ export const scenePins = [
 		y: 20
 	}
 ];
+
+/**
+ * El árbol tecnológico del hero de servicios.
+ *
+ * Sigue la referencia: tronco vertical al centro y ramas que salen a IZQUIERDA
+ * y DERECHA a distintas alturas, no todas a la misma ni todas del mismo lado.
+ * Un árbol de verdad es asimétrico; el primer intento salió en peine, con todo
+ * colgando de un lado, y por eso no se leía como árbol.
+ *
+ * `tamano` crece hacia abajo —de 18 en la copa a 40 en la maraña de la base—
+ * porque en la referencia los nodos ganan tamaño al acercarse a la mesa. Es lo
+ * que le da profundidad a la escena.
+ *
+ * Coordenadas y tamaño en porcentajes sobre la caja del árbol, nunca en
+ * píxeles, para que la composición aguante cualquier ancho.
+ *
+ * `voltear` refleja el nodo en horizontal: los mismos cuatro cubos leídos al
+ * revés dejan de parecer el mismo nodo repetido.
+ *
+ * `capa` decide la profundidad del parallax: 1 se mueve poco (el tronco, que
+ * ancla la escena) y 3 se mueve más (las hojas, que flotan por delante).
+ */
+/**
+ * El diagnóstico tecnológico, que vivía en su propia página.
+ *
+ * Se trajo al hub porque el embudo eran tres navegaciones antes de que nadie
+ * pudiera escribir una letra: servicios → diagnóstico → contacto. De la página
+ * vieja se conserva lo que el hub no podía decir —quién se reconoce en la oferta
+ * y qué se revisa— y se descarta lo que ya repetía: los apartados del entregable
+ * están en la puerta y los ocho frentes se solapan con las seis capacidades.
+ */
+export const diagnosticoSituaciones = [
+	'Tu plataforma ya no aguanta y no sabes si es el código, la infraestructura o el diseño',
+	'Un proveedor te pasó una cotización y no tienes con qué contrastarla',
+	'Vas a invertir en IA pero sospechas que tus datos no están listos',
+	'Heredaste un sistema que nadie documentó',
+	'Tu factura de cloud sube y nadie sabe explicar por qué',
+	'Quieres conectar máquinas o dispositivos y no sabes por dónde se empieza'
+];
+
+/** Los ocho frentes de la auditoría. Van como etiquetas: son alcance, no oferta. */
+export const diagnosticoFrentes = [
+	'Arquitectura',
+	'Infraestructura y cloud',
+	'Escalabilidad',
+	'Código y deuda técnica',
+	'Seguridad',
+	'Datos e IA',
+	'IoT y dispositivos',
+	'Costos'
+];
+
+export const arbolNodos = [
+	// Copa: es la única excepción del árbol. De ella salen DOS ramas además del
+	// tronco; en el resto del árbol las ramas nacen de una unión intermedia.
+	// Sus dos hojas son las más pequeñas y las más pegadas al tronco: son la
+	// punta de la pirámide.
+	{ id: 'copa', img: 'tree-1', x: 48, y: 8, tamano: 26, capa: 2 },
+	{ id: 'hoja-1i', img: 'tree-3', x: 29, y: 22, tamano: 19, capa: 3 },
+	{ id: 'hoja-1d', img: 'tree-6', x: 68, y: 23, tamano: 19, capa: 3, voltear: true },
+
+	// Segundo nivel: el nodo de paso va del lado izquierdo. A la derecha lo
+	// tenía encajonado entre la unión y el anillo, que es la pieza más ancha
+	// del árbol, y ese tramo quedaba saturado.
+	{ id: 'union-2', img: 'tree-parent-node', x: 48, y: 38, tamano: 15, capa: 1 },
+	{ id: 'paso-2i', img: 'tree-child-node', x: 34, y: 41, tamano: 5, capa: 2 },
+	{ id: 'hoja-2i', img: 'tree-2', x: 19, y: 45, tamano: 24, capa: 3 },
+	{ id: 'hoja-2d', img: 'tree-4', x: 77, y: 42, tamano: 30, capa: 3 },
+
+	// Tercer nivel: el otro nodo de paso, del lado contrario al del segundo.
+	// Dos pasos a la misma altura flanqueando el mismo tronco se leen como un
+	// par simétrico, que es justo lo que el árbol evita.
+	{ id: 'union-3', img: 'tree-parent-node', x: 48, y: 55, tamano: 17, capa: 1 },
+	{ id: 'hoja-3i', img: 'tree-7', x: 11, y: 59, tamano: 21, capa: 3 },
+	{ id: 'paso-3d', img: 'tree-child-node', x: 60, y: 57.7, tamano: 5.5, capa: 2 },
+	{ id: 'hoja-3d', img: 'tree-3', x: 82, y: 62, tamano: 25, capa: 3, voltear: true },
+
+	// Base: los nodos más grandes y los que más se alejan del tronco. La copa
+	// llega a x≈20/78 y aquí se llega a x≈-11/101: es esa progresión, y no el
+	// tamaño de las piezas, la que hace que la silueta se lea como un árbol.
+	{ id: 'union-4', img: 'tree-parent-node', x: 48, y: 73, tamano: 20, capa: 1 },
+	{ id: 'hoja-4i', img: 'tree-5', x: 14, y: 81, tamano: 50, capa: 3 },
+	{ id: 'hoja-4d', img: 'tree-1', x: 84, y: 81, tamano: 34, capa: 3, voltear: true },
+
+	{ id: 'raiz', img: 'tree-parent-node', x: 48, y: 92, tamano: 28, capa: 1 }
+];
+
+/**
+ * Los trazos que unen los nodos, en el mismo sistema de 0–100.
+ *
+ * Cada rama sale del tronco, quiebra en DIAGONAL y remata en horizontal sobre
+ * su nodo. Con quiebres solo en ángulo recto el árbol se leía como un peine, y
+ * los dos lados salían con el mismo ángulo: aquí cada rama tiene su propia
+ * pendiente y su propio largo.
+ *
+ * Terminan en el CENTRO de su nodo, no en el borde de su caja: el PNG lleva
+ * resplandor transparente alrededor, así que el dibujo visible queda más
+ * adentro y una rama que muere en el borde deja un hueco. El nodo se pinta
+ * encima y tapa el remate.
+ *
+ * `retardo` escalona el pulso para que la señal recorra el árbol y no lo
+ * encienda entero a la vez.
+ */
+export const arbolRamas = [
+	{ id: 'tronco', d: 'M48 92 V12', retardo: 0, tronco: true },
+
+	// Todas BAJAN al alejarse del tronco: una rama horizontal deja el conjunto
+	// como un candelabro, y lo que la referencia muestra es un abeto. El quiebre
+	// diagonal es el que hace el descenso; el remate horizontal solo aterriza
+	// sobre el nodo.
+	{ id: 'rama-1i', d: 'M46 13 L37 17 L33 22 H29', retardo: 2.4 },
+	{ id: 'rama-1d', d: 'M50 13 L59 17 L64 23 H68', retardo: 2.7 },
+
+	{ id: 'rama-2i', d: 'M48 38 L36 40 L26 45 H19', retardo: 1.8 },
+	{ id: 'rama-2d', d: 'M48 38 L58 39 L69 42 H77', retardo: 2.1 },
+
+	{ id: 'rama-3i', d: 'M48 55 L34 56 L21 59 H11', retardo: 1.2 },
+	{ id: 'rama-3d', d: 'M48 55 L58 57 L72 62 H82', retardo: 1.5 },
+
+	{ id: 'rama-4i', d: 'M48 73 L36 75 L24 81 H14', retardo: 0.6 },
+	{ id: 'rama-4d', d: 'M48 73 L62 75 L74 81 H84', retardo: 0.9 }
+];
+
+/**
+ * La rama que alimenta a un nodo, para poder encenderla cuando el puntero se
+ * acerca. Se deduce del identificador en vez de guardarse como campo: `hoja-3i`
+ * y `paso-3i` cuelgan de `rama-3i`, y todo lo que está sobre el eje —copa,
+ * uniones y raíz— cuelga del tronco. Un campo aparte sería una segunda copia de
+ * la misma relación, y las dos podrían acabar contradiciéndose.
+ */
+export function ramaDeNodo(id) {
+	const m = /^(?:hoja|paso)-(\d[id])$/.exec(id);
+	return m ? `rama-${m[1]}` : 'tronco';
+}
+
+/**
+ * Cuánto se aparta un nodo, en píxeles, cuando el puntero cruza el hero de lado
+ * a lado. Dos factores, y el segundo es el que faltaba.
+ *
+ * `capa` es PROFUNDIDAD: lo que está más cerca del espectador se desplaza más,
+ * que es de donde sale la sensación de fondo.
+ *
+ * La altura es ESTRUCTURA: el árbol está apoyado en la mesa. La raíz no se mueve
+ * y la copa es la que más oscila, como oscila un árbol de verdad. Sin esto las
+ * quince piezas se desplazaban lo mismo y el conjunto entero patinaba sobre la
+ * fotografía en vez de reaccionar.
+ *
+ * El 0.3 es el suelo: ni siquiera lo que está pegado a la mesa se queda del todo
+ * rígido, porque un elemento inmóvil entre otros que respiran se lee como pegado.
+ */
+const AMPLITUD_CAPA = { 1: 3, 2: 8, 3: 16 };
+const SUELO_ALTURA = 0.3;
+
+export function amplitudNodo(nodo) {
+	const ys = arbolNodos.map((n) => n.y);
+	const base = Math.max(...ys);
+	const recorrido = base - Math.min(...ys);
+	const altura = SUELO_ALTURA + (1 - SUELO_ALTURA) * ((base - nodo.y) / recorrido);
+	return Number((AMPLITUD_CAPA[nodo.capa] * altura).toFixed(2));
+}

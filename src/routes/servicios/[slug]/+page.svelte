@@ -30,7 +30,7 @@
 			<p class="cp-hero-promise">{capacidad.promise}</p>
 			<p class="cp-hero-intro">{capacidad.detail.intro}</p>
 			<div class="cp-actions">
-				<a href="/servicios/diagnostico" class="cp-btn cp-btn--primary">{capacidad.entrada}</a>
+				<a href="/servicios#diagnostico" class="cp-btn cp-btn--primary">{capacidad.entrada}</a>
 				<a href="/#contacto" class="cp-btn cp-btn--ghost">Cuéntanos tu caso</a>
 			</div>
 		</div>

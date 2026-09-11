@@ -26,7 +26,7 @@
 				<h4 class="footer-col-title">Servicios</h4>
 				<ul class="footer-links">
 					<li><a href="/servicios">Capacidades</a></li>
-					<li><a href="/servicios/diagnostico">Diagnóstico tecnológico</a></li>
+					<li><a href="/servicios#diagnostico">Diagnóstico tecnológico</a></li>
 					<li><a href="/servicios#doors">CTO as a Service</a></li>
 				</ul>
 			</div>
