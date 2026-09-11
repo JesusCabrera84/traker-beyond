@@ -1436,35 +1436,56 @@
 		position: relative;
 		margin: 0;
 	}
+	/* El desvanecido vertical va en el contenedor y el horizontal en la imagen:
+	   una máscara por elemento se multiplican solas al componerse. */
 	.sv-lab-lienzo {
 		position: relative;
+		-webkit-mask-image: linear-gradient(
+			180deg,
+			transparent 0%,
+			#000 17%,
+			#000 89%,
+			transparent 100%
+		);
+		mask-image: linear-gradient(180deg, transparent 0%, #000 17%, #000 89%, transparent 100%);
 	}
 	.sv-lab-lienzo img {
 		display: block;
 		width: 100%;
 		height: auto;
+		-webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 9%, #000 91%, transparent 100%);
+		mask-image: linear-gradient(90deg, transparent 0%, #000 9%, #000 91%, transparent 100%);
 	}
 	/*
-	 * Los bordes de la ilustración se funden con la sección en vez de cortarse en
-	 * seco. El fondo del archivo (#00131e en las esquinas) está a siete puntos por
-	 * canal de `--sv-bg`, invisible sobre un fondo oscuro; el problema son los
-	 * bordes centrales, bastante más claros (#002b3f), que sí dejarían ver el
-	 * rectángulo.
+	 * EL BORDE DE LA ILUSTRACIÓN
 	 *
-	 * Va como velo de degradados y no como `mask-image`: el fondo de la sección es
-	 * un color plano, así que pintar encima da el mismo resultado sin depender de
-	 * `mask-composite`. De paso, la escena se lee como si continuara más allá del
-	 * encuadre, que es justo lo que la composición sugiere: la plataforma de la
-	 * izquierda ya viene cortada en el archivo.
+	 * El archivo no tiene un fondo plano: lleva un resplandor ancho que va de
+	 * #01131e en los costados a #012c40 en el centro, y se mantiene así hacia
+	 * abajo. La sección sí era plana, y esa diferencia —no el corte— es lo que
+	 * dibujaba el rectángulo. Ningún velo corto puede tapar una diferencia que
+	 * continúa más allá del borde.
+	 *
+	 * Así que la sección recibe el mismo resplandor (`.sv-lab-figura::before`) y
+	 * la imagen se desvanece con MÁSCARA en vez de con un velo de color encima.
+	 * Con el fondo ya no plano, pintar `--sv-bg` sobre los bordes abriría una
+	 * banda OSCURA donde antes había una clara: el mismo error al revés. La
+	 * máscara no supone nada sobre lo que hay detrás.
+	 *
+	 * Dos elementos con una máscara cada uno en vez de uno con dos: así no hace
+	 * falta `mask-composite`, que es lo único de esta receta que no está en todos
+	 * los navegadores que nos importan.
 	 */
-	.sv-lab-lienzo::after {
+	.sv-lab-figura::before {
 		content: '';
 		position: absolute;
-		inset: 0;
+		inset: -14% -5%;
 		pointer-events: none;
-		background:
-			linear-gradient(90deg, var(--sv-bg) 0%, transparent 8%, transparent 92%, var(--sv-bg) 100%),
-			linear-gradient(180deg, var(--sv-bg) 0%, transparent 10%, transparent 90%, var(--sv-bg) 100%);
+		background: radial-gradient(
+			ellipse at 50% 50%,
+			rgba(0, 90, 140, 0.26) 0%,
+			rgba(0, 90, 140, 0.13) 42%,
+			transparent 72%
+		);
 	}
 
 	/*
