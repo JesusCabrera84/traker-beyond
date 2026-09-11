@@ -7,17 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
-
-- El diagnóstico tecnológico deja de ser una página aparte y se integra al final de `/servicios`, con su formulario propio. El embudo eran tres navegaciones —servicios, diagnóstico, contacto— antes de que nadie pudiera escribir una letra. De la página vieja se conserva lo que el hub no podía decir —las seis situaciones en las que el visitante se reconoce y los ocho frentes que se revisan— y se descarta lo que ya repetía: los apartados del entregable viven en la puerta de «por dónde empezar» y los ocho frentes se solapaban con las seis capacidades. `/servicios/diagnostico` queda como redirección 301 al ancla nueva, porque la URL está en enlaces que no controlamos y en lo que Google ya indexó
-
-### Fixed
-
-- Las etiquetas de tecnologías y los ocho frentes del diagnóstico dejan de mostrar cursor de texto. Una píldora con borde se lee como control, y el cursor de texto encima la hace parecer a la vez seleccionable y pulsable, que no es ninguna de las dos
-- Las tarjetas de «por dónde empezar» se estiraban a la misma altura, así que la de diagnóstico —más corta— quedaba con un vacío enorme entre su texto y el botón, que va anclado abajo. Ahora cada una toma su alto natural
-- Deploy no longer runs `docker container prune` and `docker volume prune` on the EC2 host. Both sweep the entire machine, which is shared with `siscom-api`, `siscom-admin-api` and a Valkey container holding data-token scope state, and neither reclaimed anything belonging to this project: the web container is already removed by name a few lines above, and the image is static and creates no volumes. `docker image prune` stays, since dangling images are where the disk actually goes
-- Nexus product page CTAs now point to `/#contacto` (the contact form lives on the home page; `#contacto` on `/products/nexus` was a dead hash). Fleet CTA label is "Solicitar una demo". Fleet ROI card no longer mentions Excel
-- Account-deletion confirmation dialog is keyboard-accessible: `tabindex`, Escape to dismiss, and an `aria-labelledby` title
+## [1.13.0] — 2026-09-10
 
 ### Added
 
@@ -57,18 +47,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Expanded unit tests for services, stores, and utils (~150 tests)
 - Engineering foundation docs: `AGENTS.md`, `CONTRIBUTING.md`, `SECURITY.md`, `.editorconfig`, `.nvmrc`
 
-### Security
-
-- Cleared eight advisories that CI started reporting after `v1.11.0` shipped, without a single source change: `qs` 6.15.2 → 6.16.0, `fast-uri` 4.1.2 → 4.1.4, `postcss-selector-parser` 7.1.1 → 7.1.6 and `@humanfs/node` 0.16.7 → 0.16.8. `npm audit fix` resolved all of them without `--force` and without a major bump, so only `package-lock.json` changed. `qs` is the one that sits in the production dependency tree (`pixi.js` → `@pixi/utils` → `url`); the other three are build tooling
-- Raised the `nanoid` override to `^3.3.18` (GHSA-2v37-7h3g-55p8). The lockfile resolved to 3.3.16, which made `npm run audit --audit-level=high` fail
-- Raised the `fast-uri` override from `>=3.1.4` to `>=4.1.2`. The former resolved to 4.1.1, affected by GHSA-7p8r-x3mc-p8w7, which made `npm run audit` fail on every pull request — all four open Dependabot PRs were red for a reason unrelated to what they were bumping
-- Added `.claude/` to `.prettierignore`. It is in `.gitignore` but Prettier still checked it, so `prettier --check .` failed locally on an unversioned file and, because the lint script chains with `&&`, eslint never ran at all
-- Cleared all 13 known dependency vulnerabilities reported by `npm audit` and OSV-Scanner (1 critical, 10 high, 2 medium), all in dev dependencies
-- Bumped `@sveltejs/kit` to `^2.69.1` and the `vitest` family (`vitest`, `@vitest/coverage-v8`, `@vitest/browser`) to `^3.2.7`
-- Added `overrides` for `brace-expansion`, `minimatch`, `fast-uri`, `js-yaml`, and raised the `postcss` floor to `>=8.5.18`. `minimatch` has to move to `>=10.2.6` alongside `brace-expansion@>=5`, since v5 switched from a default to a named export and older `minimatch` calls it as a default
-
 ### Changed
 
+- El diagnóstico tecnológico deja de ser una página aparte y se integra al final de `/servicios`, con su formulario propio. El embudo eran tres navegaciones —servicios, diagnóstico, contacto— antes de que nadie pudiera escribir una letra. De la página vieja se conserva lo que el hub no podía decir —las seis situaciones en las que el visitante se reconoce y los ocho frentes que se revisan— y se descarta lo que ya repetía: los apartados del entregable viven en la puerta de «por dónde empezar» y los ocho frentes se solapaban con las seis capacidades. `/servicios/diagnostico` queda como redirección 301 al ancla nueva, porque la URL está en enlaces que no controlamos y en lo que Google ya indexó
 - Declared two processors that were missing, both verified in code: **Amazon Cognito** for identity management (`siscom-admin-api`, user pool in us-east-1) and **KORE Wireless (SuperSIM)** for cellular connectivity and SMS commands to units (`app/services/kore.py`). Mobile network operators are described as carriers of the communication, which is what they are
 - Corrected a false statement in the privacy notice: passwords are not "protected by key derivation functions", they are **not stored at all**. Authentication has been fully delegated to Cognito since migration `004` of siscom-admin-api. The real posture is better than the one being declared
 - Legal pages rewritten under the LFPDPPP published in the DOF on 20 March 2025, with the Secretaría Anticorrupción y Buen Gobierno as the supervisory authority. The previous text predated the reform and named neither
@@ -93,9 +74,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Phase 2 (soft): DevContainer, `npm run validate`, unit test scaffolding, Playwright smoke e2e (informational CI)
 - ADRs (`docs/adr/`), threat model (`docs/security/threat-model.md`), GitHub issue templates
 - `sessionExpiredHandler` to isolate 401 handling from `apiClient`
-
-### Changed
-
 - Split monolithic GitHub Actions workflow into `ci.yml` (quality gates) and `deploy.yml` (releases)
 - Enriched pull request template with changelog and base-branch checks
 - Updated deploy GitHub Actions to current major versions (`actions/checkout@v5`, `docker/setup-buildx-action@v4`, `docker/build-push-action@v7`) to align with Node 24 runtime
@@ -106,6 +84,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Dead scoped CSS from `src/routes/+page.svelte` (zero `css_unused_selector` build warnings)
 - Unused `.alert--demo` styles from billing payment-methods page
+
+### Fixed
+
+- Las etiquetas de tecnologías y los ocho frentes del diagnóstico dejan de mostrar cursor de texto. Una píldora con borde se lee como control, y el cursor de texto encima la hace parecer a la vez seleccionable y pulsable, que no es ninguna de las dos
+- Las tarjetas de «por dónde empezar» se estiraban a la misma altura, así que la de diagnóstico —más corta— quedaba con un vacío enorme entre su texto y el botón, que va anclado abajo. Ahora cada una toma su alto natural
+- Deploy no longer runs `docker container prune` and `docker volume prune` on the EC2 host. Both sweep the entire machine, which is shared with `siscom-api`, `siscom-admin-api` and a Valkey container holding data-token scope state, and neither reclaimed anything belonging to this project: the web container is already removed by name a few lines above, and the image is static and creates no volumes. `docker image prune` stays, since dangling images are where the disk actually goes
+- Nexus product page CTAs now point to `/#contacto` (the contact form lives on the home page; `#contacto` on `/products/nexus` was a dead hash). Fleet CTA label is "Solicitar una demo". Fleet ROI card no longer mentions Excel
+- Account-deletion confirmation dialog is keyboard-accessible: `tabindex`, Escape to dismiss, and an `aria-labelledby` title
+
+### Security
+
+- Cleared eight advisories that CI started reporting after `v1.11.0` shipped, without a single source change: `qs` 6.15.2 → 6.16.0, `fast-uri` 4.1.2 → 4.1.4, `postcss-selector-parser` 7.1.1 → 7.1.6 and `@humanfs/node` 0.16.7 → 0.16.8. `npm audit fix` resolved all of them without `--force` and without a major bump, so only `package-lock.json` changed. `qs` is the one that sits in the production dependency tree (`pixi.js` → `@pixi/utils` → `url`); the other three are build tooling
+- Raised the `nanoid` override to `^3.3.18` (GHSA-2v37-7h3g-55p8). The lockfile resolved to 3.3.16, which made `npm run audit --audit-level=high` fail
+- Raised the `fast-uri` override from `>=3.1.4` to `>=4.1.2`. The former resolved to 4.1.1, affected by GHSA-7p8r-x3mc-p8w7, which made `npm run audit` fail on every pull request — all four open Dependabot PRs were red for a reason unrelated to what they were bumping
+- Added `.claude/` to `.prettierignore`. It is in `.gitignore` but Prettier still checked it, so `prettier --check .` failed locally on an unversioned file and, because the lint script chains with `&&`, eslint never ran at all
+- Cleared all 13 known dependency vulnerabilities reported by `npm audit` and OSV-Scanner (1 critical, 10 high, 2 medium), all in dev dependencies
+- Bumped `@sveltejs/kit` to `^2.69.1` and the `vitest` family (`vitest`, `@vitest/coverage-v8`, `@vitest/browser`) to `^3.2.7`
+- Added `overrides` for `brace-expansion`, `minimatch`, `fast-uri`, `js-yaml`, and raised the `postcss` floor to `>=8.5.18`. `minimatch` has to move to `>=10.2.6` alongside `brace-expansion@>=5`, since v5 switched from a default to a named export and older `minimatch` calls it as a default
 
 ## [1.12.1] — 2026-09-10
 
