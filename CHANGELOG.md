@@ -7,9 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Removed
-
-- Las seis páginas `/servicios/<slug>`. Su contenido —171 ítems en 2–5 grupos por capacidad, más la introducción y la nota— vive ahora en la propia sección del panal, así que dejaron de tener nada que la página principal no tuviera. Nadie tenía esos enlaces, así que no llevan redirección
+## [1.14.0] — 2026-09-11
 
 ### Changed
 
@@ -20,10 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - El CTA de cada capacidad deja de navegar. «Ver <capacidad>» perdió su referente al tener el detalle delante —sería un botón que hace scroll a algo que ya se ve—, así que asciende `entrada` («Empieza con un diagnóstico»), que ya estaba escrita como texto de botón y se pintaba como párrafo gris, apuntando al formulario de la misma página
 - «Soluciones Integrales» se pinta como cadena y no como grupos: sus ítems son pasos ordenados del dispositivo al dashboard y el orden es lo único que significan. Se ramifica por un campo del dato y no por el slug
 - La ronda automática del panal pasa de 3.4 a 4.4 segundos y cambia con el mismo relevo desvanecido que el clic. Se detiene al entrar el puntero o el foco en la sección ENTERA y no solo en la fila del panal: la banda de detalle es hermana de esa fila, y quien esté leyendo sus 171 ítems ya está interactuando aunque no haya tocado una celda
-
 - Las seis capacidades de `/servicios` dejan de ser una lista y pasan a ser un panal: cinco hexágonos alrededor de uno, con el detalle al lado. Las filas anteriores medían lo mismo hasta el decimal —148.1 px las seis, mismo eje, mismo acento—, así que para distinguir una de otra había que leerla y el bloque se leía como un solo ladrillo gris. «Soluciones Integrales» va en el centro porque no es una capacidad hermana, son las otras cinco juntas, y los hexágonos teselan —encajan sin dejar huecos— que es literalmente lo que esa capacidad promete. El hueco que sobra del anillo se deja a la derecha, mirando al panel de detalle
 - Cada celda lleva una figura dibujada en SVG que no representa la cosa sino el CAMBIO DE ESTADO que la capacidad produce: una placa extraída de una pila, una retícula vieja redibujada un nivel arriba, puntos dispersos resueltos en un trazo, anillos que decrecen vistos desde el dispositivo, máquinas distintas sobre una sola barra de medición, y cinco placas atravesadas por un hilo sin cortes. Cada celda es una ilustración hexagonal que la ocupa entera: en reposo baja al 42% y manda el rótulo, encendida sube a plena luz, crece y se adelanta sobre sus vecinas. Las figuras dibujadas quedan como reserva para una capacidad sin ilustración. Van rellenas y con trazo grueso porque a 130 px la línea no existe, y el color de cada celda sale de una rampa por POSICIÓN —del azul de las luces del hero en el anillo al hielo del centro— y no de un color por significado: con un solo cian no caben seis escalones legibles. Unos 6 KB de vector, ninguna imagen nueva
 - El panal se recorre solo hasta que alguien lo toca y entonces se detiene para siempre. No es un carrusel: un carrusel sigue girando mientras lees y te mueve el texto a media frase. El gesto del visitante —puntero o foco, en el módulo entero— es la pausa, y con `prefers-reduced-motion` no hay ronda
+
+### Removed
+
+- Las seis páginas `/servicios/<slug>`. Su contenido —171 ítems en 2–5 grupos por capacidad, más la introducción y la nota— vive ahora en la propia sección del panal, así que dejaron de tener nada que la página principal no tuviera. Nadie tenía esos enlaces, así que no llevan redirección
 
 ### Fixed
 
