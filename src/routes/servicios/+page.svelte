@@ -622,10 +622,6 @@
 							{/each}
 						</div>
 					{/if}
-
-					{#if cap.detail.nota}
-						<p class="sv-banda-nota">{cap.detail.nota}</p>
-					{/if}
 				</div>
 			{/each}
 		</div>
@@ -1953,21 +1949,6 @@
 	.sv-paso-flecha {
 		color: var(--celda-activa, var(--sv-accent));
 		margin: 0 0.5rem;
-	}
-
-	/* El vidrio se reserva para la nota, que existe en tres de las seis. Va al
-	   final, así que su ausencia no desplaza nada. */
-	.sv-banda-nota {
-		margin: clamp(1.25rem, 3vw, 2rem) 0 0;
-		padding: 0.9rem 1.1rem;
-		border: 1px solid var(--sv-rule);
-		border-radius: var(--gl-r-sm);
-		background: rgba(9, 31, 40, 0.74);
-		backdrop-filter: blur(7px);
-		font-size: 0.88rem;
-		line-height: 1.6;
-		color: var(--sv-text-muted);
-		max-width: 72ch;
 	}
 
 	/* ── Puertas de entrada ────────────────────────────── */

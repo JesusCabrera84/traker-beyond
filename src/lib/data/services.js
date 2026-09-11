@@ -325,8 +325,7 @@ export const services = [
 						'Riesgo tecnológico'
 					]
 				}
-			],
-			nota: '«¿Debemos desarrollar hardware propio o integrar tecnología existente?» Es una consultoría que se contrata sola, independiente de que después construyamos el dispositivo o no.'
+			]
 		},
 		entrada: 'Empieza resolviendo build vs buy'
 	},
@@ -431,8 +430,7 @@ export const services = [
 						'Automatización'
 					]
 				}
-			],
-			nota: 'Nexus es la prueba de que esta cadena la hemos recorrido completa, no en una lámina: dispositivo, conectividad, streaming, geoproceso, alertas, panel, apps e infraestructura, en producción.'
+			]
 		},
 		entrada: 'Empieza contándonos el problema'
 	}
