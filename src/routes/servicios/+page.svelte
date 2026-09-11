@@ -13,7 +13,7 @@
 		celdasPanal,
 		PANAL_ALTO
 	} from '$lib/data/services.js';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import Figura from '$lib/components/FiguraCapacidad.svelte';
 	import { cargarRecaptcha, enviarContacto, validarContacto } from '$lib/contacto.js';
 
@@ -23,9 +23,41 @@
 	let activa = services[0].slug;
 	$: celdaActiva = celdas.find((c) => c.slug === activa);
 
+	/*
+	 * El cambio de capacidad se hace en DOS TIEMPOS: primero se desvanece lo que
+	 * hay, y solo cuando está invisible se sustituye por lo nuevo, que entra
+	 * apareciendo.
+	 *
+	 * No es solo suavidad. Las capacidades varían cientos de píxeles de alto, así
+	 * que el cambio desplaza todo lo que viene debajo; haciéndolo con el contenido
+	 * ya en opacidad cero, el salto de maquetación ocurre cuando no hay nada que
+	 * ver y deja de leerse como un tirón.
+	 */
+	const SALIDA_MS = 170;
+	let saliendo = false;
+	let relevo = 0;
+
 	function elegir(slug) {
-		activa = slug;
+		if (slug === activa) return;
+
+		// Con movimiento reducido el cambio es inmediato: el desvanecido es
+		// precisamente el movimiento que esa preferencia pide quitar.
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+			activa = slug;
+			return;
+		}
+
+		// Un solo relevo en vuelo: pulsar rápido varias celdas no debe encadenar
+		// desvanecidos ni dejar el panel apagado al terminar.
+		clearTimeout(relevo);
+		saliendo = true;
+		relevo = setTimeout(() => {
+			activa = slug;
+			saliendo = false;
+		}, SALIDA_MS);
 	}
+
+	onDestroy(() => clearTimeout(relevo));
 
 	/** El color de rampa de una celda, para teñir su banda de detalle. */
 	const colorDe = (slug) => celdas.find((c) => c.slug === slug)?.color;
@@ -452,6 +484,7 @@
 						role="tabpanel"
 						aria-labelledby="hex-{cap.slug}"
 						tabindex="0"
+						class:is-saliendo={saliendo}
 						hidden={activa !== cap.slug}
 					>
 						<p class="sv-detalle-num">{cap.num}</p>
@@ -481,6 +514,7 @@
 			{#each services as cap (cap.slug)}
 				<div
 					class="sv-banda"
+					class:is-saliendo={saliendo}
 					hidden={activa !== cap.slug}
 					style="--celda-activa: {colorDe(cap.slug)}"
 				>
@@ -1725,6 +1759,35 @@
 		margin-top: 0.4rem;
 	}
 
+	/*
+	 * El relevo entre capacidades. La salida es una transición sobre el elemento
+	 * que ya está en pantalla; la entrada es una ANIMACIÓN, porque un elemento que
+	 * viene de `display: none` no transiciona —no hay estado anterior desde el que
+	 * interpolar— y una animación sí arranca al mostrarse.
+	 *
+	 * Sin `fill-mode`: al terminar, el elemento vuelve a su opacidad normal y deja
+	 * la propiedad libre para que la transición de salida la tome la próxima vez.
+	 */
+	.sv-panal-detalle,
+	.sv-banda {
+		transition: opacity 0.2s var(--gl-ease);
+	}
+	.sv-panal-detalle:not([hidden]),
+	.sv-banda:not([hidden]) {
+		animation: svRelevo 0.45s var(--gl-ease);
+	}
+	.sv-panal-detalle.is-saliendo,
+	.sv-banda.is-saliendo {
+		opacity: 0;
+	}
+
+	@keyframes svRelevo {
+		from {
+			opacity: 0;
+			transform: translateY(0.6rem);
+		}
+	}
+
 	/* ── Banda de detalle ──────────────────────────────── */
 
 	.sv-banda {
@@ -2685,6 +2748,17 @@
 		   crecer: el cambio de tamaño es movimiento y aquí sobra. */
 		.sv-hex.is-activa {
 			transform: translate(-50%, -50%);
+		}
+
+		/* Y el relevo entre capacidades es instantáneo: el JS ya se salta el
+		   desvanecido, aquí se quita lo que quedaría del lado del CSS. */
+		.sv-panal-detalle,
+		.sv-banda {
+			transition: none;
+		}
+		.sv-panal-detalle:not([hidden]),
+		.sv-banda:not([hidden]) {
+			animation: none;
 		}
 
 		.sv-btn--primary:hover {
