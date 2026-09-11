@@ -21,62 +21,14 @@
 	const celdas = celdasPanal(services);
 
 	let activa = services[0].slug;
-	$: capacidadActiva = services.find((s) => s.slug === activa);
 	$: celdaActiva = celdas.find((c) => c.slug === activa);
 
-	/*
-	 * La ronda en reposo: el panal se explica solo hasta que alguien lo toca, y
-	 * entonces PARA PARA SIEMPRE.
-	 *
-	 * No es un carrusel. Un carrusel sigue girando mientras lees y te mueve el
-	 * texto a media frase; además, cualquier cosa que se auto-actualiza durante
-	 * más de cinco segundos necesita poder pausarse (WCAG 2.2.2). Aquí el gesto
-	 * del visitante ES la pausa, es permanente, y basta con acercar el puntero al
-	 * panal: no hay que acertarle a un control.
-	 */
-	const RONDA_MS = 3400;
-	let ronda = 0;
-
-	function detenerRonda() {
-		if (ronda) {
-			clearInterval(ronda);
-			ronda = 0;
-		}
-	}
-
-	function arrancarRonda() {
-		// Con movimiento reducido no hay ronda: el panal se queda en la primera y se
-		// recorre a mano, que es lo que esa preferencia pide.
-		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-		ronda = setInterval(() => {
-			const i = services.findIndex((s) => s.slug === activa);
-			activa = services[(i + 1) % services.length].slug;
-		}, RONDA_MS);
-	}
-
 	function elegir(slug) {
-		detenerRonda();
 		activa = slug;
 	}
 
-	/**
-	 * Detiene la ronda cuando el puntero o el foco entran en el módulo.
-	 *
-	 * Va como acción y no como `on:` porque el contenedor NO es interactivo: no
-	 * responde a nada, solo escucha para apagar una animación. Declararlo con
-	 * manejadores en la plantilla obliga a darle un rol ARIA que sería mentira, y
-	 * el rol de verdad —`tablist`— está donde tiene que estar, en las celdas.
-	 */
-	function alEngancharse(nodo) {
-		nodo.addEventListener('pointerenter', detenerRonda);
-		nodo.addEventListener('focusin', detenerRonda);
-		return {
-			destroy() {
-				nodo.removeEventListener('pointerenter', detenerRonda);
-				nodo.removeEventListener('focusin', detenerRonda);
-			}
-		};
-	}
+	/** El color de rampa de una celda, para teñir su banda de detalle. */
+	const colorDe = (slug) => celdas.find((c) => c.slug === slug)?.color;
 
 	/*
 	 * Flechas para moverse entre celdas, Inicio y Fin para los extremos: es lo que
@@ -139,11 +91,7 @@
 	let acuse = '';
 	let acuseOk = false;
 
-	onMount(() => {
-		cargarRecaptcha();
-		arrancarRonda();
-		return detenerRonda;
-	});
+	onMount(cargarRecaptcha);
 
 	async function enviar(evento) {
 		evento.preventDefault();
@@ -443,12 +391,7 @@
 				</p>
 			</header>
 
-			<!-- La ronda se detiene al entrar el puntero O el foco en el módulo
-			     entero, panel incluido: si alguien está leyendo el detalle, ya está
-			     interactuando aunque no haya tocado una celda. Y con el teclado hace
-			     todavía más falta, porque tabular dentro y que el contenido cambie
-			     solo desorienta más que con el ratón. -->
-			<div class="sv-panal-layout" use:alEngancharse style="--celda-activa: {celdaActiva.color}">
+			<div class="sv-panal-layout" style="--celda-activa: {celdaActiva.color}">
 				<!--
 					Pestañas y no botones sueltos: seis controles que gobiernan un mismo
 					panel son exactamente eso, y el patrón trae la navegación por flechas
@@ -466,7 +409,7 @@
 							class:sv-hex--ilustrada={c.imagen}
 							style="--x: {c.x}; --y: {c.y}; --celda: {c.color}"
 							aria-selected={activa === c.slug}
-							aria-controls="panel-capacidad"
+							aria-controls="panel-{c.slug}"
 							tabindex={activa === c.slug ? 0 : -1}
 							on:click={() => elegir(c.slug)}
 							on:keydown={mover}
@@ -495,34 +438,86 @@
 					{/each}
 				</div>
 
-				<div
-					class="sv-panal-detalle"
-					id="panel-capacidad"
-					role="tabpanel"
-					aria-labelledby="hex-{activa}"
-					tabindex="0"
-				>
-					{#key activa}
-						<div class="sv-detalle-inner">
-							<p class="sv-detalle-num">{capacidadActiva.num}</p>
-							<h3 class="sv-detalle-title">{capacidadActiva.title}</h3>
-							<p class="sv-detalle-promise">{capacidadActiva.promise}</p>
-							<ul class="sv-chips">
-								{#each capacidadActiva.chips as chip (chip)}
-									<li class="sv-chip">{chip}</li>
-								{/each}
-							</ul>
-							<div class="sv-detalle-foot">
-								<a class="sv-row-link" href="/servicios/{capacidadActiva.slug}">
-									Ver {capacidadActiva.title}
-									<span class="sv-row-link-arrow" aria-hidden="true">→</span>
-								</a>
-								<p class="sv-row-entry">{capacidadActiva.entrada}</p>
-							</div>
-						</div>
-					{/key}
-				</div>
+				<!--
+					Los SEIS paneles van en el DOM, cinco ocultos. Con `{#key}` el servidor
+					mandaba solo la capacidad activa, así que los 171 ítems que esta sección
+					absorbe de las seis páginas borradas no estaban en la página: un Ctrl+F
+					por «LoRaWAN» no lo encontraba salvo que IoT estuviera encendida.
+					`hidden` los saca del árbol de accesibilidad sin sacarlos del documento.
+				-->
+				{#each services as cap (cap.slug)}
+					<div
+						class="sv-panal-detalle"
+						id="panel-{cap.slug}"
+						role="tabpanel"
+						aria-labelledby="hex-{cap.slug}"
+						tabindex="0"
+						hidden={activa !== cap.slug}
+					>
+						<p class="sv-detalle-num">{cap.num}</p>
+						<h3 class="sv-detalle-title">{cap.title}</h3>
+						<p class="sv-detalle-promise">{cap.promise}</p>
+						<p class="sv-detalle-intro">{cap.detail.intro}</p>
+						<!--
+							`entrada` ya venía escrita como texto de botón —«Empieza con un
+							diagnóstico»— y se pintaba como párrafo gris. El enlace que había
+							aquí decía «Ver <capacidad>» y llevaba a una página que ya no
+							existe; conservarlo apuntando al detalle de abajo sería un botón
+							que hace scroll a algo que ya se ve.
+						-->
+						<a class="sv-btn sv-btn--primary sv-detalle-cta" href="#diagnostico">{cap.entrada}</a>
+					</div>
+				{/each}
 			</div>
+
+			<!--
+				La banda del detalle absorbido va a ANCHO COMPLETO y debajo del panal, no
+				en la columna de al lado. Las capacidades varían de 15 a 38 ítems, y en una
+				columna de 637 px eso son 500 px de diferencia de alto que harían saltar al
+				panal bajo el cursor en el mismo clic que lo activó. A ancho completo deja
+				de ser un problema de altura y pasa a ser uno de número de columnas, que la
+				rejilla resuelve sola.
+			-->
+			{#each services as cap (cap.slug)}
+				<div
+					class="sv-banda"
+					hidden={activa !== cap.slug}
+					style="--celda-activa: {colorDe(cap.slug)}"
+				>
+					{#if cap.detail.forma === 'cadena'}
+						<div class="sv-cadenas">
+							{#each cap.detail.groups as g (g.title)}
+								<div class="sv-cadena">
+									<p class="sv-cadena-caso">{g.title}</p>
+									<p class="sv-cadena-pasos">
+										{#each g.items as paso, i (paso)}<span class="sv-paso">{paso}</span
+											>{#if i < g.items.length - 1}<span class="sv-paso-flecha" aria-hidden="true"
+													>→</span
+												>{/if}{/each}
+									</p>
+								</div>
+							{/each}
+						</div>
+					{:else}
+						<div class="sv-grupos">
+							{#each cap.detail.groups as g (g.title)}
+								<section class="sv-grupo">
+									<h4 class="sv-grupo-title">{g.title}</h4>
+									<ul class="sv-grupo-items">
+										{#each g.items as item (item)}
+											<li>{item}</li>
+										{/each}
+									</ul>
+								</section>
+							{/each}
+						</div>
+					{/if}
+
+					{#if cap.detail.nota}
+						<p class="sv-banda-nota">{cap.detail.nota}</p>
+					{/if}
+				</div>
+			{/each}
 		</div>
 	</section>
 
@@ -1493,7 +1488,10 @@
 		display: grid;
 		grid-template-columns: minmax(0, 0.46fr) minmax(0, 0.54fr);
 		gap: clamp(1.5rem, 4vw, 3.5rem);
-		align-items: center;
+		/* `start` y no `center`: con el detalle absorbido, las capacidades varían
+		   cientos de píxeles de alto, y centrado el panal se desplazaba hacia abajo
+		   bajo el cursor en el mismo clic que lo activaba. */
+		align-items: start;
 		margin-top: clamp(2rem, 4vw, 3rem);
 	}
 
@@ -1671,19 +1669,16 @@
 	 */
 
 	.sv-panal-detalle {
-		min-height: 19rem;
+		display: grid;
+		gap: 0.9rem;
+		justify-items: start;
+		align-content: start;
+		padding-top: clamp(1rem, 3vw, 2.5rem);
 	}
 	.sv-panal-detalle:focus-visible {
 		outline: 2px solid var(--sv-accent);
 		outline-offset: 8px;
 		border-radius: var(--gl-r-sm);
-	}
-
-	.sv-detalle-inner {
-		display: grid;
-		gap: 0.9rem;
-		justify-items: start;
-		animation: svDetalleEntra 0.4s var(--gl-ease) both;
 	}
 
 	/* Entra desplazándose desde el panal, no apareciendo de la nada: el texto
@@ -1719,65 +1714,113 @@
 		margin: 0;
 	}
 
-	.sv-detalle-foot {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		gap: 0.6rem 1.5rem;
+	.sv-detalle-intro {
+		color: var(--sv-text-muted);
+		line-height: 1.65;
+		max-width: 46ch;
+		margin: 0;
+	}
+
+	.sv-detalle-cta {
 		margin-top: 0.4rem;
 	}
 
-	.sv-chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
+	/* ── Banda de detalle ──────────────────────────────── */
+
+	.sv-banda {
+		margin-top: clamp(2rem, 4vw, 3rem);
+		padding-top: clamp(1.5rem, 3vw, 2rem);
+		border-top: 1px solid var(--sv-rule);
+	}
+
+	/*
+	 * Una columna por grupo. El número de grupos y el de ítems correlacionan —a
+	 * más grupos, más ítems—, así que el recuento de columnas absorbe él solo casi
+	 * todo el rango: 38 ítems en 5 columnas son 8 filas; 15 en 3 columnas, 5.
+	 */
+	.sv-grupos {
+		display: grid;
+		/* 11rem y no más: con 13 solo caben cuatro columnas, y la capacidad de cinco
+		   grupos dejaba el quinto solo en una segunda fila con tres huecos al lado.
+		   A 11 caben los cinco en una línea y ninguna capacidad deja celdas muertas. */
+		grid-template-columns: repeat(auto-fit, minmax(min(11rem, 100%), 1fr));
+		gap: clamp(1.25rem, 2.5vw, 2rem);
+	}
+
+	/* El título del grupo toma el tono de la celda encendida, que ya se calcula.
+	   Un tono POR GRUPO rompería la regla de que el color es por posición, y se
+	   leería como una taxonomía que nadie quiso afirmar. */
+	.sv-grupo-title {
+		font-family: var(--gl-font-label);
+		font-size: 0.68rem;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--celda-activa, var(--sv-accent));
+		margin: 0 0 0.75rem;
+		padding-bottom: 0.5rem;
+		border-bottom: 1px solid var(--sv-rule);
+	}
+
+	/*
+	 * Los ítems van como lista y no como píldoras. Una píldora con borde promete
+	 * interacción que aquí no existe, y ciento setenta y una de ellas en una misma
+	 * sección son puro ruido. Alineados a la izquierda bajo su título, la
+	 * proximidad ya agrupa sin gastar un píxel de tinta.
+	 */
+	.sv-grupo-items {
 		list-style: none;
-		padding: 0;
-		margin: 0 0 1rem;
-	}
-	.sv-chip {
-		padding: 0.35rem 0.8rem;
-		border-radius: var(--gl-r-pill);
-		border: 1px solid rgba(127, 227, 245, 0.28);
-		font-size: 0.82rem;
-		color: var(--sv-text-muted);
-		cursor: default;
-	}
-	.sv-row-link {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.4rem;
-		min-height: 44px;
-		padding: 0.55rem 1.2rem;
-		border-radius: var(--gl-r-sm);
-		border: 1px solid rgba(127, 227, 245, 0.35);
-		color: var(--sv-text);
-		font-size: 0.88rem;
-		font-weight: 600;
-		text-decoration: none;
-		transition:
-			border-color var(--gl-dur) var(--gl-ease),
-			background var(--gl-dur) var(--gl-ease);
-	}
-	.sv-row-link:hover {
-		border-color: var(--sv-accent);
-		background: rgba(127, 227, 245, 0.07);
-	}
-	.sv-row-link:focus-visible {
-		outline: 2px solid var(--sv-accent);
-		outline-offset: 3px;
-	}
-	.sv-row-link-arrow {
-		transition: transform var(--gl-dur) var(--gl-ease);
-	}
-	.sv-row-link:hover .sv-row-link-arrow {
-		transform: translateX(3px);
-	}
-	.sv-row-entry {
-		font-size: 0.85rem;
-		font-weight: 600;
-		color: var(--sv-accent);
 		margin: 0;
+		padding: 0;
+		display: grid;
+		gap: 0.32rem;
+		font-size: 0.88rem;
+		line-height: 1.4;
+		color: var(--sv-text-muted);
+	}
+
+	/*
+	 * La 06 no es una lista: sus ítems son PASOS ORDENADOS del dispositivo al
+	 * dashboard, y el orden es lo único que significan. Como nube desordenada se
+	 * perdería justo el argumento de esa capacidad.
+	 */
+	.sv-cadenas {
+		display: grid;
+		gap: clamp(1.25rem, 3vw, 2rem);
+	}
+
+	.sv-cadena-caso {
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: var(--sv-text);
+		margin: 0 0 0.6rem;
+		max-width: 60ch;
+	}
+
+	.sv-cadena-pasos {
+		margin: 0;
+		font-size: 0.88rem;
+		line-height: 2;
+		color: var(--sv-text-muted);
+	}
+
+	.sv-paso-flecha {
+		color: var(--celda-activa, var(--sv-accent));
+		margin: 0 0.5rem;
+	}
+
+	/* El vidrio se reserva para la nota, que existe en tres de las seis. Va al
+	   final, así que su ausencia no desplaza nada. */
+	.sv-banda-nota {
+		margin: clamp(1.25rem, 3vw, 2rem) 0 0;
+		padding: 0.9rem 1.1rem;
+		border: 1px solid var(--sv-rule);
+		border-radius: var(--gl-r-sm);
+		background: rgba(9, 31, 40, 0.74);
+		backdrop-filter: blur(7px);
+		font-size: 0.88rem;
+		line-height: 1.6;
+		color: var(--sv-text-muted);
+		max-width: 72ch;
 	}
 
 	/* ── Puertas de entrada ────────────────────────────── */
@@ -2577,20 +2620,22 @@
 			max-width: 22rem;
 		}
 		.sv-panal-detalle {
-			min-height: 0;
-		}
-		.sv-detalle-inner {
+			padding-top: 0;
 			justify-items: center;
 			text-align: center;
 		}
-		.sv-detalle-promise {
+		.sv-detalle-promise,
+		.sv-detalle-intro {
 			margin-inline: auto;
 		}
-		.sv-detalle-foot {
-			justify-content: center;
-		}
-		.sv-chips {
-			justify-content: center;
+
+		/*
+		 * La banda NO se centra. Centrar una promesa de una línea es tolerable;
+		 * centrar treinta y ocho etiquetas taxonómicas las vuelve ilegibles, porque
+		 * el ojo pierde el borde izquierdo con el que las recorre.
+		 */
+		.sv-banda {
+			text-align: left;
 		}
 
 		.sv-close-inner,
@@ -2628,20 +2673,12 @@
 			display: none;
 		}
 
-		.sv-row-link,
-		.sv-row-link-arrow,
 		.sv-btn,
 		.sv-hex,
 		.sv-hex-figura,
 		.sv-hex-num,
 		.sv-hex-label {
 			transition: none;
-		}
-
-		/* El detalle aparece sin deslizarse. Sigue cambiando —es el contenido que
-		   se pidió— pero sin recorrido. */
-		.sv-detalle-inner {
-			animation: none;
 		}
 
 		/* La celda encendida se distingue por la ilustración a plena luz, no por

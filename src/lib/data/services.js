@@ -393,6 +393,10 @@ export const services = [
 		promise: 'Un solo proveedor del sensor al dashboard: nadie se echa la culpa entre proveedores.',
 		chips: ['Hardware', 'Conectividad', 'Software', 'Cloud', 'Datos', 'IA', 'Operación'],
 		detail: {
+			// Sus «grupos» no son temas, son CADENAS de ejemplo: los ítems están
+			// ORDENADOS —del dispositivo al dashboard— y el orden es lo único que
+			// significan. Pintarlos como nube lo destruiría.
+			forma: 'cadena',
 			intro:
 				'La diferencia no es que hagamos hardware y software. Es que podemos analizar y diseñar el sistema entero, y eso te evita coordinar a cinco proveedores que se echan la culpa entre ellos cuando algo no funciona.',
 			groups: [
