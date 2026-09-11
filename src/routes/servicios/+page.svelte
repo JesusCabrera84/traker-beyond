@@ -1627,10 +1627,11 @@
 		top: calc(var(--y) / var(--alto) * 100%);
 		/*
 		 * 37 y no 40: las celdas encogen pero sus CENTROS no se mueven, así que la
-		 * retícula sigue siendo la del panal y el hueco sale de que cada pieza no
-		 * llena del todo su sitio. Separarlas moviendo los centros habría roto la
-		 * adyacencia, y con ella el argumento de la forma: los hexágonos teselan,
-		 * encajan sin huecos, que es lo que promete la celda del centro.
+		 * retícula sigue siendo la del panal —cada vecina a un lado de distancia— y
+		 * el hueco sale de que cada pieza ya no llena del todo su sitio. Separarlas
+		 * moviendo los centros habría roto la adyacencia, y con ella el argumento de
+		 * la forma: los hexágonos teselan, encajan sin huecos, que es justo lo que
+		 * promete la celda del centro. La separación se queda leve por lo mismo.
 		 */
 		width: 37%;
 		aspect-ratio: 0.86603;
@@ -1647,7 +1648,6 @@
 		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 		transition:
 			transform 0.45s var(--gl-ease),
-			filter 0.45s var(--gl-ease),
 			opacity 0.4s var(--gl-ease);
 	}
 
@@ -1774,13 +1774,6 @@
 	.sv-hex.is-activa {
 		z-index: 2;
 		transform: translate(-50%, -50%) scale(1.1);
-		/*
-		 * `drop-shadow` y no `box-shadow`: la celda va recortada con `clip-path`, y
-		 * una sombra de caja quedaría cortada por ese mismo recorte. `drop-shadow`
-		 * sigue la silueta del hexágono y se dibuja fuera de ella.
-		 */
-		filter: drop-shadow(0 0 14px color-mix(in srgb, var(--celda) 55%, transparent))
-			drop-shadow(0 0 34px color-mix(in srgb, var(--celda) 28%, transparent));
 	}
 	.sv-hex.is-activa .sv-hex-figura {
 		opacity: 0.85;
