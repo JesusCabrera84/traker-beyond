@@ -9,6 +9,11 @@
  * visitante tiene que entender sin saber qué es Kafka. Las tecnologías concretas
  * van en `chips`, que es el nivel al que un comprador técnico baja después.
  *
+ * `imagen: true` marca las capacidades que tienen ilustración propia en
+ * `static/img/capacidades/<slug>.webp`. Las que no la tienen caen a la figura
+ * dibujada, así que el panal funciona con el juego incompleto y las
+ * ilustraciones pueden entrar de una en una.
+ *
  * `corto` es la etiqueta del hexágono en el panal: el nombre completo no cabe
  * —un hexágono desperdicia sus esquinas y deja ~65% de su caja utilizable— y el
  * título entero vive en el panel de detalle, que sí tiene sitio.
@@ -21,6 +26,7 @@
 export const services = [
 	{
 		slug: 'consultoria-estrategia',
+		imagen: true,
 		corto: 'Consultoría',
 		num: '01',
 		title: 'Consultoría & Estrategia',
@@ -80,6 +86,7 @@ export const services = [
 	},
 	{
 		slug: 'software-cloud',
+		imagen: true,
 		corto: 'Software',
 		num: '02',
 		title: 'Software & Cloud',

@@ -463,6 +463,7 @@
 							class="sv-hex"
 							class:is-activa={activa === c.slug}
 							class:sv-hex--centro={c.centro}
+							class:sv-hex--ilustrada={c.imagen}
 							style="--x: {c.x}; --y: {c.y}; --celda: {c.color}"
 							aria-selected={activa === c.slug}
 							aria-controls="panel-capacidad"
@@ -470,9 +471,22 @@
 							on:click={() => elegir(c.slug)}
 							on:keydown={mover}
 						>
-							<span class="sv-hex-figura" aria-hidden="true">
-								<Figura slug={c.slug} />
-							</span>
+							{#if c.imagen}
+								<img
+									class="sv-hex-img"
+									src="/img/capacidades/{c.slug}.webp"
+									alt=""
+									width="440"
+									height="440"
+									loading="lazy"
+									decoding="async"
+								/>
+								<span class="sv-hex-velo" aria-hidden="true"></span>
+							{:else}
+								<span class="sv-hex-figura" aria-hidden="true">
+									<Figura slug={c.slug} />
+								</span>
+							{/if}
 							<span class="sv-hex-num" aria-hidden="true">{c.num}</span>
 							<span class="sv-hex-label">{c.corto}</span>
 						</button>
@@ -1550,6 +1564,45 @@
 		background-color: color-mix(in srgb, var(--celda) 5%, transparent);
 	}
 
+	/*
+	 * La ilustración ocupa la celda entera, no un hueco dentro de ella. Viene ya
+	 * recortada en hexágono, así que el `clip-path` de la celda solo garantiza que
+	 * el borde quede limpio si el encuadre no coincide al píxel.
+	 */
+	.sv-hex-img {
+		grid-area: 1 / 1;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		opacity: 0.72;
+		transition: opacity 0.4s var(--gl-ease);
+	}
+	.sv-hex.is-activa .sv-hex-img {
+		opacity: 1;
+	}
+
+	/* Velo al pie: sobre una ilustración a sangre, el rótulo y el ordinal se
+	   pierden contra lo que toque caer detrás. */
+	/*
+	 * Velo al pie. Tiene que aguantar lo PEOR que pueda caer detrás, no lo
+	 * habitual: la ilustración de consultoría lleva un atardecer claro justo a la
+	 * altura del rótulo, y con un velo calculado para el fondo medio el texto
+	 * desaparecía ahí.
+	 */
+	.sv-hex-velo {
+		grid-area: 1 / 1;
+		align-self: end;
+		width: 100%;
+		height: 58%;
+		background: linear-gradient(
+			180deg,
+			transparent,
+			rgba(4, 16, 22, 0.55) 38%,
+			rgba(4, 16, 22, 0.93) 78%
+		);
+		pointer-events: none;
+	}
+
 	.sv-hex-figura {
 		grid-area: 1 / 1;
 		width: 66%;
@@ -1579,7 +1632,8 @@
 		grid-area: 1 / 1;
 		align-self: end;
 		margin-bottom: 20%;
-		font-size: 0.78rem;
+		font-size: 0.8rem;
+		text-shadow: 0 1px 6px rgba(4, 16, 22, 0.9);
 		font-weight: 600;
 		color: var(--sv-text-muted);
 		text-align: center;
@@ -1633,6 +1687,13 @@
 		);
 	}
 	.sv-hex--centro .sv-hex-label {
+		color: var(--sv-text);
+	}
+
+	/* Sobre ilustración el rótulo va siempre a tinta plena, encendida o no: el
+	   gris atenuado servía sobre un dibujo tenue, pero contra una imagen con zonas
+	   claras desaparece. */
+	.sv-hex--ilustrada .sv-hex-label {
 		color: var(--sv-text);
 	}
 
