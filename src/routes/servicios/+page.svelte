@@ -1531,46 +1531,17 @@
 		cursor: pointer;
 		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 		transition:
-			background-color 0.4s var(--gl-ease),
+			transform 0.45s var(--gl-ease),
 			opacity 0.4s var(--gl-ease);
 	}
 
 	/*
-	 * El borde va en un pseudoelemento y no como `border`, porque `clip-path`
-	 * recorta el borde real y lo deja a medio grosor en las diagonales. Dibujado
-	 * dentro, el contorno se ve entero.
+	 * Sin fondo ni contorno propios: las seis ilustraciones ya vienen recortadas
+	 * en hexágono y con su borde luminoso, así que dibujar una celda debajo era
+	 * poner un hexágono detrás de otro. El `clip-path` se queda como garantía de
+	 * que el borde salga limpio aunque una ilustración llegue justo al filo.
 	 */
-	.sv-hex::before {
-		content: '';
-		position: absolute;
-		inset: 0;
-		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-		background: linear-gradient(
-			160deg,
-			color-mix(in srgb, var(--celda) 45%, transparent),
-			color-mix(in srgb, var(--celda) 14%, transparent)
-		);
-		padding: 1px;
-		-webkit-mask:
-			linear-gradient(#000 0 0) content-box,
-			linear-gradient(#000 0 0);
-		-webkit-mask-composite: xor;
-		mask:
-			linear-gradient(#000 0 0) content-box,
-			linear-gradient(#000 0 0);
-		mask-composite: exclude;
-		transition: background 0.4s var(--gl-ease);
-	}
 
-	.sv-hex {
-		background-color: color-mix(in srgb, var(--celda) 5%, transparent);
-	}
-
-	/*
-	 * La ilustración ocupa la celda entera, no un hueco dentro de ella. Viene ya
-	 * recortada en hexágono, así que el `clip-path` de la celda solo garantiza que
-	 * el borde quede limpio si el encuadre no coincide al píxel.
-	 */
 	.sv-hex-img {
 		grid-area: 1 / 1;
 		width: 100%;
@@ -1581,12 +1552,12 @@
 		 * invierte. Ese par de estados es lo que hace legible el panal: antes el
 		 * texto peleaba contra la imagen en los dos, y perdía en los dos.
 		 */
-		opacity: 0.28;
+		opacity: 0.42;
 		transition: opacity 0.45s var(--gl-ease);
 	}
 	.sv-hex:hover .sv-hex-img,
 	.sv-hex:focus-visible .sv-hex-img {
-		opacity: 0.5;
+		opacity: 0.68;
 	}
 	.sv-hex.is-activa .sv-hex-img {
 		opacity: 1;
@@ -1659,24 +1630,21 @@
 		text-shadow: 0 1px 10px rgba(4, 16, 22, 0.95);
 	}
 
-	.sv-hex:hover,
-	.sv-hex:focus-visible {
-		background-color: color-mix(in srgb, var(--celda) 11%, transparent);
-	}
 	.sv-hex:focus-visible {
 		outline: 2px solid var(--sv-accent);
 		outline-offset: -2px;
 	}
 
+	/*
+	 * La celda encendida crece y se adelanta. Al crecer invade a sus vecinas —un
+	 * panal no tiene hueco donde crecer— y eso es justo lo que se busca: se lee
+	 * como que sale del plano hacia el espectador, no como que empuja al resto.
+	 * Por eso necesita `z-index`: sin él, las celdas que van después en el
+	 * marcado se le pintarían encima.
+	 */
 	.sv-hex.is-activa {
-		background-color: color-mix(in srgb, var(--celda) 17%, transparent);
-	}
-	.sv-hex.is-activa::before {
-		background: linear-gradient(
-			160deg,
-			var(--celda),
-			color-mix(in srgb, var(--celda) 45%, transparent)
-		);
+		z-index: 2;
+		transform: translate(-50%, -50%) scale(1.1);
 	}
 	.sv-hex.is-activa .sv-hex-figura {
 		opacity: 0.85;
@@ -1688,16 +1656,6 @@
 	 * si las seis pesan igual el panal vuelve a contar la mentira que la lista
 	 * contaba — que «Soluciones Integrales» es una capacidad más.
 	 */
-	.sv-hex--centro {
-		background-color: color-mix(in srgb, var(--celda) 10%, transparent);
-	}
-	.sv-hex--centro::before {
-		background: linear-gradient(
-			160deg,
-			color-mix(in srgb, var(--celda) 70%, transparent),
-			color-mix(in srgb, var(--celda) 26%, transparent)
-		);
-	}
 
 	.sv-panal-detalle {
 		min-height: 19rem;
@@ -2661,7 +2619,6 @@
 		.sv-row-link-arrow,
 		.sv-btn,
 		.sv-hex,
-		.sv-hex::before,
 		.sv-hex-figura,
 		.sv-hex-num,
 		.sv-hex-label {
@@ -2672,6 +2629,12 @@
 		   se pidió— pero sin recorrido. */
 		.sv-detalle-inner {
 			animation: none;
+		}
+
+		/* La celda encendida se distingue por la ilustración a plena luz, no por
+		   crecer: el cambio de tamaño es movimiento y aquí sobra. */
+		.sv-hex.is-activa {
+			transform: translate(-50%, -50%);
 		}
 
 		.sv-btn--primary:hover {

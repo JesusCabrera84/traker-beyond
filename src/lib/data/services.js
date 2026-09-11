@@ -386,6 +386,7 @@ export const services = [
 	},
 	{
 		slug: 'soluciones-integrales',
+		imagen: true,
 		corto: 'Integrales',
 		num: '06',
 		title: 'Soluciones Integrales',
