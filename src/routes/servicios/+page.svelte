@@ -401,8 +401,8 @@
 
 	<!-- ── INNOVATION LAB ────────────────────────────────── -->
 	<section class="sv-lab">
-		<div class="sv-container sv-lab-inner">
-			<div>
+		<div class="sv-container">
+			<div class="sv-lab-copy">
 				<p class="sv-overline">Innovation Lab</p>
 				<h2 class="sv-title">¿Tienes una idea y no sabes si se puede construir?</h2>
 				<p class="sv-sub">
@@ -412,14 +412,38 @@
 				</p>
 				<a href="/#contacto" class="sv-btn sv-btn--primary sv-btn--inline">Evalúa tu idea</a>
 			</div>
-			<ol class="sv-flow">
-				{#each ['Idea', 'PoC', 'MVP', 'Producto', 'Producción'] as paso, i (paso)}
-					<li class="sv-flow-step">
-						<span class="sv-flow-n" aria-hidden="true">{i + 1}</span>
-						{paso}
-					</li>
-				{/each}
-			</ol>
+
+			<!--
+				La ilustración no repite lo que dice la lista. La lista nombra las
+				FASES —idea, PoC, MVP— y la ilustración enseña las DISCIPLINAS que
+				hay que atravesar para recorrerlas: electrónica, conectividad, nube y
+				aplicaciones. Por eso lleva texto alternativo propio y no `alt=""`.
+
+				Va abajo del todo de la página, así que carga en diferido: no compite
+				con la fotografía del hero, que es la que decide el LCP.
+			-->
+			<figure class="sv-lab-figura">
+				<!-- El lienzo existe solo para que el velo de bordes se ciña a la imagen:
+				     sobre la `figure` entera taparía también las fases de abajo. -->
+				<div class="sv-lab-lienzo">
+					<img
+						src="/img/servicios-lab.webp"
+						alt="El recorrido completo de un producto: el boceto de una idea, la electrónica de un prototipo, el dispositivo terminado, la nube que recibe sus datos y los tableros donde se consultan."
+						width="1672"
+						height="941"
+						loading="lazy"
+						decoding="async"
+					/>
+				</div>
+				<ol class="sv-flow">
+					{#each ['Idea', 'PoC', 'MVP', 'Producto', 'Producción'] as paso, i (paso)}
+						<li class="sv-flow-step">
+							<span class="sv-flow-n" aria-hidden="true">{i + 1}</span>
+							{paso}
+						</li>
+					{/each}
+				</ol>
+			</figure>
 		</div>
 	</section>
 
@@ -1385,18 +1409,58 @@
 		padding: clamp(3.5rem, 7vw, 5.5rem) 0;
 	}
 
-	.sv-lab-inner {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(22rem, 100%), 1fr));
-		gap: clamp(2rem, 5vw, 4rem);
-		align-items: center;
+	/* El texto no se estira a todo el ancho del contenedor: a 1180 px una línea
+	   de párrafo se vuelve ilegible. La ilustración sí lo ocupa entero. */
+	.sv-lab-copy {
+		max-width: 46rem;
+		margin-bottom: clamp(2rem, 4vw, 3rem);
 	}
 
+	.sv-lab-figura {
+		margin: 0;
+	}
+	.sv-lab-lienzo {
+		position: relative;
+	}
+	.sv-lab-lienzo img {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+	/*
+	 * Los bordes de la ilustración se funden con la sección en vez de cortarse en
+	 * seco. El fondo del archivo (#00131e en las esquinas) está a siete puntos por
+	 * canal de `--sv-bg`, invisible sobre un fondo oscuro; el problema son los
+	 * bordes centrales, bastante más claros (#002b3f), que sí dejarían ver el
+	 * rectángulo.
+	 *
+	 * Va como velo de degradados y no como `mask-image`: el fondo de la sección es
+	 * un color plano, así que pintar encima da el mismo resultado sin depender de
+	 * `mask-composite`. De paso, la escena se lee como si continuara más allá del
+	 * encuadre, que es justo lo que la composición sugiere: la plataforma de la
+	 * izquierda ya viene cortada en el archivo.
+	 */
+	.sv-lab-lienzo::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background:
+			linear-gradient(90deg, var(--sv-bg) 0%, transparent 8%, transparent 92%, var(--sv-bg) 100%),
+			linear-gradient(180deg, var(--sv-bg) 0%, transparent 10%, transparent 90%, var(--sv-bg) 100%);
+	}
+
+	/*
+	 * Las cinco fases van DEBAJO de la ilustración y en horizontal, para que cada
+	 * una caiga sobre el tramo que le toca: la lista deja de ser un bloque suelto
+	 * y pasa a ser la leyenda de lo que se está viendo.
+	 */
 	.sv-flow {
 		list-style: none;
 		padding: 0;
-		margin: 0;
+		margin: clamp(0.5rem, 1.5vw, 1rem) 0 0;
 		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
 		gap: 0.6rem;
 	}
 
