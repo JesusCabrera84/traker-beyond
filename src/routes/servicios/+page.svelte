@@ -733,6 +733,12 @@
 		.sv-process-node::after {
 			display: none;
 		}
+		/* Los textos se quedan en su color de reposo, que es el que declara la
+		   regla: aquí basta con quitarles la animación. */
+		.sv-process-label,
+		.sv-process-desc {
+			animation: none;
+		}
 		/* El foco se queda: encender un nodo no es movimiento, y sin él el árbol
 		   dejaría de responder. Lo que se va es el desplazamiento, que además el
 		   JS ni siquiera llega a escribir. */
@@ -977,12 +983,51 @@
 		}
 	}
 
+	/*
+	 * El rótulo y su descripción se encienden con el paso de la partícula, con el
+	 * mismo retardo que el destello del nodo: lo que recorre el riel no es un
+	 * adorno, es la lectura del proceso paso por paso.
+	 *
+	 * Se apagan más tarde de lo que tarda el siguiente en encenderse —vuelven al
+	 * reposo en el 30% y el vecino arranca en el 20%— para que haya un instante
+	 * con los dos vivos. Sin ese solape el riel parpadea; con él, avanza.
+	 */
 	.sv-process-label {
 		font-family: var(--gl-font-label);
 		font-size: 0.68rem;
 		letter-spacing: 0.2em;
 		text-transform: uppercase;
 		color: var(--sv-text);
+		animation: svRielRotulo var(--sv-riel-ciclo) linear infinite;
+		animation-delay: calc(var(--i) * var(--sv-riel-franja));
+	}
+
+	/* El reposo va como sombra transparente y no como `none`: entre `none` y una
+	   sombra con color no hay interpolación, y el resplandor aparecería de golpe. */
+	@keyframes svRielRotulo {
+		0%,
+		30%,
+		100% {
+			color: var(--sv-text);
+			text-shadow: 0 0 0 rgba(127, 227, 245, 0);
+		}
+		5%,
+		18% {
+			color: var(--sv-accent);
+			text-shadow: 0 0 14px rgba(127, 227, 245, 0.5);
+		}
+	}
+
+	@keyframes svRielTexto {
+		0%,
+		30%,
+		100% {
+			color: var(--sv-text-faint);
+		}
+		5%,
+		18% {
+			color: var(--sv-text-muted);
+		}
 	}
 
 	.sv-process-desc {
@@ -990,6 +1035,8 @@
 		line-height: 1.45;
 		color: var(--sv-text-faint);
 		max-width: 22ch;
+		animation: svRielTexto var(--sv-riel-ciclo) linear infinite;
+		animation-delay: calc(var(--i) * var(--sv-riel-franja));
 	}
 
 	/* ── Índice de capacidades ─────────────────────────── */
