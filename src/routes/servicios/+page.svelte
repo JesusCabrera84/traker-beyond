@@ -2225,10 +2225,17 @@
 		grid-template-columns: minmax(0, 0.44fr) minmax(0, 0.56fr);
 		gap: clamp(1.25rem, 3vw, 2.5rem);
 		align-items: center;
-		/* La perspectiva vive en el contenedor y no en la figura: puesta en el
-		   propio elemento que rota, cada punto se proyecta desde su propio centro
-		   y el giro se lee plano, como un naipe girando en dos dimensiones. */
-		perspective: 1500px;
+		/*
+		 * La perspectiva vive en el contenedor y no en la figura: puesta en el
+		 * propio elemento que rota, cada punto se proyecta desde su propio centro y
+		 * el giro se lee plano, como un naipe girando en dos dimensiones.
+		 *
+		 * Y va LEJOS. Cuanto más cerca está el punto de vista, más se abre el
+		 * trapecio al girar, y ese trapecio es lo que delata que detrás no hay un
+		 * objeto sino una lámina. A 2400 px la deformación es casi un
+		 * desplazamiento lateral.
+		 */
+		perspective: 2400px;
 	}
 
 	.sv-close-figura {
@@ -2243,16 +2250,26 @@
 		margin-right: clamp(-5rem, -4vw, 0rem);
 
 		/*
-		 * Gira con el puntero. Horizontal sobre todo —es lo que enseña el despiece:
-		 * las capas separándose en profundidad— con una pizca de inclinación
-		 * vertical para que no se lea como un carrusel.
+		 * Gira con el puntero, solo en horizontal y poco.
 		 *
-		 * El sentido es el de mover la CÁMARA, no el objeto: con el puntero a la
-		 * derecha se ve más del costado derecho, igual que la fotografía del hero
-		 * se desplaza en contra del cursor. Las dos secciones cuentan el mismo
-		 * gesto.
+		 * Al rotar una imagen plana sobre su centro, sus dos mitades se desplazan
+		 * en sentidos opuestos: eso es lo que delata que es una lámina, y a diez
+		 * grados era lo primero que se veía. Cuatro bastan para que se lea como un
+		 * cambio de punto de vista.
+		 *
+		 * El giro va acompañado de un desplazamiento lateral en el mismo sentido, y
+		 * ahí está el truco: el desplazamiento mueve la pieza ENTERA hacia un lado,
+		 * así que la mitad que el giro traía hacia el espectador ya no retrocede.
+		 * Deja de haber dos mitades contradiciéndose, que es lo que se leía como
+		 * papel doblándose.
+		 *
+		 * Sin inclinación vertical: un despiece visto de lado no cabecea, y el
+		 * cabeceo era la mitad del delator.
+		 *
+		 * El sentido es el de mover la CÁMARA y no el objeto, igual que la
+		 * fotografía del hero se desplaza en contra del cursor.
 		 */
-		transform: rotateY(calc(var(--px, 0) * -10deg)) rotateX(calc(var(--py, 0) * 3deg));
+		transform: rotateY(calc(var(--px, 0) * -4deg)) translateX(calc(var(--px, 0) * -12px));
 		transform-style: preserve-3d;
 		transition: transform 0.55s var(--gl-ease);
 		will-change: transform;
