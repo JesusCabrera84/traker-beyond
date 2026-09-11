@@ -167,8 +167,7 @@ export const services = [
 						'Observabilidad de seguridad'
 					]
 				}
-			],
-			nota: 'No ofrecemos pentesting ni red team. Son especialidades que requieren un equipo dedicado, y preferimos decirlo antes que venderlo.'
+			]
 		},
 		entrada: 'Empieza con una evaluación del sistema actual'
 	},
