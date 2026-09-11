@@ -19,6 +19,32 @@
 	// capacidades quepan en pantalla y se puedan comparar.
 	let abierta = services[0].slug;
 
+	// ── El suelo de las puertas ───────────────────────────────────────────
+	//
+	// Toda la página transcurre sobre una superficie: el hero tiene la mesa del
+	// escritorio y el Lab tiene sus plataformas apoyadas en una. Las dos puertas
+	// eran lo único flotando en el vacío, y de ahí venía buena parte de la
+	// sensación de que les faltaba algo.
+	//
+	// La rejilla es geometría derivada, no contenido, así que se calcula aquí y no
+	// en `services.js`: no hay nada que un editor quiera tocar a mano.
+	const FUGA = { x: 600, y: 8 };
+	const SUELO = 520;
+
+	// Abanico de líneas hacia el observador. Se abren más allá de los bordes para
+	// que en el recorte no se vea dónde termina el abanico.
+	const suelaRadiales = Array.from(
+		{ length: 13 },
+		(_, i) => `M${FUGA.x} ${FUGA.y} L${-500 + i * 183.3} ${SUELO}`
+	);
+
+	// Transversales con separación creciente hacia abajo: el espaciado ES la
+	// perspectiva. Repartidas en lineal se leerían como un pentagrama.
+	const suelaTransversales = Array.from({ length: 11 }, (_, i) => {
+		const t = (i + 1) / 12;
+		return `M-200 ${(FUGA.y + (SUELO - FUGA.y) * t ** 2.3).toFixed(1)} H1400`;
+	});
+
 	// ── Formulario del diagnóstico ────────────────────────────────────────
 	//
 	// Vive aquí y no en una página aparte porque el embudo eran tres navegaciones
@@ -361,6 +387,37 @@
 
 	<!-- ── DOS PUERTAS DE ENTRADA ────────────────────────── -->
 	<section class="sv-doors" id="doors">
+		<!-- La superficie sobre la que se apoyan las dos puertas. Decorativa: lo que
+		     dice ya está en el texto, así que queda fuera del árbol de accesibilidad. -->
+		<svg
+			class="sv-suelo"
+			viewBox="0 0 1200 520"
+			preserveAspectRatio="xMidYMax slice"
+			aria-hidden="true"
+			focusable="false"
+		>
+			<defs>
+				<linearGradient
+					id="svSueloFade"
+					gradientUnits="userSpaceOnUse"
+					x1="0"
+					y1="0"
+					x2="0"
+					y2="520"
+				>
+					<stop offset="0%" stop-color="var(--sv-accent)" stop-opacity="0" />
+					<stop offset="38%" stop-color="var(--sv-accent)" stop-opacity="0.3" />
+					<stop offset="100%" stop-color="var(--sv-accent)" stop-opacity="0.03" />
+				</linearGradient>
+			</defs>
+			{#each suelaRadiales as d (d)}
+				<path {d} />
+			{/each}
+			{#each suelaTransversales as d (d)}
+				<path {d} />
+			{/each}
+		</svg>
+
 		<div class="sv-container">
 			<header class="sv-head">
 				<p class="sv-overline">Por dónde empezar</p>
@@ -1452,10 +1509,46 @@
 
 	/* ── Puertas de entrada ────────────────────────────── */
 
+	/*
+	 * El suelo en perspectiva. La página entera transcurre sobre una superficie
+	 * —la mesa del hero, las plataformas del Lab— y las dos puertas eran lo único
+	 * flotando en el vacío.
+	 *
+	 * Va detrás con `z-index: -1` dentro de un contexto de apilado propio: sin
+	 * `isolation`, ese −1 lo mandaría por detrás del fondo de la sección y la
+	 * rejilla no se vería en absoluto.
+	 */
 	.sv-doors {
+		position: relative;
+		isolation: isolate;
 		padding: clamp(3.5rem, 7vw, 5.5rem) 0;
 		background: var(--sv-bg-2);
 		border-top: 1px solid var(--sv-rule);
+	}
+
+	.sv-suelo {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: 68%;
+		z-index: -1;
+		pointer-events: none;
+		fill: none;
+		stroke: url(#svSueloFade);
+		stroke-width: 1;
+		vector-effect: non-scaling-stroke;
+		/* Se disuelve a los lados en vez de cortarse contra el borde del viewport:
+		   una rejilla que termina en línea recta se lee como una caja, no como una
+		   superficie que sigue más allá del encuadre. */
+		-webkit-mask-image: linear-gradient(
+			90deg,
+			transparent 0%,
+			#000 16%,
+			#000 84%,
+			transparent 100%
+		);
+		mask-image: linear-gradient(90deg, transparent 0%, #000 16%, #000 84%, transparent 100%);
 	}
 
 	/*
@@ -1499,7 +1592,11 @@
 		padding: clamp(1.5rem, 3vw, 2.5rem);
 		border: 1px solid var(--sv-rule);
 		border-radius: var(--gl-r-md);
-		background: rgba(127, 227, 245, 0.03);
+		/* Opaca, no translúcida. Con la rejilla detrás, un fondo al 3% dejaba pasar
+		   las líneas por encima del texto del índice. Una tarjeta que se apoya en
+		   una superficie la tapa; si no, no está apoyada. */
+		background: rgba(9, 31, 40, 0.74);
+		backdrop-filter: blur(3px);
 		transition:
 			border-color 0.45s var(--gl-ease),
 			background-color 0.45s var(--gl-ease);
@@ -1523,7 +1620,7 @@
 	   aparece un cursor de mano ni se levanta la caja. */
 	.sv-door:hover {
 		border-color: rgba(127, 227, 245, 0.22);
-		background-color: rgba(127, 227, 245, 0.05);
+		background-color: rgba(12, 39, 50, 0.9);
 	}
 	.sv-door:hover::before {
 		opacity: 1;
