@@ -316,31 +316,60 @@
 			</header>
 			<div class="sv-door-grid">
 				<article class="sv-door">
-					<h3 class="sv-door-title">Diagnóstico tecnológico</h3>
-					<p class="sv-door-desc">
-						«Dime qué está mal y qué debería hacer.» Revisamos arquitectura, infraestructura,
-						costos, escalabilidad y seguridad, y te entregamos un documento con el que puedes
-						decidir — contrates con nosotros o no.
-					</p>
-					<p class="sv-door-deliverable">
-						Estado actual → riesgos → oportunidades → arquitectura recomendada → roadmap →
-						estimación de inversión
-					</p>
-					<a href="/servicios/diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a>
+					<div class="sv-door-copy">
+						<h3 class="sv-door-title">Diagnóstico tecnológico</h3>
+						<p class="sv-door-desc">
+							«Dime qué está mal y qué debería hacer.» Revisamos arquitectura, infraestructura,
+							costos, escalabilidad y seguridad, y te entregamos un documento con el que puedes
+							decidir — contrates con nosotros o no.
+						</p>
+						<a href="/servicios/diagnostico" class="sv-btn sv-btn--primary">Agenda un diagnóstico</a
+						>
+					</div>
+
+					<!--
+						Los seis apartados eran una cadena de flechas que se partía en dos
+						líneas y se leía como una nota al pie. Como índice del documento
+						dicen lo mismo, se leen de un vistazo y le dan a esta puerta el
+						peso visual que la otra ya tenía por su diagrama.
+
+						No lleva `aria-hidden`: aquí viven los seis apartados y en ningún
+						otro sitio, a diferencia del diagrama del CTOaaS, que repite lo
+						que su lista ya dice.
+					-->
+					<figure class="sv-entrega">
+						<div class="sv-entrega-hoja">
+							<p class="sv-entrega-titulo">Lo que recibes</p>
+							<ol class="sv-entrega-indice">
+								<li>Estado actual</li>
+								<li>Riesgos</li>
+								<li>Oportunidades</li>
+								<li>Arquitectura recomendada</li>
+								<li>Roadmap</li>
+								<li>Estimación de inversión</li>
+							</ol>
+						</div>
+						<figcaption class="sv-entrega-pie">
+							El índice del documento que se entrega al cerrar el diagnóstico.
+						</figcaption>
+					</figure>
 				</article>
 				<article class="sv-door">
-					<h3 class="sv-door-title">CTO as a Service</h3>
-					<p class="sv-door-desc">
-						No necesitas un CTO de tiempo completo, necesitas que alguien te diga «no compres eso»,
-						«ese proveedor te está vendiendo de más», «esta arquitectura no va a escalar» o «antes
-						de meter IA arreglemos los datos».
-					</p>
-					<ul class="sv-door-list">
-						<li>Estrategia tecnológica y roadmaps</li>
-						<li>Evaluación de proveedores y propuestas</li>
-						<li>Supervisión técnica de quien ya te desarrolla</li>
-						<li>Acompañamiento en la contratación de tu equipo</li>
-					</ul>
+					<div class="sv-door-copy">
+						<h3 class="sv-door-title">CTO as a Service</h3>
+						<p class="sv-door-desc">
+							No necesitas un CTO de tiempo completo, necesitas que alguien te diga «no compres
+							eso», «ese proveedor te está vendiendo de más», «esta arquitectura no va a escalar» o
+							«antes de meter IA arreglemos los datos».
+						</p>
+						<ul class="sv-door-list">
+							<li>Estrategia tecnológica y roadmaps</li>
+							<li>Evaluación de proveedores y propuestas</li>
+							<li>Supervisión técnica de quien ya te desarrolla</li>
+							<li>Acompañamiento en la contratación de tu equipo</li>
+						</ul>
+						<a href="/#contacto" class="sv-btn sv-btn--ghost">Hablar de acompañamiento</a>
+					</div>
 					<!-- El diagrama va como SVG y no como imagen: escala sin pixelarse,
 					     hereda la paleta de la sección y puede animarse con el mismo pulso
 					     que el resto. Es decorativo —lo que dice ya está en la lista de
@@ -392,8 +421,6 @@
 							Una sola cabeza técnica sobre los tres frentes donde se pierde el dinero.
 						</figcaption>
 					</figure>
-
-					<a href="/#contacto" class="sv-btn sv-btn--ghost">Hablar de acompañamiento</a>
 				</article>
 			</div>
 		</div>
@@ -1264,22 +1291,38 @@
 		border-top: 1px solid var(--sv-rule);
 	}
 
+	/*
+	 * Una puerta por fila, no dos en paralelo. Las dos ofertas traen volúmenes de
+	 * contenido muy distintos —una acaba en un botón y la otra lleva un diagrama—
+	 * y al ponerlas en columnas la corta dejaba medio metro de hueco debajo.
+	 * Estirarlas a la misma altura tampoco servía: eso ya se probó y abría el
+	 * mismo vacío, pero dentro de la tarjeta.
+	 *
+	 * Cada puerta es ahora un ancho completo con el texto a un lado y su prueba al
+	 * otro. El hueco desaparece porque no hay dos columnas que igualar, y cada
+	 * oferta recibe el mismo espacio que la otra.
+	 */
 	.sv-door-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(min(24rem, 100%), 1fr));
 		gap: 1.25rem;
-		align-items: start;
 	}
 
 	.sv-door {
+		display: grid;
+		grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+		gap: clamp(1.5rem, 4vw, 3.5rem);
+		align-items: center;
+		padding: clamp(1.5rem, 3vw, 2.5rem);
+		border: 1px solid var(--sv-rule);
+		border-radius: var(--gl-r-md);
+		background: rgba(127, 227, 245, 0.03);
+	}
+
+	.sv-door-copy {
 		display: flex;
 		flex-direction: column;
 		gap: 0.9rem;
 		align-items: flex-start;
-		padding: clamp(1.5rem, 3vw, 2.25rem);
-		border: 1px solid var(--sv-rule);
-		border-radius: var(--gl-r-md);
-		background: rgba(127, 227, 245, 0.03);
 	}
 
 	.sv-door-title {
@@ -1294,13 +1337,78 @@
 		margin: 0;
 	}
 
-	.sv-door-deliverable {
-		font-family: var(--gl-font-label);
-		font-size: 0.7rem;
-		line-height: 1.7;
-		letter-spacing: 0.06em;
-		color: var(--sv-accent);
+	/* ── Entregable del diagnóstico ────────────────────── */
+
+	.sv-entrega {
 		margin: 0;
+		display: grid;
+		gap: 0.7rem;
+	}
+
+	.sv-entrega-hoja {
+		position: relative;
+		overflow: hidden;
+		padding: 1.3rem 1.35rem 1.1rem;
+		border: 1px solid var(--sv-rule);
+		border-radius: var(--gl-r-sm);
+		background: rgba(127, 227, 245, 0.045);
+	}
+	/* La banda superior es lo que hace que el bloque se lea como un documento y
+	   no como otra tarjeta más dentro de la tarjeta. */
+	.sv-entrega-hoja::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 3px;
+		background: linear-gradient(90deg, var(--gl-teal-400), var(--sv-accent));
+	}
+
+	.sv-entrega-titulo {
+		font-family: var(--gl-font-label);
+		font-size: 0.64rem;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+		color: var(--sv-text-faint);
+		margin: 0 0 0.9rem;
+	}
+
+	.sv-entrega-indice {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		counter-reset: sv-apartado;
+	}
+
+	.sv-entrega-indice li {
+		counter-increment: sv-apartado;
+		display: flex;
+		align-items: baseline;
+		gap: 0.9rem;
+		padding: 0.52rem 0;
+		border-top: 1px solid var(--sv-rule);
+		font-size: 0.92rem;
+		color: var(--sv-text-muted);
+	}
+	.sv-entrega-indice li:first-child {
+		border-top: 0;
+		padding-top: 0;
+	}
+
+	/* La numeración se pinta con contadores y no viene en el marcado: es
+	   ordinal del índice, no contenido que haya que leer en voz alta. */
+	.sv-entrega-indice li::before {
+		content: counter(sv-apartado, decimal-leading-zero);
+		font-family: var(--gl-font-label);
+		font-size: 0.6rem;
+		color: var(--sv-accent);
+	}
+
+	.sv-entrega-pie {
+		font-size: 0.8rem;
+		line-height: 1.5;
+		color: var(--sv-text-faint);
 	}
 
 	.sv-door-list {
@@ -1588,6 +1696,12 @@
 
 		.sv-process-desc {
 			max-width: none;
+		}
+
+		/* Las puertas se apilan: a este ancho el texto y su prueba no caben uno al
+		   lado del otro sin que los dos queden estrechos. */
+		.sv-door {
+			grid-template-columns: 1fr;
 		}
 
 		/* El montaje del Innovation Lab se deshace. Aquí la ilustración mide la
