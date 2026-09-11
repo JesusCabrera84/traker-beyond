@@ -487,8 +487,10 @@
 									<Figura slug={c.slug} />
 								</span>
 							{/if}
-							<span class="sv-hex-num" aria-hidden="true">{c.num}</span>
-							<span class="sv-hex-label">{c.corto}</span>
+							<span class="sv-hex-rotulo">
+								<span class="sv-hex-num" aria-hidden="true">{c.num}</span>
+								<span class="sv-hex-label">{c.corto}</span>
+							</span>
 						</button>
 					{/each}
 				</div>
@@ -1574,8 +1576,17 @@
 		width: 100%;
 		height: 100%;
 		object-fit: cover;
-		opacity: 0.72;
-		transition: opacity 0.4s var(--gl-ease);
+		/*
+		 * En reposo la ilustración es atmósfera y el rótulo manda; encendida se
+		 * invierte. Ese par de estados es lo que hace legible el panal: antes el
+		 * texto peleaba contra la imagen en los dos, y perdía en los dos.
+		 */
+		opacity: 0.28;
+		transition: opacity 0.45s var(--gl-ease);
+	}
+	.sv-hex:hover .sv-hex-img,
+	.sv-hex:focus-visible .sv-hex-img {
+		opacity: 0.5;
 	}
 	.sv-hex.is-activa .sv-hex-img {
 		opacity: 1;
@@ -1584,61 +1595,68 @@
 	/* Velo al pie: sobre una ilustración a sangre, el rótulo y el ordinal se
 	   pierden contra lo que toque caer detrás. */
 	/*
-	 * Velo al pie. Tiene que aguantar lo PEOR que pueda caer detrás, no lo
-	 * habitual: la ilustración de consultoría lleva un atardecer claro justo a la
-	 * altura del rótulo, y con un velo calculado para el fondo medio el texto
-	 * desaparecía ahí.
+	 * El velo es un óvalo CENTRADO, no una banda al pie. El rótulo vive en el
+	 * medio del hexágono, que es su parte más ancha —abajo el hexágono se
+	 * estrecha y desperdicia sus esquinas—, así que la protección tiene que estar
+	 * donde está el texto. Solo hace falta con la celda encendida, porque en
+	 * reposo la propia ilustración ya está al 28%.
 	 */
 	.sv-hex-velo {
 		grid-area: 1 / 1;
-		align-self: end;
 		width: 100%;
-		height: 58%;
-		background: linear-gradient(
-			180deg,
-			transparent,
-			rgba(4, 16, 22, 0.55) 38%,
-			rgba(4, 16, 22, 0.93) 78%
+		height: 100%;
+		background: radial-gradient(
+			ellipse 62% 34% at 50% 52%,
+			rgba(4, 16, 22, 0.88),
+			rgba(4, 16, 22, 0.45) 58%,
+			transparent 78%
 		);
+		opacity: 0;
 		pointer-events: none;
+		transition: opacity 0.45s var(--gl-ease);
+	}
+	.sv-hex.is-activa .sv-hex-velo {
+		opacity: 1;
 	}
 
 	.sv-hex-figura {
 		grid-area: 1 / 1;
 		width: 66%;
 		aspect-ratio: 1;
-		opacity: 0.66;
+		opacity: 0.3;
 		transform: translateY(-6%);
 		transition: opacity 0.4s var(--gl-ease);
 	}
 
-	/* El ordinal vive en la punta de abajo, fuera del camino de la figura. Es el
-	   mismo motivo 01–06 que el índice del diagnóstico y con el mismo cian: en las
-	   filas viejas estaba al 44% y a 11 px, donde dejaba de ser número y era
-	   textura. */
-	.sv-hex-num {
+	.sv-hex-rotulo {
 		grid-area: 1 / 1;
-		align-self: end;
+		align-self: center;
+		display: grid;
+		justify-items: center;
+		gap: 0.35rem;
+		padding-inline: 14%;
+	}
+
+	/* El ordinal encabeza el rótulo. Es el mismo motivo 01–06 del índice del
+	   diagnóstico: en las filas viejas estaba a 11 px y al 44%, donde dejaba de
+	   ser número y era textura. */
+	.sv-hex-num {
 		font-family: var(--gl-font-label);
-		font-size: 0.58rem;
-		letter-spacing: 0.16em;
+		font-size: 0.74rem;
+		letter-spacing: 0.18em;
 		color: var(--celda);
-		opacity: 0.72;
-		margin-bottom: 8%;
+		text-shadow: 0 1px 8px rgba(4, 16, 22, 0.95);
 		transition: opacity 0.4s var(--gl-ease);
 	}
 
 	.sv-hex-label {
-		grid-area: 1 / 1;
-		align-self: end;
-		margin-bottom: 20%;
-		font-size: 0.8rem;
-		text-shadow: 0 1px 6px rgba(4, 16, 22, 0.9);
+		font-size: 1.02rem;
 		font-weight: 600;
-		color: var(--sv-text-muted);
+		line-height: 1.2;
+		color: var(--sv-text);
 		text-align: center;
-		padding-inline: 12%;
-		transition: color 0.4s var(--gl-ease);
+		text-wrap: balance;
+		text-shadow: 0 1px 10px rgba(4, 16, 22, 0.95);
 	}
 
 	.sv-hex:hover,
@@ -1661,13 +1679,7 @@
 		);
 	}
 	.sv-hex.is-activa .sv-hex-figura {
-		opacity: 1;
-	}
-	.sv-hex.is-activa .sv-hex-num {
-		opacity: 1;
-	}
-	.sv-hex.is-activa .sv-hex-label {
-		color: var(--sv-text);
+		opacity: 0.85;
 	}
 
 	/*
@@ -1685,16 +1697,6 @@
 			color-mix(in srgb, var(--celda) 70%, transparent),
 			color-mix(in srgb, var(--celda) 26%, transparent)
 		);
-	}
-	.sv-hex--centro .sv-hex-label {
-		color: var(--sv-text);
-	}
-
-	/* Sobre ilustración el rótulo va siempre a tinta plena, encendida o no: el
-	   gris atenuado servía sobre un dibujo tenue, pero contra una imagen con zonas
-	   claras desaparece. */
-	.sv-hex--ilustrada .sv-hex-label {
-		color: var(--sv-text);
 	}
 
 	.sv-panal-detalle {

@@ -174,6 +174,7 @@ export const services = [
 	},
 	{
 		slug: 'ai-data',
+		imagen: true,
 		corto: 'IA & Datos',
 		num: '03',
 		title: 'IA & Datos',
@@ -248,6 +249,7 @@ export const services = [
 	},
 	{
 		slug: 'iot-hardware',
+		imagen: true,
 		corto: 'IoT',
 		num: '04',
 		title: 'IoT & Hardware',
@@ -331,6 +333,7 @@ export const services = [
 	},
 	{
 		slug: 'industria-automatizacion',
+		imagen: true,
 		corto: 'Industria',
 		num: '05',
 		title: 'Industria & Automatización',
