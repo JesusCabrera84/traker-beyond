@@ -37,12 +37,15 @@
 	let saliendo = false;
 	let relevo = 0;
 
-	function elegir(slug) {
+	const sinMovimiento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+	/** Cambia de capacidad con el relevo, sin tocar la ronda. */
+	function cambiar(slug) {
 		if (slug === activa) return;
 
 		// Con movimiento reducido el cambio es inmediato: el desvanecido es
 		// precisamente el movimiento que esa preferencia pide quitar.
-		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+		if (sinMovimiento()) {
 			activa = slug;
 			return;
 		}
@@ -57,7 +60,65 @@
 		}, SALIDA_MS);
 	}
 
-	onDestroy(() => clearTimeout(relevo));
+	/*
+	 * La ronda en reposo: el panal se explica solo hasta que alguien lo toca, y
+	 * entonces PARA PARA SIEMPRE.
+	 *
+	 * No es un carrusel. Un carrusel sigue girando mientras lees; aquí el gesto
+	 * del visitante ES la pausa, es permanente, y basta con entrar al módulo con
+	 * el puntero o con el foco — no hay que acertarle a un control. Eso cumple lo
+	 * que pide WCAG 2.2.2 para cualquier cosa que se auto-actualice.
+	 *
+	 * El intervalo cuenta desde que ARRANCA el relevo, así que los 620 ms que
+	 * tarda en desvanecerse y volver a aparecer salen del tiempo de lectura: de
+	 * los 4400, se leen unos 3800.
+	 */
+	const RONDA_MS = 4400;
+	let ronda = 0;
+
+	function detenerRonda() {
+		if (ronda) {
+			clearInterval(ronda);
+			ronda = 0;
+		}
+	}
+
+	function arrancarRonda() {
+		if (sinMovimiento()) return;
+		ronda = setInterval(() => {
+			const i = services.findIndex((s) => s.slug === activa);
+			cambiar(services[(i + 1) % services.length].slug);
+		}, RONDA_MS);
+	}
+
+	function elegir(slug) {
+		detenerRonda();
+		cambiar(slug);
+	}
+
+	/**
+	 * Detiene la ronda cuando el puntero o el foco entran en el módulo.
+	 *
+	 * Va como acción y no como `on:` porque el contenedor NO es interactivo: no
+	 * responde a nada, solo escucha para apagar una animación. Declararlo con
+	 * manejadores en la plantilla obliga a darle un rol ARIA que sería mentira, y
+	 * el rol de verdad —`tablist`— está donde tiene que estar, en las celdas.
+	 */
+	function alEngancharse(nodo) {
+		nodo.addEventListener('pointerenter', detenerRonda);
+		nodo.addEventListener('focusin', detenerRonda);
+		return {
+			destroy() {
+				nodo.removeEventListener('pointerenter', detenerRonda);
+				nodo.removeEventListener('focusin', detenerRonda);
+			}
+		};
+	}
+
+	onDestroy(() => {
+		clearTimeout(relevo);
+		detenerRonda();
+	});
 
 	/** El color de rampa de una celda, para teñir su banda de detalle. */
 	const colorDe = (slug) => celdas.find((c) => c.slug === slug)?.color;
@@ -123,7 +184,10 @@
 	let acuse = '';
 	let acuseOk = false;
 
-	onMount(cargarRecaptcha);
+	onMount(() => {
+		cargarRecaptcha();
+		arrancarRonda();
+	});
 
 	async function enviar(evento) {
 		evento.preventDefault();
@@ -413,7 +477,15 @@
 		eso es literalmente lo que dice la capacidad del centro.
 	-->
 	<section class="sv-index" aria-labelledby="sv-index-title">
-		<div class="sv-container">
+		<!--
+			La ronda se detiene al entrar el puntero o el foco en la SECCIÓN entera, y
+			no solo en la fila del panal: la banda de detalle es HERMANA de esa fila, y
+			quien esté leyendo sus ciento setenta y un ítems ya está interactuando
+			aunque no haya tocado una celda. Con el teclado hace aún más falta, porque
+			tabular dentro y que el contenido cambie solo desorienta más que con el
+			ratón.
+		-->
+		<div class="sv-container" use:alEngancharse>
 			<header class="sv-head">
 				<p class="sv-overline">Qué hacemos</p>
 				<h2 id="sv-index-title" class="sv-title">Seis capacidades, una sola casa</h2>
@@ -423,6 +495,10 @@
 				</p>
 			</header>
 
+			<!-- La ronda se detiene al entrar el puntero o el foco en el módulo, panel
+			     incluido: si alguien está leyendo el detalle ya está interactuando
+			     aunque no haya tocado una celda. Con el teclado hace aún más falta,
+			     porque tabular dentro y que el contenido cambie solo desorienta. -->
 			<div class="sv-panal-layout" style="--celda-activa: {celdaActiva.color}">
 				<!--
 					Pestañas y no botones sueltos: seis controles que gobiernan un mismo
