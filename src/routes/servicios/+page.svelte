@@ -123,22 +123,24 @@
 	const acotar = (v) => Math.max(-1, Math.min(1, v));
 
 	/**
-	 * Escucha el puntero sobre el hero. Las dos coordenadas se escriben como
-	 * custom properties sobre la sección —que es la caja que contiene tanto la
-	 * fotografía como el árbol— y no como estado de Svelte: cambian en cada
-	 * fotograma, y pasarlas por el ciclo de render reevaluaría los quince nodos
-	 * sesenta veces por segundo para moverlos unos píxeles. Lo que sí es estado
-	 * es el nodo enfocado, que cambia unas pocas veces por recorrido.
+	 * Escribe la posición del puntero sobre un elemento como `--px` y `--py`,
+	 * normalizadas a −1..1, para que sus descendientes las usen en CSS.
+	 *
+	 * Van como custom properties y no como estado de Svelte: cambian en cada
+	 * fotograma, y pasarlas por el ciclo de render volvería a evaluar el árbol
+	 * entero sesenta veces por segundo para mover unos píxeles.
+	 *
+	 * `caja` permite medir contra un descendiente en vez de contra el elemento:
+	 * el hero es mucho más ancho que el árbol, y medir contra la sección haría
+	 * que el puntero sobre el texto empujara las hojas lejos de su rama.
+	 * `alMedir` recibe la posición en el sistema 0–100 de esa caja, para lo que
+	 * cada sección necesite además del desplazamiento.
 	 */
-	function arbolVivo(hero) {
-		const caja = hero.querySelector('.sv-arbol');
+	function conPuntero(nodo, { caja: selector, alMedir, alSalir } = {}) {
+		const caja = selector ? nodo.querySelector(selector) : nodo;
 		if (!caja) return;
 
 		const quieto = window.matchMedia('(prefers-reduced-motion: reduce)');
-		// Se buscan por su identificador y no por orden: acoplar este array al del
-		// `{#each}` haría que reordenar los datos moviera los pesos de sitio en
-		// silencio.
-		const piezas = arbolNodos.map((n) => caja.querySelector(`[data-nodo="${n.id}"]`));
 		let cuadro = 0;
 		let puntero = null;
 
@@ -148,37 +150,19 @@
 			const r = caja.getBoundingClientRect();
 			if (!r.width || !r.height) return;
 
-			// El puntero, en el mismo sistema 0–100 en el que viven los nodos.
 			const x = ((puntero.x - r.left) / r.width) * 100;
 			const y = ((puntero.y - r.top) / r.height) * 100;
 
-			// Acotado porque el hero es más ancho que el árbol: sin esto, el puntero
-			// sobre el texto empujaría las hojas muy lejos de su rama.
 			if (!quieto.matches) {
-				hero.style.setProperty('--px', acotar((x - 50) / 50).toFixed(3));
-				hero.style.setProperty('--py', acotar((y - 50) / 50).toFixed(3));
+				nodo.style.setProperty('--px', acotar((x - 50) / 50).toFixed(3));
+				nodo.style.setProperty('--py', acotar((y - 50) / 50).toFixed(3));
 			}
-
-			let cerca = null;
-			let minima = RADIO_FOCO;
-			for (let i = 0; i < arbolNodos.length; i++) {
-				const n = arbolNodos[i];
-				const d = Math.hypot(n.x - x, n.y - y);
-				if (d < minima) {
-					minima = d;
-					cerca = n.id;
-				}
-				// Quince escrituras de estilo por fotograma, no quince renders: sigue
-				// sin tocar el ciclo de Svelte.
-				const w = PESO_LEJOS + (1 - PESO_LEJOS) * Math.max(0, 1 - d / RADIO_CAMPO);
-				piezas[i]?.style.setProperty('--w', w.toFixed(3));
-			}
-			nodoActivo = cerca;
+			alMedir?.(x, y);
 		}
 
 		function mover(e) {
-			// El dedo no tiene hover: en táctil el árbol se quedaría encendido bajo
-			// la yema y se apagaría al levantarla, que no es lo que el gesto pide.
+			// El dedo no tiene hover: en táctil todo se quedaría encendido bajo la
+			// yema y se apagaría al levantarla, que no es lo que el gesto pide.
 			if (e.pointerType === 'touch') return;
 			puntero = { x: e.clientX, y: e.clientY };
 			if (!cuadro) cuadro = requestAnimationFrame(pintar);
@@ -190,21 +174,48 @@
 				cancelAnimationFrame(cuadro);
 				cuadro = 0;
 			}
-			hero.style.setProperty('--px', '0');
-			hero.style.setProperty('--py', '0');
-			nodoActivo = null;
+			nodo.style.setProperty('--px', '0');
+			nodo.style.setProperty('--py', '0');
+			alSalir?.();
 		}
 
-		hero.addEventListener('pointermove', mover);
-		hero.addEventListener('pointerleave', salir);
+		nodo.addEventListener('pointermove', mover);
+		nodo.addEventListener('pointerleave', salir);
 
 		return {
 			destroy() {
-				hero.removeEventListener('pointermove', mover);
-				hero.removeEventListener('pointerleave', salir);
+				nodo.removeEventListener('pointermove', mover);
+				nodo.removeEventListener('pointerleave', salir);
 				if (cuadro) cancelAnimationFrame(cuadro);
 			}
 		};
+	}
+
+	/** Enciende el nodo del árbol más cercano y reparte el peso del parallax. */
+	function medirArbol(x, y) {
+		let cerca = null;
+		let minima = RADIO_FOCO;
+		for (let i = 0; i < arbolNodos.length; i++) {
+			const n = arbolNodos[i];
+			const d = Math.hypot(n.x - x, n.y - y);
+			if (d < minima) {
+				minima = d;
+				cerca = n.id;
+			}
+			// Quince escrituras de estilo por fotograma, no quince renders: sigue sin
+			// tocar el ciclo de Svelte.
+			const w = PESO_LEJOS + (1 - PESO_LEJOS) * Math.max(0, 1 - d / RADIO_CAMPO);
+			piezasArbol[i]?.style.setProperty('--w', w.toFixed(3));
+		}
+		nodoActivo = cerca;
+	}
+
+	// Se resuelven una vez y por identificador, no por orden: acoplar este array
+	// al del `{#each}` haría que reordenar los datos moviera los pesos de sitio
+	// en silencio.
+	let piezasArbol = [];
+	function registrarArbol(caja) {
+		piezasArbol = arbolNodos.map((n) => caja.querySelector(`[data-nodo="${n.id}"]`));
 	}
 </script>
 
@@ -232,7 +243,10 @@
 		la imagen —luminancia media 14.5 sobre 255, medida sobre el archivo—, y la
 		mitad derecha queda libre a propósito: ahí crece el árbol.
 	-->
-	<section class="sv-hero" use:arbolVivo>
+	<section
+		class="sv-hero"
+		use:conPuntero={{ caja: '.sv-arbol', alMedir: medirArbol, alSalir: () => (nodoActivo = null) }}
+	>
 		<div class="sv-hero-foto">
 			<img
 				src="/img/servicios-hero.webp"
@@ -266,7 +280,7 @@
 				seis capacidades, así que queda fuera del árbol de accesibilidad.
 			-->
 			<div class="sv-hero-arbol" aria-hidden="true">
-				<div class="sv-arbol" class:sv-arbol--enfocado={nodoActivo}>
+				<div class="sv-arbol" class:sv-arbol--enfocado={nodoActivo} use:registrarArbol>
 					<!-- Los trazos van detrás de los nodos, en el mismo sistema de 0–100
 					     que sus coordenadas, para que todo escale junto. -->
 					<svg class="sv-arbol-trazos" viewBox="0 0 100 100" preserveAspectRatio="none">
@@ -583,7 +597,7 @@
 	</section>
 
 	<!-- ── CIERRE ────────────────────────────────────────── -->
-	<section class="sv-close">
+	<section class="sv-close" use:conPuntero>
 		<div class="sv-container sv-close-inner">
 			<div>
 				<h2 class="sv-title sv-close-title">
@@ -612,8 +626,8 @@
 				<img
 					src="/img/servicios-construimos.webp"
 					alt="Despiece de un equipo Nexus: la carcasa, su plano, la electrónica interna y el equipo terminado, con la conectividad, la señal, los mapas y los tableros saliendo de él."
-					width="1400"
-					height="700"
+					width="980"
+					height="770"
 					loading="lazy"
 					decoding="async"
 				/>
@@ -1042,7 +1056,8 @@
 		/* El foco se queda: encender un nodo no es movimiento, y sin él el árbol
 		   dejaría de responder. Lo que se va es el desplazamiento, que además el
 		   JS ni siquiera llega a escribir. */
-		.sv-hero-foto img {
+		.sv-hero-foto img,
+		.sv-close-figura {
 			transform: none;
 		}
 		.sv-arbol-trazos {
@@ -2207,20 +2222,40 @@
 	   afirma que construimos. */
 	.sv-close-inner {
 		display: grid;
-		grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr);
-		gap: clamp(1.5rem, 4vw, 3rem);
+		grid-template-columns: minmax(0, 0.44fr) minmax(0, 0.56fr);
+		gap: clamp(1.25rem, 3vw, 2.5rem);
 		align-items: center;
+		/* La perspectiva vive en el contenedor y no en la figura: puesta en el
+		   propio elemento que rota, cada punto se proyecta desde su propio centro
+		   y el giro se lee plano, como un naipe girando en dos dimensiones. */
+		perspective: 1500px;
 	}
 
 	.sv-close-figura {
 		margin: 0;
-		/* Se sale de su columna por los dos lados. A la derecha porque el despiece
-		   vuela hacia afuera y cortarlo contra un margen invisible lo detendría en
-		   seco; a la izquierda porque el tercio izquierdo del archivo es aire
-		   transparente, y respetarlo como si fuera dibujo deja la pieza pequeña.
-		   El recorte lo pone la sección, no el viewport. */
-		margin-left: clamp(-6rem, -5vw, 0rem);
+		/*
+		 * Ya no hace falta tirar de ella hacia la izquierda: el archivo venía con
+		 * un 36.9% de aire transparente en ese lado y se recortó en origen, que es
+		 * donde estaba el problema. Solo conserva la salida por la derecha, porque
+		 * el despiece vuela hacia afuera y cortarlo contra un margen invisible lo
+		 * detendría en seco. El recorte lo pone la sección, no el viewport.
+		 */
 		margin-right: clamp(-5rem, -4vw, 0rem);
+
+		/*
+		 * Gira con el puntero. Horizontal sobre todo —es lo que enseña el despiece:
+		 * las capas separándose en profundidad— con una pizca de inclinación
+		 * vertical para que no se lea como un carrusel.
+		 *
+		 * El sentido es el de mover la CÁMARA, no el objeto: con el puntero a la
+		 * derecha se ve más del costado derecho, igual que la fotografía del hero
+		 * se desplaza en contra del cursor. Las dos secciones cuentan el mismo
+		 * gesto.
+		 */
+		transform: rotateY(calc(var(--px, 0) * -10deg)) rotateX(calc(var(--py, 0) * 3deg));
+		transform-style: preserve-3d;
+		transition: transform 0.55s var(--gl-ease);
+		will-change: transform;
 	}
 	.sv-close-figura img {
 		display: block;
@@ -2279,7 +2314,6 @@
 			grid-template-columns: 1fr;
 		}
 		.sv-close-figura {
-			margin-left: 0;
 			margin-right: 0;
 		}
 
