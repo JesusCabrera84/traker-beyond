@@ -588,16 +588,40 @@ const PANAL_ANILLO = [
  * primeras al anillo, en el orden del array: el orden de los datos es el orden
  * de lectura, y así renumerarlas o reordenarlas no obliga a tocar geometría.
  */
+/*
+ * El color de cada celda es una rampa POR POSICIÓN, no un color por significado.
+ *
+ * Con un solo cian no caben seis escalones legibles, y seis tonos con
+ * significado acabarían formando parejas que parecen agrupaciones deliberadas
+ * que nadie quiso decir. En cambio una rampa continua del azul del anillo al
+ * hielo del centro se lee como una sola familia, distingue cada celda de su
+ * vecina, y dice lo que la sección afirma: las cinco alimentan a la una.
+ *
+ * El recorrido va de 214° a 187°, que es del azul de las luces de ciudad del
+ * hero al cian de marca. Ni entra en el verde de Nexus, ni en la plata de Orion,
+ * ni en el rojo de Signum.
+ */
+const PANAL_TONO_INICIO = 214;
+const PANAL_TONO_FIN = 187;
+
 export function celdasPanal(capacidades) {
 	const ultima = capacidades.length - 1;
 	return capacidades.map((c, i) => {
 		const centro = i === ultima;
 		const d = centro ? { dx: 0, dy: 0 } : PANAL_ANILLO[i];
+		const t = ultima > 0 ? i / (ultima - 1 || 1) : 0;
+		const tono = centro
+			? PANAL_TONO_FIN
+			: Math.round(PANAL_TONO_INICIO + (PANAL_TONO_FIN - PANAL_TONO_INICIO) * Math.min(t, 1));
 		return {
 			...c,
 			centro,
 			x: PANAL_CENTRO.x + d.dx,
-			y: PANAL_CENTRO.y + d.dy
+			y: PANAL_CENTRO.y + d.dy,
+			// El centro es el destino de la rampa: mismo tono que el final del
+			// anillo pero mucho más claro, para que se lea como aquello a lo que
+			// las otras cinco llegan.
+			color: centro ? `hsl(${tono} 92% 82%)` : `hsl(${tono} 78% 64%)`
 		};
 	});
 }

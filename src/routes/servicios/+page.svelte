@@ -22,6 +22,7 @@
 
 	let activa = services[0].slug;
 	$: capacidadActiva = services.find((s) => s.slug === activa);
+	$: celdaActiva = celdas.find((c) => c.slug === activa);
 
 	/*
 	 * La ronda en reposo: el panal se explica solo hasta que alguien lo toca, y
@@ -447,7 +448,7 @@
 			     interactuando aunque no haya tocado una celda. Y con el teclado hace
 			     todavía más falta, porque tabular dentro y que el contenido cambie
 			     solo desorienta más que con el ratón. -->
-			<div class="sv-panal-layout" use:alEngancharse>
+			<div class="sv-panal-layout" use:alEngancharse style="--celda-activa: {celdaActiva.color}">
 				<!--
 					Pestañas y no botones sueltos: seis controles que gobiernan un mismo
 					panel son exactamente eso, y el patrón trae la navegación por flechas
@@ -462,7 +463,7 @@
 							class="sv-hex"
 							class:is-activa={activa === c.slug}
 							class:sv-hex--centro={c.centro}
-							style="--x: {c.x}; --y: {c.y}"
+							style="--x: {c.x}; --y: {c.y}; --celda: {c.color}"
 							aria-selected={activa === c.slug}
 							aria-controls="panel-capacidad"
 							tabindex={activa === c.slug ? 0 : -1}
@@ -1528,7 +1529,11 @@
 		position: absolute;
 		inset: 0;
 		clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-		background: linear-gradient(160deg, rgba(127, 227, 245, 0.34), rgba(127, 227, 245, 0.12));
+		background: linear-gradient(
+			160deg,
+			color-mix(in srgb, var(--celda) 45%, transparent),
+			color-mix(in srgb, var(--celda) 14%, transparent)
+		);
 		padding: 1px;
 		-webkit-mask:
 			linear-gradient(#000 0 0) content-box,
@@ -1542,7 +1547,7 @@
 	}
 
 	.sv-hex {
-		background-color: rgba(127, 227, 245, 0.03);
+		background-color: color-mix(in srgb, var(--celda) 5%, transparent);
 	}
 
 	.sv-hex-figura {
@@ -1564,8 +1569,8 @@
 		font-family: var(--gl-font-label);
 		font-size: 0.58rem;
 		letter-spacing: 0.16em;
-		color: var(--sv-accent);
-		opacity: 0.6;
+		color: var(--celda);
+		opacity: 0.72;
 		margin-bottom: 8%;
 		transition: opacity 0.4s var(--gl-ease);
 	}
@@ -1584,7 +1589,7 @@
 
 	.sv-hex:hover,
 	.sv-hex:focus-visible {
-		background-color: rgba(127, 227, 245, 0.07);
+		background-color: color-mix(in srgb, var(--celda) 11%, transparent);
 	}
 	.sv-hex:focus-visible {
 		outline: 2px solid var(--sv-accent);
@@ -1592,10 +1597,14 @@
 	}
 
 	.sv-hex.is-activa {
-		background-color: rgba(127, 227, 245, 0.12);
+		background-color: color-mix(in srgb, var(--celda) 17%, transparent);
 	}
 	.sv-hex.is-activa::before {
-		background: linear-gradient(160deg, var(--sv-accent), rgba(127, 227, 245, 0.35));
+		background: linear-gradient(
+			160deg,
+			var(--celda),
+			color-mix(in srgb, var(--celda) 45%, transparent)
+		);
 	}
 	.sv-hex.is-activa .sv-hex-figura {
 		opacity: 1;
@@ -1614,10 +1623,14 @@
 	 * contaba — que «Soluciones Integrales» es una capacidad más.
 	 */
 	.sv-hex--centro {
-		background-color: rgba(127, 227, 245, 0.085);
+		background-color: color-mix(in srgb, var(--celda) 10%, transparent);
 	}
 	.sv-hex--centro::before {
-		background: linear-gradient(160deg, rgba(127, 227, 245, 0.55), rgba(127, 227, 245, 0.2));
+		background: linear-gradient(
+			160deg,
+			color-mix(in srgb, var(--celda) 70%, transparent),
+			color-mix(in srgb, var(--celda) 26%, transparent)
+		);
 	}
 	.sv-hex--centro .sv-hex-label {
 		color: var(--sv-text);
@@ -1652,7 +1665,9 @@
 		font-family: var(--gl-font-label);
 		font-size: 0.64rem;
 		letter-spacing: 0.2em;
-		color: var(--sv-accent);
+		/* El mismo color de la celda encendida: el salto del panal al texto se lee
+		   como el mismo objeto y no como dos bloques distintos. */
+		color: var(--celda-activa, var(--sv-accent));
 		margin: 0;
 	}
 

@@ -7,27 +7,25 @@
 </script>
 
 <!--
-	La figura de una capacidad dentro de su hexágono. Tres planos con tratamiento
-	distinto: `base` son las placas apagadas —el sistema como está—, `vivo` es lo
-	que la capacidad cambia, y `detalle` los trazos que lo explican. Esa
-	separación es la que permite que al activarse la celda se encienda solo lo que
-	la capacidad APORTA, en vez de subir el brillo de todo por igual.
+	La figura de una capacidad dentro de su hexágono.
+
+	Dos planos y nada más: `fondo` es el sistema como está —apagado, sin
+	protagonismo— y `figura` es lo que la capacidad aporta. Al encenderse la celda
+	sube solo lo segundo, así que el dibujo dice algo en vez de brillar más.
+
+	Manda la masa, no la línea: a 130 px un trazo de 1 px no se ve, y la primera
+	versión de estas figuras se leía como garabatos tenues. Todo va relleno y con
+	trazo grueso.
 -->
 <svg viewBox="0 0 100 100" role="presentation" focusable="false">
-	{#each f.base ?? [] as d (d)}
-		<path class="fg-base" {d} />
+	{#each f.fondo ?? [] as d (d)}
+		<path class="fg-fondo" {d} />
 	{/each}
-	{#each f.detalle ?? [] as d (d)}
-		<path class="fg-detalle" {d} />
+	{#each f.polvo ?? [] as [cx, cy] (`${cx}-${cy}`)}
+		<circle class="fg-polvo" {cx} {cy} r="3" />
 	{/each}
-	{#each f.vivo ?? [] as d (d)}
-		<path class="fg-vivo" {d} />
-	{/each}
-	{#each f.nube ?? [] as [cx, cy] (`${cx}-${cy}`)}
-		<circle class="fg-polvo" {cx} {cy} r="1.4" />
-	{/each}
-	{#each f.nodos ?? [] as [cx, cy] (`${cx}-${cy}`)}
-		<circle class="fg-nodo" {cx} {cy} r="2.2" />
+	{#each f.figura ?? [] as d (d)}
+		<path class="fg-figura" {d} />
 	{/each}
 </svg>
 
@@ -40,36 +38,30 @@
 	}
 
 	path {
-		fill: none;
-		vector-effect: non-scaling-stroke;
 		stroke-linecap: round;
 		stroke-linejoin: round;
 	}
 
-	/* El sistema como está: presente pero apagado. */
-	.fg-base {
-		stroke: rgba(127, 227, 245, 0.3);
-		stroke-width: 1;
-	}
-
-	.fg-detalle {
-		stroke: rgba(127, 227, 245, 0.45);
-		stroke-width: 1;
-	}
-
-	/* Lo que la capacidad aporta. Es lo único que sube al encenderse la celda, y
-	   por eso la figura dice algo en vez de solo brillar más. */
-	.fg-vivo {
-		stroke: var(--sv-accent);
-		stroke-width: 1.5;
-		fill: rgba(127, 227, 245, 0.07);
+	/* El sistema como está: presente, pero claramente por detrás. */
+	.fg-fondo {
+		fill: rgba(148, 190, 214, 0.14);
+		stroke: rgba(148, 190, 214, 0.4);
+		stroke-width: 2;
 	}
 
 	.fg-polvo {
-		fill: rgba(127, 227, 245, 0.34);
+		fill: rgba(148, 190, 214, 0.42);
 	}
 
-	.fg-nodo {
-		fill: var(--sv-accent);
+	/*
+	 * Lo que la capacidad aporta, al color de su celda. `--celda` es una rampa por
+	 * POSICIÓN y no un color por significado: con un solo cian no caben seis
+	 * escalones legibles, y seis tonos con significado acabarían formando parejas
+	 * que parecen agrupaciones deliberadas que nadie quiso decir.
+	 */
+	.fg-figura {
+		fill: color-mix(in srgb, var(--celda) 26%, transparent);
+		stroke: var(--celda);
+		stroke-width: 3;
 	}
 </style>

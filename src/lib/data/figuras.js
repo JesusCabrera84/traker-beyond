@@ -1,175 +1,118 @@
 /**
  * LAS SEIS FIGURAS DEL PANAL
  *
- * Regla de partida, y es lo único que impide que seis dibujos se conviertan en
- * seis clip-arts: NUNCA se dibuja la cosa, se dibuja el CAMBIO DE ESTADO que la
+ * Regla de fondo: NUNCA se dibuja la cosa, se dibuja el CAMBIO DE ESTADO que la
  * capacidad produce. Nada de lupas, nubes, cerebros, abanicos de wifi, engranes
- * ni piezas de puzzle — esos dibujan el sustantivo y no dicen nada que el título
+ * ni piezas de puzzle: esos dibujan el sustantivo y no dicen nada que el título
  * no diga ya.
  *
- * Las seis comparten vocabulario: placas de vidrio vistas en escorzo, nodos y
- * trazos. Lo único que cambia es qué ocurre encima de ellas. Así el conjunto se
- * lee como seis estados de un mismo sistema y no como seis iconos sueltos, que
- * es exactamente el argumento de la sección.
+ * Regla de forma, que es la que faltaba en el primer intento: a 130 px la LÍNEA
+ * NO EXISTE. La primera versión eran diagramas de trazo fino al 30-45% de
+ * opacidad y se leían como garabatos tenues, además de parecerse entre sí por
+ * compartir vocabulario. Aquí manda la MASA: pocas piezas, rellenas, con
+ * silueta distinta cada una. Lo que sobrevive al tamaño pequeño es el bulto, no
+ * el detalle.
  *
- * Van en un viewBox 0–100 y con trazo sin escalar, para que sobrevivan al
- * tamaño al que se dibujan dentro del hexágono (~135 px de lado útil).
+ * Cada figura tiene dos planos y nada más: `fondo` es el sistema como está —
+ * apagado, sin protagonismo— y `figura` es lo que la capacidad aporta, relleno
+ * y al color de su celda. Al encenderse solo sube lo segundo, así que el dibujo
+ * dice algo en vez de brillar más.
  */
 
-/** Placa en escorzo: un rombo achatado, que es el vocabulario del árbol del hero. */
-const placa = (cx, cy, ancho, alto = 9) =>
+/** Placa en escorzo: el rombo achatado del vocabulario del hero. */
+const placa = (cx, cy, ancho, alto) =>
 	`M${cx - ancho} ${cy} L${cx} ${cy - alto} L${cx + ancho} ${cy} L${cx} ${cy + alto} Z`;
 
 export const figuras = {
 	/*
-	 * Una pila de placas con UNA extraída y encendida, y sobre ella un trazo que
-	 * se corta antes de llegar al borde.
-	 *
-	 * El motivo es «sacar la capa que está mal de un sistema que ya existe», que
-	 * es la promesa literal. El trazo inacabado dice que el roadmap está
-	 * decidido pero todavía no construido, que es justo lo que se compra aquí.
+	 * Una pila de tres placas con la del medio EXTRAÍDA y encendida.
+	 * Sacar la capa que está mal de un sistema que ya existe.
 	 */
 	'consultoria-estrategia': {
-		base: [placa(46, 76, 30), placa(46, 30, 30)],
-		vivo: [placa(58, 53, 30)],
-		detalle: ['M44 53 H70'],
-		nodos: [
-			[48, 53],
-			[58, 53],
-			[68, 53]
-		]
+		fondo: [placa(46, 76, 30, 11), placa(46, 30, 30, 11)],
+		figura: [placa(60, 53, 30, 11)]
 	},
 
 	/*
-	 * Dos placas a distinta altura con la MISMA huella: abajo una retícula vieja,
-	 * arriba la misma superficie redibujada como servicios conectados, y tres
-	 * hilos migrando entre ambas.
-	 *
-	 * El motivo es «el mismo sistema, reconstruido un nivel arriba». Que la
-	 * huella coincida es el argumento: se moderniza sin perder nada. Una nube o
-	 * un `</>` dirían «escribimos código», que no es lo que se vende.
+	 * Dos placas con la MISMA huella a distinta altura, unidas por tres columnas
+	 * gruesas. El mismo sistema, reconstruido un nivel arriba: que la huella
+	 * coincida es el argumento, porque no se pierde nada al modernizar.
 	 */
 	'software-cloud': {
-		base: [placa(50, 80, 32)],
-		vivo: [placa(50, 26, 32)],
-		detalle: [
-			'M34 80 H66',
-			'M50 72 V88',
-			'M38 26 L50 20 L62 26',
-			'M38 26 L50 32 L62 26',
-			'M40 72 V34',
-			'M50 71 V33',
-			'M60 72 V34'
-		],
-		nodos: [
-			[38, 26],
-			[50, 20],
-			[62, 26],
-			[50, 32]
-		]
+		fondo: [placa(50, 82, 32, 12)],
+		figura: [placa(50, 26, 32, 12), 'M36 76 V32', 'M50 82 V26', 'M64 76 V32']
 	},
 
 	/*
-	 * Una placa con muchos puntos apagados y, encima, una placa MÁS PEQUEÑA donde
-	 * todo eso se ha resuelto en un solo trazo que termina en un nodo.
-	 *
-	 * El motivo es «disperso → decisión», que es «decidir con datos, no con
-	 * demos». La salida es deliberadamente más chica que la entrada: la respuesta
-	 * pesa menos que los datos que hicieron falta para llegar a ella.
+	 * Una placa cargada de puntos y, encima, UN solo bloque pequeño y macizo.
+	 * Disperso → decisión. La salida es deliberadamente más chica que la
+	 * entrada: la respuesta pesa menos que los datos que hicieron falta.
 	 */
 	'ai-data': {
-		base: [placa(50, 78, 34)],
-		vivo: [placa(50, 30, 18, 6)],
-		detalle: ['M38 30 L46 27 L54 32 L62 28'],
-		nube: [
-			[34, 78],
-			[42, 74],
-			[42, 82],
-			[50, 71],
-			[50, 79],
-			[50, 86],
-			[58, 74],
-			[58, 82],
-			[66, 78],
-			[46, 78],
-			[62, 78]
-		],
-		nodos: [[62, 28]]
-	},
-
-	/*
-	 * Una placa con un componente pequeño encima y un arco de anillos que salen
-	 * hacia arriba DECRECIENDO.
-	 *
-	 * Decrecen, y no al revés, porque el dibujo está hecho desde el punto de
-	 * vista del dispositivo: una cosa pequeña en un sitio malo hablando hacia
-	 * arriba. Ese punto de vista es el argumento entero de esta capacidad —«desde
-	 * donde pasa el trabajo»— y un abanico de wifi creciente lo contaría al revés.
-	 */
-	'iot-hardware': {
-		base: [placa(50, 82, 30)],
-		vivo: ['M42 74 H58 V84 H42 Z'],
-		detalle: [
-			'M44 74 V70',
-			'M50 74 V68',
-			'M56 74 V70',
-			'M32 62 A22 16 0 0 1 68 62',
-			'M38 50 A15 11 0 0 1 62 50',
-			'M43 40 A9 7 0 0 1 57 40',
-			'M47 32 A4 3 0 0 1 53 32'
-		],
-		nodos: [[50, 28]]
-	},
-
-	/*
-	 * La placa como piso de planta: tres huellas de máquina DISTINTAS en fila,
-	 * cada una con un vástago que sube a UNA MISMA barra, y una marca de lectura
-	 * sobre ella.
-	 *
-	 * El motivo es «máquinas heterogéneas resueltas sobre una sola línea de
-	 * medición» — que la planta se mida sola. Un engrane diría mecánica; esta
-	 * capacidad es integración, así que lo que hay que dibujar es la JUNTURA y no
-	 * la maquinaria. Que las tres huellas sean distintas es parte del argumento.
-	 */
-	'industria-automatizacion': {
-		base: [placa(50, 84, 34)],
-		vivo: ['M28 40 H72'],
-		detalle: [
-			'M32 78 H42 V84 H32 Z',
-			'M46 76 L54 76 L56 84 L44 84 Z',
-			'M60 79 A5 5 0 1 1 70 79 A5 5 0 1 1 60 79',
-			'M37 78 V40',
-			'M50 76 V40',
-			'M65 74 V40',
-			'M44 40 L50 32 L56 40'
-		],
-		nodos: [
-			[37, 40],
-			[50, 40],
-			[65, 40]
+		fondo: [placa(50, 78, 34, 12)],
+		figura: [placa(50, 30, 15, 10)],
+		polvo: [
+			[32, 78],
+			[41, 72],
+			[41, 84],
+			[50, 68],
+			[50, 78],
+			[50, 88],
+			[59, 72],
+			[59, 84],
+			[68, 78]
 		]
 	},
 
 	/*
-	 * Las cinco anteriores en pequeño, apiladas, atravesadas por UN SOLO hilo
-	 * vertical limpio de abajo arriba, sin cortes.
-	 *
-	 * «Nadie se echa la culpa entre proveedores» es una afirmación sobre la
-	 * AUSENCIA DE JUNTAS, así que el argumento entero del dibujo es que el hilo no
-	 * se interrumpe. Un puzzle o un apretón de manos dirían colaboración, que es
-	 * lo contrario de lo que se promete: aquí no hay dos partes que colaboren,
-	 * hay una sola.
+	 * Un bloque macizo abajo y tres arcos gruesos que salen DECRECIENDO hacia
+	 * arriba. Decrecen porque el dibujo está hecho desde el punto de vista del
+	 * dispositivo —una cosa pequeña en un sitio malo, hablando hacia arriba— y
+	 * ese punto de vista es el argumento entero de esta capacidad.
+	 */
+	'iot-hardware': {
+		fondo: [placa(50, 84, 30, 11)],
+		figura: [
+			'M40 72 H60 V84 H40 Z',
+			'M30 62 A24 18 0 0 1 70 62',
+			'M37 48 A16 12 0 0 1 63 48',
+			'M44 36 A8 6 0 0 1 56 36'
+		]
+	},
+
+	/*
+	 * Tres bloques DISTINTOS en fila, cada uno con una columna que sube a UNA
+	 * MISMA barra gruesa. Máquinas heterogéneas resueltas sobre una sola línea de
+	 * medición. Un engrane diría mecánica; esta capacidad es integración, así que
+	 * lo que hay que enseñar es la juntura y no la maquinaria.
+	 */
+	'industria-automatizacion': {
+		fondo: [
+			placa(50, 86, 34, 11),
+			'M30 74 H42 V82 H30 Z',
+			'M46 70 H56 V82 H46 Z',
+			'M62 76 H72 V82 H62 Z'
+		],
+		figura: ['M26 40 H74 V50 H26 Z', 'M36 74 V50', 'M51 70 V50', 'M67 76 V50']
+	},
+
+	/*
+	 * Cinco placas macizas atravesadas por UN SOLO eje grueso, limpio de abajo
+	 * arriba y sin cortes. «Nadie se echa la culpa entre proveedores» es una
+	 * afirmación sobre la AUSENCIA DE JUNTAS: el argumento entero del dibujo es
+	 * que el eje no se interrumpe. Un puzzle o un apretón de manos dirían
+	 * colaboración, que es lo contrario de lo que se promete — aquí no hay dos
+	 * partes que colaboren, hay una sola.
 	 */
 	'soluciones-integrales': {
-		base: [placa(50, 22, 20, 6), placa(50, 53, 20, 6), placa(50, 84, 20, 6)],
-		vivo: [placa(50, 37, 24, 7), placa(50, 68, 24, 7)],
-		detalle: ['M50 12 V94'],
-		nodos: [
-			[50, 22],
-			[50, 37],
-			[50, 53],
-			[50, 68],
-			[50, 84]
+		fondo: [],
+		figura: [
+			'M50 8 V92',
+			placa(50, 20, 19, 7),
+			placa(50, 36, 22, 8),
+			placa(50, 52, 25, 9),
+			placa(50, 68, 22, 8),
+			placa(50, 84, 19, 7)
 		]
 	}
 };
