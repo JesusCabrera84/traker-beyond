@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { arbolNodos, arbolRamas, ramaDeNodo } from './services.js';
+import { arbolNodos, arbolRamas, ramaDeNodo, amplitudNodo } from './services.js';
 
 describe('árbol tecnológico', () => {
 	it('no repite identificadores', () => {
@@ -56,6 +56,31 @@ describe('árbol tecnológico', () => {
 			expect(bordes[k].der, `nivel ${k + 1} no alcanza más a la derecha`).toBeGreaterThan(
 				bordes[k - 1].der
 			);
+		}
+	});
+});
+
+describe('amplitud del parallax', () => {
+	it('deja la raíz prácticamente quieta y da a la copa el recorrido mayor', () => {
+		const raiz = arbolNodos.find((n) => n.id === 'raiz');
+		const copa = arbolNodos.find((n) => n.id === 'copa');
+		expect(amplitudNodo(raiz)).toBeLessThan(1);
+		expect(amplitudNodo(copa)).toBeGreaterThan(amplitudNodo(raiz) * 5);
+	});
+
+	// La regresión que este cambio arregla: con una amplitud por capa y nada más,
+	// las quince piezas se desplazaban en bloque y el árbol patinaba sobre la foto
+	// en vez de reaccionar.
+	it('no da la misma amplitud a dos hojas de la misma capa a distinta altura', () => {
+		const alta = arbolNodos.find((n) => n.id === 'hoja-1i');
+		const baja = arbolNodos.find((n) => n.id === 'hoja-4i');
+		expect(alta.capa).toBe(baja.capa);
+		expect(amplitudNodo(alta)).toBeGreaterThan(amplitudNodo(baja) * 1.5);
+	});
+
+	it('nunca inmoviliza del todo un nodo', () => {
+		for (const n of arbolNodos) {
+			expect(amplitudNodo(n), `${n.id} inmóvil`).toBeGreaterThan(0);
 		}
 	});
 });

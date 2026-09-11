@@ -6,7 +6,8 @@
 		processSteps,
 		arbolNodos,
 		arbolRamas,
-		ramaDeNodo
+		ramaDeNodo,
+		amplitudNodo
 	} from '$lib/data/services.js';
 
 	// Abierta la primera: la página nunca se ve vacía y el visitante entiende de
@@ -33,6 +34,14 @@
 	// nodos lejanos; más estrecho y hay que apuntar.
 	const RADIO_FOCO = 11;
 
+	// El árbol reacciona donde está el puntero y casi no se inmuta lejos de él.
+	// El radio es ancho a propósito: es un campo blando que alcanza a la rama
+	// entera, no un foco que ilumina una pieza y deja muertas a sus vecinas.
+	const RADIO_CAMPO = 52;
+	// Suelo del peso. Con cero, todo lo que está lejos del puntero se congela, y
+	// una pieza inmóvil entre otras que respiran se lee como pegada a la foto.
+	const PESO_LEJOS = 0.25;
+
 	const acotar = (v) => Math.max(-1, Math.min(1, v));
 
 	/**
@@ -48,6 +57,10 @@
 		if (!caja) return;
 
 		const quieto = window.matchMedia('(prefers-reduced-motion: reduce)');
+		// Se buscan por su identificador y no por orden: acoplar este array al del
+		// `{#each}` haría que reordenar los datos moviera los pesos de sitio en
+		// silencio.
+		const piezas = arbolNodos.map((n) => caja.querySelector(`[data-nodo="${n.id}"]`));
 		let cuadro = 0;
 		let puntero = null;
 
@@ -70,12 +83,17 @@
 
 			let cerca = null;
 			let minima = RADIO_FOCO;
-			for (const n of arbolNodos) {
+			for (let i = 0; i < arbolNodos.length; i++) {
+				const n = arbolNodos[i];
 				const d = Math.hypot(n.x - x, n.y - y);
 				if (d < minima) {
 					minima = d;
 					cerca = n.id;
 				}
+				// Quince escrituras de estilo por fotograma, no quince renders: sigue
+				// sin tocar el ciclo de Svelte.
+				const w = PESO_LEJOS + (1 - PESO_LEJOS) * Math.max(0, 1 - d / RADIO_CAMPO);
+				piezas[i]?.style.setProperty('--w', w.toFixed(3));
 			}
 			nodoActivo = cerca;
 		}
@@ -197,9 +215,12 @@
 							alt=""
 							decoding="async"
 							data-capa={nodo.capa}
+							data-nodo={nodo.id}
 							class:sv-arbol-nodo--volteado={nodo.voltear}
 							class:sv-arbol-nodo--activo={nodo.id === nodoActivo}
-							style="--x: {nodo.x}%; --y: {nodo.y}%; --t: {nodo.tamano}%;"
+							style="--x: {nodo.x}%; --y: {nodo.y}%; --t: {nodo.tamano}%; --amp: {amplitudNodo(
+								nodo
+							)}px;"
 						/>
 					{/each}
 				</div>
@@ -597,10 +618,10 @@
 		width: 100%;
 		height: 100%;
 		overflow: visible;
-		/* Los trazos se mueven a media distancia entre el tronco y las hojas: si
-		   se quedaran clavados, las hojas se despegarían de su propia rama. */
-		transform: translate(calc(var(--px) * 5px), calc(var(--py) * 5px));
-		transition: transform 0.45s var(--gl-ease);
+		/* Los trazos se quedan quietos: son el esqueleto sobre el que respiran los
+		   nodos. Pueden hacerlo porque cada rama muere en el CENTRO de su nodo, no
+		   en su borde, así que la pieza sigue tapando el remate por mucho que se
+		   aparte. */
 	}
 	.sv-arbol-linea {
 		fill: none;
@@ -668,7 +689,12 @@
 	/* Los nodos se centran en su coordenada, no se anclan por la esquina: así
 	   `--x`/`--y` señalan el punto del trazo con el que deben coincidir. */
 	.sv-arbol-nodo {
-		--amp: 3px;
+		/* `--amp` llega en línea desde los datos: mezcla la capa con la altura del
+		   nodo. `--w` lo escribe el JS en cada fotograma con la cercanía del
+		   puntero. El valor de reposo va aquí para que el árbol se dibuje quieto
+		   antes de que nadie lo toque. */
+		--amp: 0px;
+		--w: 1;
 		--giro: 1;
 		--acerca: 1;
 		position: absolute;
@@ -680,18 +706,11 @@
 		   el espejo no le cambia el signo: una hoja volteada se aparta hacia el
 		   mismo lado que sus vecinas. */
 		transform: translate(-50%, -50%)
-			translate(calc(var(--px) * var(--amp)), calc(var(--py) * var(--amp))) scaleX(var(--giro))
-			scale(var(--acerca));
+			translate(calc(var(--px) * var(--amp) * var(--w)), calc(var(--py) * var(--amp) * var(--w)))
+			scaleX(var(--giro)) scale(var(--acerca));
 		will-change: transform;
 	}
-	/* La profundidad del parallax. El tronco ancla la escena y casi no se mueve;
-	   las hojas flotan por delante. La diferencia entre capas es lo que produce
-	   la sensación de fondo, no la cantidad de movimiento. */
-	.sv-arbol-nodo[data-capa='2'] {
-		--amp: 7px;
-	}
 	.sv-arbol-nodo[data-capa='3'] {
-		--amp: 13px;
 		filter: drop-shadow(0 0 14px rgba(127, 227, 245, 0.35));
 	}
 	.sv-arbol-nodo--volteado {

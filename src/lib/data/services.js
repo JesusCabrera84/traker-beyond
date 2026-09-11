@@ -618,3 +618,29 @@ export function ramaDeNodo(id) {
 	const m = /^(?:hoja|paso)-(\d[id])$/.exec(id);
 	return m ? `rama-${m[1]}` : 'tronco';
 }
+
+/**
+ * Cuánto se aparta un nodo, en píxeles, cuando el puntero cruza el hero de lado
+ * a lado. Dos factores, y el segundo es el que faltaba.
+ *
+ * `capa` es PROFUNDIDAD: lo que está más cerca del espectador se desplaza más,
+ * que es de donde sale la sensación de fondo.
+ *
+ * La altura es ESTRUCTURA: el árbol está apoyado en la mesa. La raíz no se mueve
+ * y la copa es la que más oscila, como oscila un árbol de verdad. Sin esto las
+ * quince piezas se desplazaban lo mismo y el conjunto entero patinaba sobre la
+ * fotografía en vez de reaccionar.
+ *
+ * El 0.3 es el suelo: ni siquiera lo que está pegado a la mesa se queda del todo
+ * rígido, porque un elemento inmóvil entre otros que respiran se lee como pegado.
+ */
+const AMPLITUD_CAPA = { 1: 3, 2: 8, 3: 16 };
+const SUELO_ALTURA = 0.3;
+
+export function amplitudNodo(nodo) {
+	const ys = arbolNodos.map((n) => n.y);
+	const base = Math.max(...ys);
+	const recorrido = base - Math.min(...ys);
+	const altura = SUELO_ALTURA + (1 - SUELO_ALTURA) * ((base - nodo.y) / recorrido);
+	return Number((AMPLITUD_CAPA[nodo.capa] * altura).toFixed(2));
+}
