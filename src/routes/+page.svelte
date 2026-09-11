@@ -5,7 +5,12 @@
 	import HeroParticles from '$lib/components/HeroParticles.svelte';
 	import HeroGlitch from '$lib/components/HeroGlitch.svelte';
 	import HeroTitle from '$lib/components/HeroTitle.svelte';
-	import { buildApiUrl, API_CONFIG } from '$lib/config/api.js';
+	import {
+		cargarRecaptcha,
+		claveRecaptcha,
+		enviarContacto,
+		validarContacto
+	} from '$lib/contacto.js';
 	import { products, neighborProduct } from '$lib/data/products.js';
 	import { processSteps, scenePins } from '$lib/data/services.js';
 
@@ -188,7 +193,7 @@
 		}
 	];
 	// Variable para reCAPTCHA
-	const recaptchaSiteKey = import.meta.env.VITE_RECAPTCHA_SITE_KEY || '';
+	const recaptchaSiteKey = claveRecaptcha();
 
 	// Variables para el formulario de contacto
 	let formData = {
@@ -343,9 +348,7 @@
 		}, 5000);
 
 		// Cargar el script de reCAPTCHA v3
-		if (recaptchaSiteKey) {
-			loadRecaptchaScript();
-		}
+		cargarRecaptcha();
 
 		// Detectar si estamos en móvil
 		const checkMobile = () => {
@@ -492,202 +495,37 @@
 		}
 	];
 
-	// Función para cargar el script de reCAPTCHA v3
-	function loadRecaptchaScript() {
-		if (document.querySelector(`script[src*="recaptcha"]`)) {
-			return; // Script ya cargado
-		}
-
-		const script = document.createElement('script');
-		script.src = `https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`;
-		script.async = true;
-		script.defer = true;
-		document.head.appendChild(script);
-	}
-
-	// Función para generar el token de reCAPTCHA
-	async function generateRecaptchaToken(action = 'submit') {
-		if (!recaptchaSiteKey || !window.grecaptcha) {
-			console.warn('reCAPTCHA no está configurado o no se ha cargado');
-			return null;
-		}
-
-		try {
-			await window.grecaptcha.ready(() => {});
-			const token = await window.grecaptcha.execute(recaptchaSiteKey, { action });
-			return token;
-		} catch (error) {
-			console.error('Error al generar token de reCAPTCHA:', error);
-			return null;
-		}
-	}
-
-	// Función para sanitizar HTML y caracteres especiales
-	function sanitizeInput(input) {
-		if (!input) return '';
-		// Remover etiquetas HTML
-		const div = document.createElement('div');
-		div.textContent = input;
-		return div.innerHTML
-			.replace(/</g, '&lt;')
-			.replace(/>/g, '&gt;')
-			.replace(/"/g, '&quot;')
-			.replace(/'/g, '&#x27;')
-			.replace(/\//g, '&#x2F;');
-	}
-
-	// Función para validar email
-	function isValidEmail(email) {
-		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-		return emailRegex.test(email);
-	}
-
-	// Función para validar teléfono (solo dígitos entre 7 y 20)
-	function isValidPhone(phone) {
-		const digits = phone.replace(/\D/g, ''); // Eliminar todo lo que no sea dígito
-		return digits.length >= 7 && digits.length <= 20;
-	}
-
-	// Función para validar el formulario
-	function validateForm() {
-		let isValid = true;
-		formErrors = {
-			nombre: '',
-			correo_electronico: '',
-			telefono: '',
-			mensaje: '',
-			general: ''
-		};
-
-		// Validar nombre
-		if (!formData.nombre.trim()) {
-			formErrors.nombre = 'El nombre es requerido';
-			isValid = false;
-		} else if (formData.nombre.length > 200) {
-			formErrors.nombre = 'El nombre no puede exceder los 200 caracteres';
-			isValid = false;
-		}
-
-		// Validar mensaje
-		if (!formData.mensaje.trim()) {
-			formErrors.mensaje = 'El mensaje es requerido';
-			isValid = false;
-		} else if (formData.mensaje.length > 5000) {
-			formErrors.mensaje = 'El mensaje no puede exceder los 5000 caracteres';
-			isValid = false;
-		}
-
-		// Validar que al menos uno de correo o teléfono esté presente
-		const hasEmail = formData.correo_electronico.trim().length > 0;
-		const hasPhone = formData.telefono.trim().length > 0;
-
-		if (!hasEmail && !hasPhone) {
-			formErrors.general = 'Debes proporcionar al menos un correo electrónico o teléfono';
-			isValid = false;
-		}
-
-		// Validar formato de email si está presente
-		if (hasEmail && !isValidEmail(formData.correo_electronico)) {
-			formErrors.correo_electronico = 'El formato del correo electrónico no es válido';
-			isValid = false;
-		}
-
-		// Validar teléfono si está presente
-		if (hasPhone && !isValidPhone(formData.telefono)) {
-			formErrors.telefono = 'El teléfono debe contener entre 7 y 20 dígitos';
-			isValid = false;
-		}
-
-		return isValid;
-	}
+	// El saneado, la validación y el envío viven en `$lib/contacto.js`: los usan
+	// este formulario y el del diagnóstico en /servicios, y una sola copia de esas
+	// reglas es lo que evita que una de las dos se quede sin validar el teléfono o
+	// sin adjuntar el token de reCAPTCHA.
 
 	// Función para manejar el envío del formulario de contacto
 	async function handleContactSubmit(event) {
 		event.preventDefault();
 
-		// Resetear mensajes previos
 		submitSuccess = false;
 		submitMessage = '';
 
-		// Validar formulario
-		if (!validateForm()) {
-			return;
-		}
+		const { valido, errores } = validarContacto(formData);
+		formErrors = errores;
+		if (!valido) return;
 
-		// Preparar datos sanitizados
-		const sanitizedData = {
-			nombre: sanitizeInput(formData.nombre.trim()),
-			mensaje: sanitizeInput(formData.mensaje.trim())
-		};
-
-		// Agregar correo si está presente
-		if (formData.correo_electronico.trim()) {
-			sanitizedData.correo_electronico = sanitizeInput(formData.correo_electronico.trim());
-		}
-
-		// Agregar teléfono si está presente
-		if (formData.telefono.trim()) {
-			sanitizedData.telefono = sanitizeInput(formData.telefono.trim());
-		}
-
-		// Enviar a la API
 		isSubmitting = true;
+		const resultado = await enviarContacto(formData);
+		isSubmitting = false;
 
-		try {
-			// Generar token de reCAPTCHA v3
-			const recaptchaToken = await generateRecaptchaToken('contact_form');
+		submitSuccess = resultado.ok;
+		submitMessage = resultado.mensaje;
 
-			// Agregar token de reCAPTCHA si se generó correctamente
-			if (recaptchaToken) {
-				sanitizedData.recaptcha_token = recaptchaToken;
-			} else if (recaptchaSiteKey) {
-				// Si está configurado pero falló, mostrar error
+		if (resultado.ok) {
+			formData = { nombre: '', correo_electronico: '', telefono: '', mensaje: '' };
+			// El acuse se retira solo: dejarlo fijo hace que el siguiente envío no se
+			// distinga del anterior.
+			setTimeout(() => {
 				submitSuccess = false;
-				submitMessage = 'Error al verificar reCAPTCHA. Por favor, intenta nuevamente.';
-				isSubmitting = false;
-				return;
-			}
-
-			// Construir la URL usando la configuración centralizada
-			const apiUrl = buildApiUrl(API_CONFIG.ENDPOINTS.SEND_CONTACT_MESSAGE);
-
-			const response = await fetch(apiUrl, {
-				method: 'POST',
-				headers: API_CONFIG.DEFAULT_HEADERS,
-				body: JSON.stringify(sanitizedData)
-			});
-
-			const result = await response.json();
-
-			if (response.ok) {
-				submitSuccess = true;
-				submitMessage = result.message || 'Mensaje enviado exitosamente';
-
-				// Limpiar formulario
-				formData = {
-					nombre: '',
-					correo_electronico: '',
-					telefono: '',
-					mensaje: ''
-				};
-
-				// Ocultar mensaje de éxito después de 5 segundos
-				setTimeout(() => {
-					submitSuccess = false;
-					submitMessage = '';
-				}, 5000);
-			} else {
-				submitSuccess = false;
-				submitMessage =
-					result.message || 'Error al enviar el mensaje. Por favor, intenta nuevamente.';
-			}
-		} catch (error) {
-			submitSuccess = false;
-			submitMessage =
-				'Error de conexión. Por favor, verifica tu conexión a internet e intenta nuevamente.';
-			console.error('Error al enviar mensaje:', error);
-		} finally {
-			isSubmitting = false;
+				submitMessage = '';
+			}, 5000);
 		}
 	}
 </script>
