@@ -234,7 +234,7 @@
 			<h2 id="sv-process-title" class="sv-sr-only">Cómo trabajamos</h2>
 			<ol class="sv-process">
 				{#each processSteps as p, i (p.key)}
-					<li class="sv-process-step">
+					<li class="sv-process-step" style="--i: {i}">
 						<span class="sv-process-node" aria-hidden="true"></span>
 						<span class="sv-process-label">{p.label}</span>
 						<span class="sv-process-desc">{p.desc}</span>
@@ -728,7 +728,9 @@
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.sv-arbol-pulso {
+		.sv-arbol-pulso,
+		.sv-process-line::after,
+		.sv-process-node::after {
 			display: none;
 		}
 		/* El foco se queda: encender un nodo no es movimiento, y sin él el árbol
@@ -839,6 +841,20 @@
 	}
 
 	.sv-process {
+		/*
+		 * Una SOLA partícula recorre el riel de principio a fin, tramo por tramo, y
+		 * cada nodo destella cuando llega. Es la misma señal del árbol y del
+		 * diagrama del CTOaaS, pero aquí cuenta algo: esto es un proceso ordenado,
+		 * y cuatro partículas corriendo a la vez lo leerían como cinco cosas
+		 * simultáneas, que es justo lo que no es.
+		 *
+		 * El ciclo se reparte en CINCO franjas para cuatro tramos: la quinta es la
+		 * pausa después de «operamos». Sin ella la partícula reaparecería en el
+		 * origen en el mismo instante en que llega al final, y el recorrido no se
+		 * leería como un recorrido sino como un bucle sin principio.
+		 */
+		--sv-riel-ciclo: 7s;
+		--sv-riel-franja: calc(var(--sv-riel-ciclo) / 5);
 		list-style: none;
 		padding: 0;
 		margin: 0;
@@ -856,22 +872,109 @@
 	}
 
 	.sv-process-node {
+		position: relative;
 		width: 7px;
 		height: 7px;
 		border-radius: 50%;
 		background: var(--sv-accent);
 		margin-bottom: 0.35rem;
 	}
+	/* El destello de llegada. Va en un pseudoelemento y no en el nodo para que
+	   sea solo `transform` y `opacity`: animar el `box-shadow` del propio punto
+	   repintaría en cada fotograma. */
+	.sv-process-node::after {
+		content: '';
+		position: absolute;
+		inset: -2px;
+		border-radius: 50%;
+		background: radial-gradient(circle, rgba(127, 227, 245, 0.9) 0%, rgba(127, 227, 245, 0) 70%);
+		opacity: 0;
+		animation: svRielDestello var(--sv-riel-ciclo) linear infinite;
+		/* El nodo `i` se enciende cuando la partícula TERMINA el tramo `i − 1`, que
+		   es exactamente el arranque de la franja `i`. */
+		animation-delay: calc(var(--i) * var(--sv-riel-franja));
+	}
 
-	/* La línea de 1px que une los nodos: gradiente de la escalera teal. */
+	/*
+	 * La línea de 1px que une los nodos: gradiente de la escalera teal.
+	 *
+	 * La transparencia va en los colores y no en `opacity`, porque `opacity`
+	 * multiplica a los hijos y dejaría la partícula al 45% de su brillo.
+	 */
 	.sv-process-line {
 		position: absolute;
 		top: 3px;
 		left: 7px;
 		right: 0;
 		height: 1px;
-		background: linear-gradient(90deg, var(--gl-teal-400), var(--gl-teal-200));
-		opacity: 0.45;
+		background: linear-gradient(90deg, rgba(8, 131, 160, 0.5), rgba(127, 227, 245, 0.45));
+	}
+	/*
+	 * La partícula. Se desplaza con `left` y no con `transform` porque el recorrido
+	 * es el ancho del tramo, que lo fija la rejilla: un `translateX` en porcentaje
+	 * se mediría contra los 5 px de la propia partícula, no contra el tramo.
+	 */
+	.sv-process-line::after {
+		content: '';
+		position: absolute;
+		top: 50%;
+		left: 0;
+		width: 5px;
+		height: 5px;
+		margin: -2.5px 0 0 -2.5px;
+		border-radius: 50%;
+		background: #ddfaff;
+		box-shadow: 0 0 9px 1px rgba(127, 227, 245, 0.9);
+		opacity: 0;
+		animation: svRielParticula var(--sv-riel-ciclo) linear infinite;
+		animation-delay: calc(var(--i) * var(--sv-riel-franja));
+	}
+
+	/*
+	 * Cada animación dura el ciclo ENTERO y solo se mueve durante su primer
+	 * quinto; el resto del tiempo espera invisible en el destino. Es lo que
+	 * permite escalonar los cuatro tramos con un simple retardo: con una duración
+	 * de un quinto y repetición infinita, los cuatro irían en fase y se vería una
+	 * lluvia de partículas en paralelo en vez de una sola recorriendo el riel.
+	 */
+	@keyframes svRielParticula {
+		0% {
+			left: 0%;
+			opacity: 0;
+		}
+		3% {
+			opacity: 1;
+		}
+		17% {
+			opacity: 1;
+		}
+		20% {
+			left: 100%;
+			opacity: 0;
+		}
+		100% {
+			left: 100%;
+			opacity: 0;
+		}
+	}
+
+	@keyframes svRielDestello {
+		0% {
+			opacity: 0;
+			transform: scale(0.6);
+		}
+		4% {
+			opacity: 1;
+			transform: scale(2.4);
+		}
+		20% {
+			opacity: 0;
+			transform: scale(3.3);
+		}
+		100% {
+			opacity: 0;
+			transform: scale(3.3);
+		}
 	}
 
 	.sv-process-label {
