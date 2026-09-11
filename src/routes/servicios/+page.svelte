@@ -401,7 +401,7 @@
 
 	<!-- ── INNOVATION LAB ────────────────────────────────── -->
 	<section class="sv-lab">
-		<div class="sv-container">
+		<div class="sv-container sv-lab-inner">
 			<div class="sv-lab-copy">
 				<p class="sv-overline">Innovation Lab</p>
 				<h2 class="sv-title">¿Tienes una idea y no sabes si se puede construir?</h2>
@@ -435,6 +435,9 @@
 						decoding="async"
 					/>
 				</div>
+
+				<!-- Las fases van SOBRE la imagen, apoyadas en su borde inferior: de
+				     paso tapan la franja donde el archivo se funde con la sección. -->
 				<ol class="sv-flow">
 					{#each ['Idea', 'PoC', 'MVP', 'Producto', 'Producción'] as paso, i (paso)}
 						<li class="sv-flow-step">
@@ -1409,14 +1412,28 @@
 		padding: clamp(3.5rem, 7vw, 5.5rem) 0;
 	}
 
-	/* El texto no se estira a todo el ancho del contenedor: a 1180 px una línea
-	   de párrafo se vuelve ilegible. La ilustración sí lo ocupa entero. */
+	/*
+	 * El texto no se estira a todo el ancho del contenedor: a 1180 px una línea
+	 * de párrafo se vuelve ilegible. La ilustración sí lo ocupa entero.
+	 *
+	 * El margen NEGATIVO monta el final del texto sobre el inicio de la imagen.
+	 * Cae en la banda superior del archivo, que está vacía de lado a lado durante
+	 * unos doscientos píxeles, así que no hace falta oscurecer nada para que el
+	 * texto se lea encima. Sin ese solape los dos bloques se leían como dos cosas
+	 * puestas una tras otra en vez de como una sola composición.
+	 *
+	 * El solape es constante —lo fija el margen, no el alto del texto—, así que el
+	 * titular puede crecer a tres líneas sin comerse el dibujo.
+	 */
 	.sv-lab-copy {
+		position: relative;
+		z-index: 2;
 		max-width: 46rem;
-		margin-bottom: clamp(2rem, 4vw, 3rem);
+		margin-bottom: clamp(-11rem, -11vw, -2rem);
 	}
 
 	.sv-lab-figura {
+		position: relative;
 		margin: 0;
 	}
 	.sv-lab-lienzo {
@@ -1451,27 +1468,44 @@
 	}
 
 	/*
-	 * Las cinco fases van DEBAJO de la ilustración y en horizontal, para que cada
-	 * una caiga sobre el tramo que le toca: la lista deja de ser un bloque suelto
-	 * y pasa a ser la leyenda de lo que se está viendo.
+	 * Las cinco fases van SOBRE la ilustración, apoyadas en su borde inferior y en
+	 * horizontal, para que cada una caiga sobre el tramo que le toca: la lista
+	 * deja de ser un bloque suelto y pasa a ser la leyenda de lo que se está
+	 * viendo. De paso cubren la franja donde el archivo se funde con la sección,
+	 * que es el punto donde el cambio de tono se nota.
 	 */
 	.sv-flow {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: clamp(0.75rem, 2.5vw, 2.25rem);
 		list-style: none;
 		padding: 0;
-		margin: clamp(0.5rem, 1.5vw, 1rem) 0 0;
+		margin: 0;
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
 		gap: 0.6rem;
 	}
 
+	/*
+	 * Fondo propio y no solo borde: encima de la ilustración, una etiqueta
+	 * transparente compite con los reflejos de las plataformas.
+	 *
+	 * `cursor: default` porque son rótulos, no párrafos. El cursor de texto
+	 * invitaba a seleccionarlos como si fueran contenido que se lee, y a
+	 * confundirlos con algo pulsable que no responde.
+	 */
 	.sv-flow-step {
 		display: flex;
 		align-items: center;
 		gap: 0.85rem;
 		padding: 0.85rem 1.1rem;
-		border: 1px solid var(--sv-rule);
+		border: 1px solid rgba(127, 227, 245, 0.22);
 		border-radius: var(--gl-r-sm);
+		background: rgba(7, 26, 34, 0.74);
+		backdrop-filter: blur(7px);
 		font-weight: 600;
+		cursor: default;
 	}
 
 	.sv-flow-n {
@@ -1533,6 +1567,18 @@
 
 		.sv-process-desc {
 			max-width: none;
+		}
+
+		/* El montaje del Innovation Lab se deshace. Aquí la ilustración mide la
+		   mitad de alto y las cinco fases necesitan dos o tres filas: encima de
+		   ella no caben, y el texto tampoco tiene banda vacía donde apoyarse. */
+		.sv-lab-copy {
+			margin-bottom: 1.75rem;
+		}
+
+		.sv-flow {
+			position: static;
+			margin-top: 1rem;
 		}
 	}
 
